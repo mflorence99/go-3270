@@ -1,0 +1,17 @@
+{
+  "arrowParens": "always",
+  "bracketSameLine": true,
+  "bracketSpacing": true,
+  "cssDeclarationSorterOrder": "alphabetical",
+  "endOfLine": "lf",
+  "htmlWhitespaceSensitivity": "ignore",
+  "printWidth": 72,
+  "plugins": ["prettier-plugin-css-order", "prettier-plugin-package"],
+  "proseWrap": "never",
+  "quoteProps": "consistent",
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "none",
+  "useTabs": false
+}

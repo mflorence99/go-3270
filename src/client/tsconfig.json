@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig-app.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "outDir": "../../dist/client",
+    "plugins": [
+      {
+        "name": "ts-lit-plugin",
+        "strict": true,
+        "rules": {
+          "no-missing-element-type-definition": "off",
+          "no-missing-import": "off",
+          "no-property-visibility-mismatch": "off",
+          "no-unknown-attribute": "error",
+          "no-unknown-event": "error",
+          "no-unknown-property": "error",
+          "no-unknown-tag-name": "error"
+        }
+      }
+    ]
+  },
+
+  "include": ["../lib/**/*.ts", "**/*.ts", "**/*.tsx"]
+}

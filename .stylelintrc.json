@@ -1,0 +1,37 @@
+{
+  "extends": "stylelint-config-standard",
+  "ignoreFiles": ["**/*.js", "**/*.ts"],
+  "overrides": [
+    {
+      "customSyntax": "postcss-lit",
+      "files": ["**/src/**/*.tsx"]
+    }
+  ],
+  "plugins": ["stylelint-order"],
+  "rules": {
+    "at-rule-no-unknown": null,
+    "color-function-notation": "legacy",
+    "color-hex-length": "long",
+    "custom-property-empty-line-before": null,
+    "custom-property-pattern": null,
+    "declaration-block-no-redundant-longhand-properties": null,
+    "function-no-unknown": null,
+    "keyframes-name-pattern": "[A-Z0-9_]*",
+    "no-descending-specificity": null,
+    "no-duplicate-selectors": null,
+    "no-empty-source": null,
+    "no-invalid-position-at-import-rule": null,
+    "order/order": ["custom-properties", "declarations"],
+    "order/properties-alphabetical-order": true,
+    "rule-empty-line-before": null,
+    "selector-class-pattern": null,
+    "selector-type-no-unknown": [
+      true,
+      {
+        "ignore": "custom-elements"
+      }
+    ],
+    "shorthand-property-no-redundant-values": null,
+    "value-keyword-case": null
+  }
+}
