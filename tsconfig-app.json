@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "allowImportingTsExtensions": true,
+    "allowImportingTsExtensions": false,
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
@@ -11,7 +11,7 @@
     "module": "esnext",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
-    "noEmit": true,
+    "noEmit": false,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
     "noImplicitReturns": true,
@@ -21,15 +21,15 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "paths": {
-      "~builder/*": ["./src/builder/*"],
-      "~client/*": ["./src/client/*"],
-      "~lib/*": ["./src/lib/*"],
-      "~server/*": ["./src/server/*"]
+      "$builder/*": ["./src/builder/*"],
+      "$client/*": ["./src/client/*"],
+      "$lib/*": ["./src/lib/*"],
+      "$server/*": ["./src/server/*"]
     },
     "skipLibCheck": true,
     "strict": true,
     "target": "esnext",
     "useDefineForClassFields": false,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": false
   }
 }
