@@ -8,9 +8,9 @@ import { cli } from '$builder/cli';
 import { config } from '$builder/config';
 import { debounce } from '$lib/debounce';
 import { exit } from 'node:process';
-import { figletize } from '$builder/logger';
+import { figletize } from '$builder/log';
 import { kill } from 'node:process';
-import { log } from '$builder/logger';
+import { log } from '$builder/log';
 
 import chokidar from 'chokidar';
 import psList from 'ps-list';
@@ -18,7 +18,7 @@ import psList from 'ps-list';
 // 📘 execute all tasks to build & test Lintel
 //    eg: exec.ts -p -w -v stylelint prettier
 
-const { taskNames, prod, tedious, verbose, watch } = cli();
+const { taskNames, prod, verbose, watch } = cli();
 
 // 👇 flatten all the tasks and their subtasks into a sequense of todos
 
@@ -61,7 +61,7 @@ const run = async (todos: Task[]): Promise<void> => {
       if (todo.func) {
         log({ important: todo.name, text: 'function invoked' });
         await todo.kill?.();
-        const result = await todo.func({ prod, tedious, verbose });
+        const result = await todo.func({ prod, verbose });
         if (!result) break;
       }
     } catch (e: any) {
@@ -90,8 +90,8 @@ if (watch) {
 
   if (allWatchedDirs.length > 0) {
     // 👇 create a debounced function that's invoked on changes
-    const debounced = debounce(async (path) => {
-      log({ important: 'changes detected', data: path });
+    const debounced = debounce(async () => {
+      log({ warning: true, important: 'changes detected' });
       await run(todos);
     }, config.debounceMillis);
     // 👇 now create the watcher itself
@@ -99,15 +99,13 @@ if (watch) {
       persistent: true
     });
     log({ important: 'watching for changes', data: allWatchedDirs });
-    watcher.on('all', (_, path) => debounced(path));
+    watcher.on('all', (_, path) => {
+      if (verbose) log({ important: 'changes detected', data: path });
+      return debounced();
+    });
     // 🔥 this hack trips the loop first time
     //    there'd better be a directory at the end of the list!!
     await $`touch ${allWatchedDirs.at(-1)}/.tickleme`;
-    // 👇 then run it on each change
-    // for await (const event of watcher) {
-    //   if (!['any', 'access'].includes(event.eventType))
-    //     debounced(event);
-    // }
   }
 }
 

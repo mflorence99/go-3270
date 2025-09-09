@@ -23,8 +23,7 @@
     "paths": {
       "$builder/*": ["./src/builder/*"],
       "$client/*": ["./src/client/*"],
-      "$lib/*": ["./src/lib/*"],
-      "$server/*": ["./src/server/*"]
+      "$lib/*": ["./src/lib/*"]
     },
     "skipLibCheck": true,
     "strict": true,

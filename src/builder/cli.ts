@@ -5,7 +5,7 @@ import { allTasksLookup } from '$builder/tasks';
 import { config } from '$builder/config';
 import { exit } from 'node:process';
 import { flattenObject } from '$lib/flatten';
-import { log } from '$builder/logger';
+import { log } from '$builder/log';
 import { parseArgs } from 'node:util';
 import { statSync } from 'node:fs';
 
@@ -15,7 +15,6 @@ export type ParsedArgs = {
   help: boolean;
   prod: boolean;
   taskNames: string[];
-  tedious: boolean;
   verbose: boolean;
   watch: boolean;
 };
@@ -35,12 +34,6 @@ const parseOptions: Record<string, ExtendedParseOptions> = {
     default: false,
     description: 'Build for production',
     short: 'p',
-    type: 'boolean'
-  },
-  tedious: {
-    default: false,
-    description: 'Exhaustively explain what is being done',
-    short: 't',
     type: 'boolean'
   },
   verbose: {

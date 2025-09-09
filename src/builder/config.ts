@@ -6,9 +6,7 @@ import { cwd } from 'node:process';
 const root = cwd();
 
 export class ConfigClass {
-  debounceMillis = 250;
-
-  keepAliveMillis = 250;
+  debounceMillis = 1000;
 
   paths = {
     'builder-js': `${root}/dist/builder`,
@@ -17,19 +15,18 @@ export class ConfigClass {
     'client-ts': `${root}/src/client`,
     'lib': `${root}/src/lib`,
     'root': root,
-    'tsconfig': `${root}/tsconfig-app.json`,
-    'server-js': `${root}/dist/server`,
-    'server-ts': `${root}/src/server`
+    'tsconfig': `${root}/tsconfig-app.json`
   };
 
-  simulator = {
-    http: {
-      port: 8100
-    },
-    ws: {
-      port: 8101
-    }
+  server = {
+    port: 3000
   };
+
+  relative(path: string): string {
+    if (path.startsWith('/'))
+      return path.substring(this.paths.root.length + 1);
+    else return path;
+  }
 }
 
 export const config: Readonly<ConfigClass> = new ConfigClass();
