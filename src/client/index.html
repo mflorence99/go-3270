@@ -31,6 +31,24 @@
 
     <script src="index.js" type="module"></script>
 
+    <script type="module">
+      // 📘 super-simple hot reload
+      if (location.hostname === 'localhost') {
+        var mtime = 0;
+        fetch('/mtime')
+          .then((response) => response.text())
+          .then((m) => (mtime = m));
+        var timerID = setInterval(() => {
+          fetch('/mtime')
+            .then((response) => response.text())
+            .then((m) => {
+              if (m !== mtime) location.reload();
+            })
+            .catch(() => clearInterval(timerID));
+        }, 500 /* 🔥 better be shorter than debounceTime! */);
+      }
+    </script>
+
     <link rel="stylesheet" type="text/css" href="material-icons.css" />
   </body>
 </html>

@@ -1,5 +1,6 @@
 import { config } from '$builder/config';
 import { log } from '$builder/log';
+import { statSync } from 'node:fs';
 
 type Params = {
   root: string;
@@ -27,8 +28,13 @@ export async function serve({
     fetch(req: Request): any {
       const url = new URL(req.url);
       let pathname = url.pathname;
+      if (pathname === '/mtime')
+        return new Response(String(statSync(root).mtimeMs));
       // 🔥 a quirk of Bun.serve ???
-      if (!pathname.startsWith('/src:') && !pathname.startsWith('/.')) {
+      else if (
+        !pathname.startsWith('/src:') &&
+        !pathname.startsWith('/.')
+      ) {
         if (pathname === '/') pathname = '/index.html';
         if (verbose) log({ important: req.mode, text: pathname });
         return new Response(Bun.file(`${root}${pathname}`));
