@@ -1,33 +1,33 @@
-import { AppState } from '$client/state/app-state';
 import { LitElement } from 'lit';
 import { SignalWatcher } from '@lit-labs/signals';
+import { State } from '$client/state/state';
 import { TemplateResult } from 'lit';
 
-import { appStateContext } from '$client/state/app-state';
 import { consume } from '@lit/context';
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { html } from 'lit';
 import { property } from 'lit/decorators.js';
 import { state } from 'lit/decorators.js';
+import { stateContext } from '$client/state/state';
 
 declare global {
   interface HTMLElementTagNameMap {
-    'my-component': MyComponent;
+    'app-test': Test;
   }
 }
 
 // 📘 a test component
 
-@customElement('my-component')
-export class MyComponent extends SignalWatcher(LitElement) {
+@customElement('app-test')
+export class Test extends SignalWatcher(LitElement) {
   static override styles = css`
     :host {
       display: block;
     }
   `;
 
-  @consume({ context: appStateContext }) appState!: AppState;
+  @consume({ context: stateContext }) appState!: State;
 
   @state() job = 'dishwasher';
 

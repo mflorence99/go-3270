@@ -5,7 +5,7 @@ import { allTasksLookup } from '$builder/tasks';
 import { config } from '$builder/config';
 import { exit } from 'node:process';
 import { flattenObject } from '$lib/flatten';
-import { log } from '$builder/log';
+import { log } from '$builder/logger';
 import { parseArgs } from 'node:util';
 import { statSync } from 'node:fs';
 

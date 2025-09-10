@@ -1,37 +1,37 @@
-import { AppState } from '$client/state/app-state';
 import { LitElement } from 'lit';
 import { SignalWatcher } from '@lit-labs/signals';
-import { StartupController } from '$client/controllers/startup';
+import { Startup } from '$client/controllers/startup';
+import { State } from '$client/state/state';
 import { TemplateResult } from 'lit';
 
-import { appStateContext } from '$client/state/app-state';
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { html } from 'lit';
 import { provide } from '@lit/context';
+import { stateContext } from '$client/state/state';
 
 declare global {
   interface HTMLElementTagNameMap {
-    'app-root': AppRoot;
+    'app-root': Root;
   }
 }
 
 // 📘 the whole enchilada
 
 @customElement('app-root')
-export class AppRoot extends SignalWatcher(LitElement) {
+export class Root extends SignalWatcher(LitElement) {
   static override styles = css`
     :host {
       display: block;
       margin: 1rem;
     }
 
-    mat-icon {
-      --mat-icon-color: palegreen;
-      /* --mat-icon-filter: invert(8%) sepia(94%) saturate(4590%)
+    app-icon {
+      --app-icon-color: palegreen;
+      /* --app-icon-filter: invert(8%) sepia(94%) saturate(4590%)
         hue-rotate(358deg) brightness(101%) contrast(112%); */
-      --mat-icon-size: 32px;
-      --mat-icon-variant: Two tone;
+      --app-icon-size: 32px;
+      --app-icon-variant: Two tone;
     }
 
     table {
@@ -46,12 +46,10 @@ export class AppRoot extends SignalWatcher(LitElement) {
     }
   `;
 
-  @provide({ context: appStateContext }) appState = new AppState(
-    'app-state'
-  );
+  @provide({ context: stateContext }) appState = new State('app-state');
 
   // eslint-disable-next-line no-unused-private-class-members
-  #startup = new StartupController(this);
+  #startup = new Startup(this);
 
   override render(): TemplateResult {
     const model = this.appState.model;
@@ -72,7 +70,7 @@ export class AppRoot extends SignalWatcher(LitElement) {
           <tbody>
             <tr>
               <td>
-                <mat-icon icon="settings"></mat-icon>
+                <app-icon icon="settings"></app-icon>
               </td>
               <td>Gear (material)</td>
             </tr>
@@ -90,7 +88,7 @@ export class AppRoot extends SignalWatcher(LitElement) {
       <br />
       <br />
       <br />
-      <my-component .name=${'Mark'}></my-component>
+      <app-test .name=${'Mark'}></app-test>
     `;
   }
 }

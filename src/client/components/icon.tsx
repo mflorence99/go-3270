@@ -5,13 +5,12 @@ import { classMap } from 'lit/directives/class-map.js';
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { html } from 'lit';
-import { makeHostStyle } from '$client/components/icon-styles';
 import { property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 
 declare global {
   interface HTMLElementTagNameMap {
-    'mat-icon': MatIcon;
+    'app-icon': Icon;
   }
 }
 
@@ -19,24 +18,29 @@ declare global {
 
 // 👉 https://marella.me/material-icons/demo/
 
-//  --mat-icon-color    any color, default: inherit
-//  --mat-icon-filter   any filter, default: none
-//  --mat-icon-size     any size, default: 1em
-//  --mat-icon-variant  outlined, round, sharp, two tone, default: (none)
+//  --app-icon-color    any color, default: inherit
+//  --app-icon-filter   any filter, default: none
+//  --app-icon-size     any size, default: 1em
+//  --app-icon-variant  outlined, round, sharp, two tone, default: (none)
 
-@customElement('mat-icon')
-export class MatIcon extends LitElement {
+@customElement('app-icon')
+export class Icon extends LitElement {
   static override styles = [
-    makeHostStyle(),
     css`
+      :host {
+        display: inline-block;
+        text-align: center;
+        vertical-align: middle;
+      }
+
       .material-icons {
-        color: var(--mat-icon-color, inherit);
+        color: var(--app-icon-color, inherit);
         direction: ltr;
         display: inline-block;
-        filter: var(--mat-icon-filter, none);
+        filter: var(--app-icon-filter, none);
         font-family: Material Icons;
         font-feature-settings: 'liga';
-        font-size: var(--mat-icon-size, 1em);
+        font-size: var(--app-icon-size, 1em);
         font-style: normal;
         font-weight: normal;
         letter-spacing: normal;
@@ -53,7 +57,7 @@ export class MatIcon extends LitElement {
       .material-icons-two-tone {
         background-clip: text;
         -webkit-background-clip: text;
-        background-color: var(--mat-icon-color, inherit);
+        background-color: var(--app-icon-color, inherit);
         color: transparent;
       }
     `
@@ -63,7 +67,7 @@ export class MatIcon extends LitElement {
 
   override render(): TemplateResult {
     const style = getComputedStyle(this);
-    const variant = style.getPropertyValue('--mat-icon-variant') ?? '';
+    const variant = style.getPropertyValue('--app-icon-variant') ?? '';
     const fontFamily = `Material Icons ${variant}`.trim();
     const isTwotone = variant.toLowerCase() === 'two tone';
     return html`

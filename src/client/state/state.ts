@@ -1,19 +1,17 @@
 import { Signal } from '@lit-labs/signals';
 
+import { computed } from '$client/types/signals';
 import { config } from '$client/config';
+import { createContext } from '@lit/context';
 import { effect } from '$client/types/signals';
-import { enablePatches } from 'immer';
 import { produce } from 'immer';
 import { signal } from '@lit-labs/signals';
 
 import StackTrace from 'stacktrace-js';
 
-// 👇 finding the patches is "expensive" so we feature flag logging
-if (config.logStateChanges) enablePatches();
-
 // 📘 base state class
 
-export abstract class State<T> {
+abstract class Base<T> {
   // 👇 the signal that is the state itself
   model: Signal.State<T>;
 
@@ -64,3 +62,34 @@ export abstract class State<T> {
     this.model.set(newState);
   }
 }
+
+// 📘 a conceptual model for real states
+//    may morph into a real app-state
+
+export type StateModel = {
+  x: number;
+  y: string;
+  z: boolean;
+};
+
+const defaultState: StateModel = {
+  x: 1000,
+  y: '2000',
+  z: true
+};
+
+export class State extends Base<StateModel> {
+  // 👇 just an example of a computed property
+  asJSON = computed(() => JSON.stringify(this.model.get()));
+
+  constructor(key: string) {
+    super(defaultState, key, true);
+  }
+
+  // 👇 just an example of a mutator
+  incrementX(x: number): void {
+    this.mutate((state) => void (state.x += x));
+  }
+}
+
+export const stateContext = createContext<State>(Symbol('app-state'));

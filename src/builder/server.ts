@@ -1,5 +1,5 @@
 import { config } from '$builder/config';
-import { log } from '$builder/log';
+import { log } from '$builder/logger';
 import { statSync } from 'node:fs';
 
 type Params = {

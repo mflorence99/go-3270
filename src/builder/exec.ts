@@ -8,9 +8,9 @@ import { cli } from '$builder/cli';
 import { config } from '$builder/config';
 import { debounce } from '$lib/debounce';
 import { exit } from 'node:process';
-import { figletize } from '$builder/log';
+import { figletize } from '$builder/logger';
 import { kill } from 'node:process';
-import { log } from '$builder/log';
+import { log } from '$builder/logger';
 
 import chokidar from 'chokidar';
 import psList from 'ps-list';

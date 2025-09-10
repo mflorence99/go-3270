@@ -1,6 +1,6 @@
 import { config } from '$builder/config';
 import { formatBytes } from '$lib/format';
-import { log } from '$builder/log';
+import { log } from '$builder/logger';
 
 type Params = {
   format?: 'iife' | 'esm' | 'cjs' | undefined;

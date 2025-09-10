@@ -1,7 +1,7 @@
-import { bundle } from '$builder/bundle';
+import { bundle } from '$builder/bundler';
 import { config } from '$builder/config';
-import { killServe } from '$builder/serve';
-import { serve } from '$builder/serve';
+import { killServe } from '$builder/server';
+import { serve } from '$builder/server';
 
 // 📘 define all the tasks we can perform
 
@@ -63,7 +63,6 @@ export const allTasks = [
       `mkdir -p ${config.paths['client-js']}`,
       `rm -rf ${config.paths['client-js']}/*`,
       `cp ${config.paths['client-ts']}/index.html ${config.paths['client-js']}/`,
-      `cp ${config.paths['client-ts']}/favicon.ico ${config.paths['client-js']}/`,
       `cp -r ${config.paths['client-ts']}/assets ${config.paths['client-js']}`
     ],
     subTasks: ['check:client', 'bundle:client:css', 'bundle:client:js'],
@@ -98,10 +97,7 @@ export const allTasks = [
         prod: !!prod,
         target: 'bun',
         verbose: !!verbose,
-        roots: [
-          `${config.paths['client-ts']}/material-icons.css`,
-          `${config.paths['client-ts']}/startup.css`
-        ]
+        roots: [`${config.paths['client-ts']}/index.css`]
       })
   }),
 
@@ -195,11 +191,11 @@ export const allTasks = [
   }),
 
   // ////////////////////////////////////////////////////////
-  // 📘 SERVE
+  // 📘 SERVER
   // ////////////////////////////////////////////////////////
 
   new TaskClass({
-    name: 'serve',
+    name: 'server',
     description: 'Launch test server',
     func: ({ verbose, watch }): Promise<any> =>
       serve({
