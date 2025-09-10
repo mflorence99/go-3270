@@ -22,14 +22,20 @@ export async function bundle({
   verbose,
   roots,
   tsconfig
-}: Params): Promise<any> {
+}: Params): Promise<boolean> {
   // 👇 perform the build
   let build = null;
   try {
     build = await Bun.build({
       entrypoints: roots,
       format,
-      loader: { '.ttf': 'file', '.woff': 'file', '.woff2': 'file' },
+      // loader: {
+      //   '.ttf': 'file',
+      //   // @ts-ignore
+      //   '.woff': 'dataurl',
+      //   // @ts-ignore
+      //   '.woff2': 'dataurl'
+      // },
       minify: prod,
       outdir,
       sourcemap: true,
@@ -65,11 +71,11 @@ export async function bundle({
       const text = await output.text();
       log({
         important: formatBytes(text.length),
-        text: config.relative(output.path)
+        text: config.makeRelative(output.path)
       });
     }
   }
 
   // 👇 we're done!
-  return build;
+  return !!build?.success;
 }

@@ -1,7 +1,5 @@
 import { bundle } from '$builder/bundler';
 import { config } from '$builder/config';
-import { killServe } from '$builder/server';
-import { serve } from '$builder/server';
 
 // 📘 define all the tasks we can perform
 
@@ -9,7 +7,7 @@ class TaskClass {
   cmd?: string;
   cmds?: string[];
   description: string = '';
-  func?: (args?: any) => Promise<any>;
+  func?: (args?: any) => Promise<boolean>;
   kill?: () => Promise<void>;
   name: string = '';
   subTasks?: string[];
@@ -44,7 +42,7 @@ export const allTasks = [
   new TaskClass({
     name: 'bundle:builder:js',
     description: 'Bundle builder Javascript',
-    func: ({ prod, verbose }): Promise<any> =>
+    func: ({ prod, verbose }): Promise<boolean> =>
       bundle({
         format: 'esm',
         outdir: `${config.paths['builder-js']}`,
@@ -76,7 +74,7 @@ export const allTasks = [
   new TaskClass({
     name: 'bundle:client:js',
     description: 'Bundle client Javascript',
-    func: ({ prod, verbose }): Promise<any> =>
+    func: ({ prod, verbose }): Promise<boolean> =>
       bundle({
         format: 'esm',
         outdir: `${config.paths['client-js']}`,
@@ -91,13 +89,40 @@ export const allTasks = [
   new TaskClass({
     name: 'bundle:client:css',
     description: 'Bundle client CSS',
-    func: ({ prod, verbose }): Promise<any> =>
+    func: ({ prod, verbose }): Promise<boolean> =>
       bundle({
         outdir: `${config.paths['client-js']}`,
         prod: !!prod,
         target: 'bun',
         verbose: !!verbose,
         roots: [`${config.paths['client-ts']}/index.css`]
+      })
+  }),
+
+  new TaskClass({
+    name: 'bundle:server',
+    description: 'Fully bundle server',
+    subTasks: ['clean:server', 'check:server', 'bundle:server:js'],
+    watchDirs: [
+      config.paths.lib,
+      `${config.paths.root}/tsconfig-app.json`,
+      // 🔥 HACK -- a directory must come last
+      config.paths['server-ts']
+    ]
+  }),
+
+  new TaskClass({
+    name: 'bundle:server:js',
+    description: 'Bundle server Javascript',
+    func: ({ prod, verbose }): Promise<boolean> =>
+      bundle({
+        format: 'esm',
+        outdir: `${config.paths['server-js']}`,
+        prod: !!prod,
+        target: 'bun',
+        verbose: !!verbose,
+        roots: [`${config.paths['server-ts']}/index.ts`],
+        tsconfig: config.paths.tsconfig
       })
   }),
 
@@ -108,7 +133,7 @@ export const allTasks = [
   new TaskClass({
     name: 'check',
     description: 'Check all code',
-    subTasks: ['check:builder', 'check:client']
+    subTasks: ['check:builder', 'check:client', 'check:server']
   }),
 
   new TaskClass({
@@ -123,6 +148,12 @@ export const allTasks = [
     cmd: `bunx tsc --noEmit -p ${config.paths['client-ts']}`
   }),
 
+  new TaskClass({
+    name: 'check:server',
+    description: 'Test compile server without emitting JS',
+    cmd: `bunx tsc --noEmit -p ${config.paths['server-ts']}`
+  }),
+
   // ////////////////////////////////////////////////////////
   // 📘 CLEAN
   // ////////////////////////////////////////////////////////
@@ -130,7 +161,7 @@ export const allTasks = [
   new TaskClass({
     name: 'clean',
     description: 'Clean all code',
-    subTasks: ['clean:builder', 'clean:client']
+    subTasks: ['clean:builder', 'clean:client', 'clean:server']
   }),
 
   new TaskClass({
@@ -138,6 +169,7 @@ export const allTasks = [
     description: 'Remove all files from builder dist',
     cmds: [
       `mkdir -p ${config.paths['builder-js']}`,
+      `touch ${config.paths['builder-js']}/at-least-one-to-rm`,
       `rm -rf ${config.paths['builder-js']}/*`
     ]
   }),
@@ -147,7 +179,18 @@ export const allTasks = [
     description: 'Remove all files from client dist',
     cmds: [
       `mkdir -p ${config.paths['client-js']}`,
+      `touch ${config.paths['client-js']}/at-least-one-to-rm`,
       `rm -rf ${config.paths['client-js']}/*`
+    ]
+  }),
+
+  new TaskClass({
+    name: 'clean:server',
+    description: 'Remove all files from server dist',
+    cmds: [
+      `mkdir -p ${config.paths['server-js']}`,
+      `touch ${config.paths['server-js']}/at-least-one-to-rm`,
+      `rm -rf ${config.paths['server-js']}/*`
     ]
   }),
 
@@ -174,7 +217,7 @@ export const allTasks = [
   new TaskClass({
     name: 'lint:eslint',
     description: 'Lint build, client, and lib code with eslint',
-    cmd: `bunx eslint ${config.paths['builder-ts']} ${config.paths['client-ts']} ${config.paths['lib']}`
+    cmd: `bunx eslint ${config.paths['builder-ts']} ${config.paths['client-ts']} ${config.paths['lib']} ${config.paths['server-ts']}`
   }),
 
   new TaskClass({
@@ -188,23 +231,6 @@ export const allTasks = [
     description:
       'Validate styles for CSS files and those embedded in TSX',
     cmd: `bunx stylelint --fix "${config.paths['client-ts']}/**/*.{css,tsx}"`
-  }),
-
-  // ////////////////////////////////////////////////////////
-  // 📘 SERVER
-  // ////////////////////////////////////////////////////////
-
-  new TaskClass({
-    name: 'server',
-    description: 'Launch test server',
-    func: ({ verbose, watch }): Promise<any> =>
-      serve({
-        root: `${config.paths['client-js']}`,
-        verbose: !!verbose,
-        watch: !!watch
-      }),
-    kill: (): Promise<void> => killServe(),
-    watchDirs: [config.paths['client-js']]
   })
 ];
 

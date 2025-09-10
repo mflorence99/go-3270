@@ -15,8 +15,7 @@ import { log } from '$builder/logger';
 import chokidar from 'chokidar';
 import psList from 'ps-list';
 
-// 📘 execute all tasks to build & test Lintel
-//    eg: exec.ts -p -w -v stylelint prettier
+// 📘 execute all tasks to build & test
 
 const { taskNames, prod, verbose, watch } = cli();
 
@@ -36,7 +35,7 @@ const reducer = (taskNames: (string | number)[]): Task[] => {
   );
 };
 
-const todos: Task[] = reducer(taskNames);
+const todos: Task[] = reducer(taskNames ?? []);
 
 // 👇 this closure will run each requested task
 
@@ -54,7 +53,7 @@ const run = async (todos: Task[]): Promise<void> => {
           const existing = plist.find((p) => p.cmd === cmd);
           if (existing) kill(existing.pid, 'SIGINT');
           const { exitCode } = await $`${{ raw: cmd }}`.nothrow();
-          if (exitCode !== 0) break;
+          if (exitCode !== 0) exit(1);
         }
       }
       // 👇 could be a function
@@ -62,11 +61,11 @@ const run = async (todos: Task[]): Promise<void> => {
         log({ important: todo.name, text: 'function invoked' });
         await todo.kill?.();
         const result = await todo.func({ prod, verbose });
-        if (!result) break;
+        if (!result) exit(1);
       }
     } catch (e: any) {
       log({ error: true, data: e.message });
-      if (!watch) exit(1);
+      exit(1);
     }
   }
 };

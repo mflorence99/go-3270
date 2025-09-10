@@ -15,14 +15,17 @@ export class ConfigClass {
     'client-ts': `${root}/src/client`,
     'lib': `${root}/src/lib`,
     'root': root,
-    'tsconfig': `${root}/tsconfig-app.json`
+    'tsconfig': `${root}/tsconfig-app.json`,
+    'server-js': `${root}/dist/server`,
+    'server-ts': `${root}/src/server`
   };
 
   server = {
+    host: 'localhost',
     port: 3000
   };
 
-  relative(path: string): string {
+  makeRelative(path: string): string {
     if (path.startsWith('/'))
       return path.substring(this.paths.root.length + 1);
     else return path;

@@ -63,8 +63,8 @@ export function cli(): ParsedArgs {
       strict: true,
       tokens: false
     });
-  } catch (error: any) {
-    logUsage(error.message);
+  } catch (e: any) {
+    logUsage(e.message);
     exit(1);
   }
   const parsedArgs: ParsedArgs = { ...(<ParsedArgs>result.values) };

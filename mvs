@@ -1,0 +1,9 @@
+#!/bin/bash
+docker container rm mvs --force
+
+docker run \
+  -dit \
+  --name mvs \
+  -p 3270:3270 \
+  -p 8038:8038 \
+  rattydave/docker-ubuntu-hercules-mvs:latest
