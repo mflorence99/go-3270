@@ -9,7 +9,7 @@ import { Tn3270 } from '$client/services/tn3270';
 
 const tn3270 = await Tn3270.tn3270('localhost', '3270', 'IBM-3278-4-E');
 tn3270?.stream$.subscribe({
-  next: (data: Uint8Array) => console.log(data),
-  error: (error: Error) => console.log(error),
+  next: () => {},
+  error: (error: Error) => console.error(error),
   complete: () => console.log('All done!')
 });

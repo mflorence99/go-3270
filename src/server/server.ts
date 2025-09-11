@@ -112,7 +112,7 @@ const fetchUpgrade = (url: URL, req: Request): Response | void => {
   });
 };
 
-// ↔️ handle socket SERVER / 3270
+// ↔️ handle socket SERVER <-> 3270
 
 const tcpSocketImpl = (ctx: Context): void => {
   ctx.tcpSocket = new TCPSocket();
@@ -157,7 +157,7 @@ const tcpSocketImpl = (ctx: Context): void => {
   });
 };
 
-// ↔️ handle socket CLIENT / SERVER
+// ↔️ handle socket CLIENT <-> SERVER
 
 const webSocketImpl = {
   // 👇 OPEN
