@@ -26,7 +26,7 @@ const parseOptions: Record<string, ExtendedParseOptions> = {
     type: 'boolean'
   },
   port: {
-    default: String(config.port),
+    default: config.port,
     description: 'HTTP port',
     type: 'string'
   },

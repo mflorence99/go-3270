@@ -29,13 +29,6 @@ export async function bundle({
     build = await Bun.build({
       entrypoints: roots,
       format,
-      // loader: {
-      //   '.ttf': 'file',
-      //   // @ts-ignore
-      //   '.woff': 'dataurl',
-      //   // @ts-ignore
-      //   '.woff2': 'dataurl'
-      // },
       minify: prod,
       outdir,
       sourcemap: true,

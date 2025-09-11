@@ -20,11 +20,6 @@ export class ConfigClass {
     'server-ts': `${root}/src/server`
   };
 
-  server = {
-    host: 'localhost',
-    port: 3000
-  };
-
   makeRelative(path: string): string {
     if (path.startsWith('/'))
       return path.substring(this.paths.root.length + 1);

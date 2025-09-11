@@ -43,7 +43,7 @@ const run = async (todos: Task[]): Promise<void> => {
   for (const todo of todos) {
     try {
       // 👇 this looks pretty, but has no other function
-      banner(todo.name);
+      banner(todo.name, todo.banner);
       // 👇 could be a command
       const cmds = todo.cmds ?? [todo.cmd];
       for (const cmd of cmds) {
@@ -108,9 +108,8 @@ if (watch) {
   }
 }
 
-// 👇 otherwise, just run the todos
-else await run(todos);
-
-// 👇 that's all she wrote!
-
-if (allWatchedDirs.length === 0) exit(0);
+// 👇 otherwise, just run the todos and be done
+if (allWatchedDirs.length === 0) {
+  await run(todos);
+  exit(0);
+}

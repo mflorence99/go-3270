@@ -32,37 +32,41 @@ export class Tn3270 {
 
   private constructor(
     public host: string,
-    public port: number,
+    public port: string,
     public model: string
   ) {
     this.#socket = new WebSocket(
-      `ws://${location.hostname}:${location.port}`
+      `ws://${location.hostname}:${location.port}?host=${host}&port=${port}`
     );
     this.stream$ = new Observable((observer: Observer<Uint8Array>) => {
-      // 👇 socket opened
+      // 👇 OPEN
       this.#socket.onopen = (): void => {
         console.log(
-          `%c3270 -> HOST %cConnected ${host}:${port}`,
+          `%c3270 -> Server -> Client %cConnected ${host}:${port}`,
           'color: green',
           'color: blue'
         );
       };
-      // 👇 message received
-      this.#socket.onmessage = (event: MessageEvent): void =>
-        this.#dataHandler(event.data, observer);
-      // 🔥 error occured
+      // 👇 MESSAGE
+      this.#socket.onmessage = async (
+        event: MessageEvent
+      ): Promise<void> => {
+        const data = new Uint8Array(await event.data.arrayBuffer());
+        this.#dataHandler(data, observer);
+      };
+      // 🔥 ERROR
       this.#socket.onerror = (error): void => {
         console.log(
-          `%c3270 -> HOST %c${error.type}`,
+          `%c3270 -> Server -> Client %c${error.type}`,
           'color: green',
           'color: red'
         );
         observer.error(error);
       };
-      // 👇 socket closed
+      // 👇 CLOSE
       this.#socket.onclose = (event: CloseEvent): void => {
         console.log(
-          `%c3270 -> HOST %cDisconnected ${event.reason}`,
+          `%c3270 -> Server -> Client %cDisconnected ${event.reason}`,
           'color: green',
           'color: cyan'
         );
@@ -75,15 +79,22 @@ export class Tn3270 {
 
   static async tn3270(
     host: string,
-    port: number,
+    port: string,
     model: string
-  ): Promise<Tn3270> {
-    // 👇 initialize the WebSocket protocol
-    await fetch(`http://${location.hostname}:${location.port}`, {
-      headers: { upgrade: 'websocket' },
-      mode: 'no-cors'
-    });
-    return new Tn3270(host, port, model);
+  ): Promise<Tn3270 | null> {
+    try {
+      // 👇 initialize the WebSocket protocol
+      await fetch(`http://${location.hostname}:${location.port}`, {
+        headers: {
+          upgrade: 'websocket'
+        },
+        mode: 'no-cors'
+      });
+      return new Tn3270(host, port, model);
+    } catch (e: any) {
+      console.error(e.message);
+      return Promise.resolve(null);
+    }
   }
 
   write(bytes: Uint8Array): void {
@@ -113,12 +124,12 @@ export class Tn3270 {
       // 👇 send response
       if (response) {
         console.log(
-          `%cHOST -> 3270 %c${negotiator.decode()}`,
+          `%cClient -> Server -> 3270 %c${negotiator.decode()}`,
           'color: yellow',
           'color: white'
         );
         console.log(
-          `%c3270 -> HOST %c${response}`,
+          `%c3270 -> Server -> Client %c${response}`,
           'color: green',
           'color: gray'
         );

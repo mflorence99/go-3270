@@ -45,11 +45,15 @@ export function log({
 
 // 📘 log short string using figlet
 
-export function banner(str: string): void {
+export function banner(str: string, { color, icon }: any): void {
+  const padding = 72;
   console.log(
-    chalk.white.bgRed.bold(
-      `\n\n  >>> ${str.toUpperCase().padEnd(72, ' ')}\n`
-    )
+    chalk
+      .hex('#000000')
+      .bgHex(color)
+      .bold(
+        `\n${''.padEnd(padding + 4)}\n  ${icon} ${str.toUpperCase().padEnd(padding)}\n${''.padEnd(padding + 4)}`
+      )
   );
   console.log();
 }
