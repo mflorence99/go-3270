@@ -4,11 +4,11 @@ import { Task } from '$builder/tasks';
 
 import { $ } from 'bun';
 import { allTasksLookup } from '$builder/tasks';
+import { banner } from '$builder/logger';
 import { cli } from '$builder/cli';
 import { config } from '$builder/config';
 import { debounce } from '$lib/debounce';
 import { exit } from 'node:process';
-import { figletize } from '$builder/logger';
 import { kill } from 'node:process';
 import { log } from '$builder/logger';
 
@@ -43,7 +43,7 @@ const run = async (todos: Task[]): Promise<void> => {
   for (const todo of todos) {
     try {
       // 👇 this looks pretty, but has no other function
-      figletize(todo.name);
+      banner(todo.name);
       // 👇 could be a command
       const cmds = todo.cmds ?? [todo.cmd];
       for (const cmd of cmds) {

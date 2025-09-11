@@ -27,7 +27,7 @@ const parseOptions: Record<string, ExtendedParseOptions> = {
   },
   port: {
     default: String(config.port),
-    description: 'HTTP port (WS port is HTTP + 1)',
+    description: 'HTTP port',
     type: 'string'
   },
   root: {

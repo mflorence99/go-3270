@@ -18,6 +18,8 @@ const reverse: Record<number, string> = Object.fromEntries(
   Object.entries(lookup).map(([k, v]) => [v, k])
 );
 
+// 🟧 3270 Telnet factory
+
 // 🟧 Raw Telnet to 3270
 //    @see https://tools.ietf.org/html/rfc1576
 //    @see https://tools.ietf.org/html/rfc1647
@@ -28,12 +30,14 @@ export class Tn3270 {
 
   #socket: WebSocket;
 
-  constructor(
+  private constructor(
     public host: string,
     public port: number,
     public model: string
   ) {
-    this.#socket = new WebSocket(`ws://${host}:${port}`);
+    this.#socket = new WebSocket(
+      `ws://${location.hostname}:${location.port}`
+    );
     this.stream$ = new Observable((observer: Observer<Uint8Array>) => {
       // 👇 socket opened
       this.#socket.onopen = (): void => {
@@ -67,6 +71,19 @@ export class Tn3270 {
       // 👇 return cleanup function called when complete
       return (): any => this.#socket.close();
     });
+  }
+
+  static async tn3270(
+    host: string,
+    port: number,
+    model: string
+  ): Promise<Tn3270> {
+    // 👇 initialize the WebSocket protocol
+    await fetch(`http://${location.hostname}:${location.port}`, {
+      headers: { upgrade: 'websocket' },
+      mode: 'no-cors'
+    });
+    return new Tn3270(host, port, model);
   }
 
   write(bytes: Uint8Array): void {

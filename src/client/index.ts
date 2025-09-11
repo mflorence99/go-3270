@@ -7,7 +7,7 @@ import '@material/web/checkbox/checkbox.js';
 
 import { Tn3270 } from '$lib/tn3270';
 
-const tn3270 = new Tn3270('localhost', 3270, 'IBM-3278-4-E');
+const tn3270 = await Tn3270.tn3270('localhost', 3270, 'IBM-3278-4-E');
 tn3270.stream$.subscribe({
   next: (data: Uint8Array) => console.log(data),
   error: (error: Error) => console.log(error),

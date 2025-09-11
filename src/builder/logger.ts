@@ -47,7 +47,9 @@ export function log({
 
 export function banner(str: string): void {
   console.log(
-    chalk.green.bold(`\n\n  >>> ${str.toUpperCase().padEnd(72, ' ')}\n`)
+    chalk.white.bgRed.bold(
+      `\n\n  >>> ${str.toUpperCase().padEnd(72, ' ')}\n`
+    )
   );
   console.log();
 }
