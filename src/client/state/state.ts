@@ -67,15 +67,11 @@ abstract class Base<T> {
 //    may morph into a real app-state
 
 export type StateModel = {
-  x: number;
-  y: string;
-  z: boolean;
+  pageNum: number;
 };
 
 const defaultState: StateModel = {
-  x: 1000,
-  y: '2000',
-  z: true
+  pageNum: 0
 };
 
 export class State extends Base<StateModel> {
@@ -87,9 +83,18 @@ export class State extends Base<StateModel> {
   }
 
   // 👇 just an example of a mutator
-  incrementX(x: number): void {
-    this.mutate((state) => void (state.x += x));
+  gotoPage(pageNum: number): void {
+    this.mutate((state) => void (state.pageNum = pageNum));
+  }
+
+  // 👇 just an example of a mutator
+  turnPage(): void {
+    this.mutate((state) => {
+      if (state.pageNum === 0) state.pageNum = 1;
+      else if (state.pageNum === 1) state.pageNum = 2;
+      else if (state.pageNum === 2) state.pageNum = 0;
+    });
   }
 }
 
-export const stateContext = createContext<State>(Symbol('app-state'));
+export const stateContext = createContext<State>(Symbol('theState'));

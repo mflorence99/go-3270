@@ -85,7 +85,7 @@ const fetchStatic = (url: URL, req: Request): Response => {
     !url.pathname.startsWith('/src:') &&
     !url.pathname.startsWith('/.')
   ) {
-    log({ important: req.method, text: url.pathname });
+    // log({ important: req.method, text: url.pathname });
     return new Response(Bun.file(`${root}${url.pathname}`));
   }
   // 👇 everything else is an error

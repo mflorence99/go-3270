@@ -1,9 +1,9 @@
-export * from '$client/components/icon';
-export * from '$client/components/root';
-export * from '$client/components/test';
+export * from '$client/pages/help';
+export * from '$client/pages/home';
+export * from '$client/pages/root';
+export * from '$client/pages/screen';
 
-import '@material/web/button/filled-button.js';
-import '@material/web/checkbox/checkbox.js';
+export * from '$client/components/icon';
 
 import { Tn3270 } from '$client/services/tn3270';
 

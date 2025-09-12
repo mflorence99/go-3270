@@ -12,7 +12,7 @@
   src: url('../fonts/roboto-latin-700.woff2') format('woff2');
 }
 
-/* 👉 global styles that either leak into the shadow DOM or are used outside of it */
+/* 👉 global styles that are used in the light DOM */
 
 *,
 *::before,
