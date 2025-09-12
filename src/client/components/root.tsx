@@ -27,11 +27,10 @@ export class Root extends SignalWatcher(LitElement) {
     }
 
     app-icon {
-      --app-icon-color: palegreen;
+      /* --app-icon-color: palegreen; */
       /* --app-icon-filter: invert(8%) sepia(94%) saturate(4590%)
         hue-rotate(358deg) brightness(101%) contrast(112%); */
       --app-icon-size: 32px;
-      --app-icon-variant: Two tone;
     }
 
     table {

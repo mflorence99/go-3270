@@ -23,9 +23,9 @@ const reverse: Record<number, string> = Object.fromEntries(
 // 🟧 3270 Telnet factory
 
 // 🟧 Raw Telnet to 3270
-//    @see https://tools.ietf.org/html/rfc1576
-//    @see https://tools.ietf.org/html/rfc1647
-//    @see http://users.cs.cf.ac.uk/Dave.Marshall/Internet/node141.html
+// 👁️ https://tools.ietf.org/html/rfc1576
+// 👁️ https://tools.ietf.org/html/rfc1647
+// 👁️ http://users.cs.cf.ac.uk/Dave.Marshall/Internet/node141.html
 
 export class Tn3270 {
   stream$: Observable<Uint8Array>;
@@ -158,7 +158,7 @@ export class Tn3270 {
       `color: ${color}`
     );
     console.log(
-      '%c        00       04       08       0c       10       14       18       1c        00  04  08  0c  10  14  18  1c  ',
+      '%c       00       04       08       0c       10       14       18       1c        00  04  08  0c  10  14  18  1c  ',
       'color: skyblue; font-weight: bold'
     );
     while (true) {
@@ -167,7 +167,7 @@ export class Tn3270 {
       );
       const { hex, str } = this.#dumpSlice(slice, sliceSize, ebcdic);
       console.log(
-        `%c${this.#toHex(offset, 6)}: %c${hex} %c${str}`,
+        `%c${this.#toHex(offset, 6)} %c${hex} %c${str}`,
         'color: skyblue; font-weight: bold',
         'color: white',
         'color: wheat'

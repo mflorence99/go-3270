@@ -1,4 +1,4 @@
-// 📘 see: https://www.30secondsofcode.org/js/s/flatten-unflatten-object/
+// 👁️ https://www.30secondsofcode.org/js/s/flatten-unflatten-object/
 
 export function flattenObject(
   obj: any,

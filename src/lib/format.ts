@@ -1,4 +1,4 @@
-// 📘 see https://gist.github.com/zentala/1e6f72438796d74531803cc3833c039c
+// 👁️ https://gist.github.com/zentala/1e6f72438796d74531803cc3833c039c
 
 export function formatBytes(
   bytes: number,

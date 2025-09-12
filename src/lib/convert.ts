@@ -1,6 +1,6 @@
 // 🟦 Conversion between EBCDIC and ASCII
 
-//    @see https://stackoverflow.com/questions/25367120/example-ebcdic-file-for-java-program-to-convert-ebcdic-to-ascii
+// 👁️ https://stackoverflow.com/questions/25367120/example-ebcdic-file-for-java-program-to-convert-ebcdic-to-ascii
 
 // 🔥 starts at position 64
 

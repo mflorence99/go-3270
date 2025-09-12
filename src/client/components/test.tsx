@@ -38,7 +38,9 @@ export class Test extends SignalWatcher(LitElement) {
       <p>As JSON ${this.appState.asJSON.get()}</p>
       <br />
       <br />
-      <p>My name is ${this.name} and I am a ${this.job}</p>
+      <p style="font-family: '3270 Font'">
+        My name is ${this.name} and I am a ${this.job}
+      </p>
     `;
   }
 }

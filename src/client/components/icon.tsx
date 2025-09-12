@@ -1,12 +1,10 @@
 import { LitElement } from 'lit';
 import { TemplateResult } from 'lit';
 
-import { classMap } from 'lit/directives/class-map.js';
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { html } from 'lit';
 import { property } from 'lit/decorators.js';
-import { styleMap } from 'lit/directives/style-map.js';
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -21,7 +19,6 @@ declare global {
 //  --app-icon-color    any color, default: inherit
 //  --app-icon-filter   any filter, default: none
 //  --app-icon-size     any size, default: 1em
-//  --app-icon-variant  outlined, round, sharp, two tone, default: (none)
 
 @customElement('app-icon')
 export class Icon extends LitElement {
@@ -34,7 +31,7 @@ export class Icon extends LitElement {
       }
 
       .material-icons {
-        color: var(--app-icon-color, inherit);
+        color: var(--app-icon-color, var(--md-sys-color-primary));
         direction: ltr;
         display: inline-block;
         filter: var(--app-icon-filter, none);
@@ -52,33 +49,14 @@ export class Icon extends LitElement {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
-
-      /* 👇 https://github.com/material-components/material-components-web-react/issues/730 */
-      .material-icons-two-tone {
-        background-clip: text;
-        -webkit-background-clip: text;
-        background-color: var(--app-icon-color, inherit);
-        color: transparent;
-      }
     `
   ];
 
   @property() icon: string | null = null;
 
   override render(): TemplateResult {
-    const style = getComputedStyle(this);
-    const variant = style.getPropertyValue('--app-icon-variant') ?? '';
-    const fontFamily = `Material Icons ${variant}`.trim();
-    const isTwotone = variant.toLowerCase() === 'two tone';
     return html`
-      <i
-        class=${classMap({
-          'material-icons': true,
-          'material-icons-two-tone': isTwotone
-        })}
-        style=${styleMap({ 'font-family': fontFamily })}>
-        ${this.icon}
-      </i>
+      <i class="material-icons">${this.icon}</i>
     `;
   }
 }
