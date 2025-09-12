@@ -6,6 +6,7 @@ import { TemplateResult } from 'lit';
 
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
+import { globals } from '$client/css/globals';
 import { html } from 'lit';
 import { provide } from '@lit/context';
 import { stateContext } from '$client/state/state';
@@ -20,30 +21,33 @@ declare global {
 
 @customElement('app-root')
 export class Root extends SignalWatcher(LitElement) {
-  static override styles = css`
-    :host {
-      display: block;
-      margin: 1rem;
-    }
+  static override styles = [
+    globals,
+    css`
+      :host {
+        display: block;
+        margin: 1rem;
+      }
 
-    app-icon {
-      /* --app-icon-color: palegreen; */
-      /* --app-icon-filter: invert(8%) sepia(94%) saturate(4590%)
+      app-icon {
+        /* --app-icon-color: palegreen; */
+        /* --app-icon-filter: invert(8%) sepia(94%) saturate(4590%)
         hue-rotate(358deg) brightness(101%) contrast(112%); */
-      --app-icon-size: 32px;
-    }
+        --app-icon-size: 32px;
+      }
 
-    table {
-      td {
-        padding: 4px;
-        text-align: left;
-        vertical-align: middle;
+      table {
+        td {
+          padding: 4px;
+          text-align: left;
+          vertical-align: middle;
+        }
+        td:first-child {
+          text-align: center;
+        }
       }
-      td:first-child {
-        text-align: center;
-      }
-    }
-  `;
+    `
+  ];
 
   @provide({ context: stateContext }) appState = new State('app-state');
 
@@ -65,13 +69,15 @@ export class Root extends SignalWatcher(LitElement) {
           Y is ${model.get().y}
         </label>
 
+        <a href="https://google.com" target="_blank">Google me!</a>
+
         <table>
           <tbody>
             <tr>
               <td>
                 <app-icon icon="settings"></app-icon>
               </td>
-              <td>Gear (material)</td>
+              <td><em>Gear (material)</em></td>
             </tr>
           </tbody>
         </table>

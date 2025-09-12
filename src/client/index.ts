@@ -7,6 +7,8 @@ import '@material/web/checkbox/checkbox.js';
 
 import { Tn3270 } from '$client/services/tn3270';
 
+// 🔥 TEMPORARY
+
 const tn3270 = await Tn3270.tn3270('localhost', '3270', 'IBM-3278-4-E');
 tn3270?.stream$.subscribe({
   next: () => {},

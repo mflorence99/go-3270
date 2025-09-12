@@ -12,6 +12,14 @@
   src: url('../fonts/roboto-latin-700.woff2') format('woff2');
 }
 
+/* 👉 global styles that either leak into the shadow DOM or are used outside of it */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   background-color: var(--md-sys-color-background);
   color: var(--md-sys-color-on-background);
@@ -21,5 +29,12 @@ body {
   height: 100%;
   line-height: 150%;
   overflow: hidden;
+  width: 100%;
+}
+
+html {
+  border: 0;
+  font-size: 16px;
+  height: 100%;
   width: 100%;
 }

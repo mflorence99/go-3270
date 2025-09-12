@@ -6,6 +6,7 @@ import { TemplateResult } from 'lit';
 import { consume } from '@lit/context';
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
+import { globals } from '$client/css/globals';
 import { html } from 'lit';
 import { property } from 'lit/decorators.js';
 import { state } from 'lit/decorators.js';
@@ -21,11 +22,14 @@ declare global {
 
 @customElement('app-test')
 export class Test extends SignalWatcher(LitElement) {
-  static override styles = css`
-    :host {
-      display: block;
-    }
-  `;
+  static override styles = [
+    globals,
+    css`
+      :host {
+        display: block;
+      }
+    `
+  ];
 
   @consume({ context: stateContext }) appState!: State;
 
@@ -37,8 +41,9 @@ export class Test extends SignalWatcher(LitElement) {
     return html`
       <p>As JSON ${this.appState.asJSON.get()}</p>
       <br />
+      <a href="https://google.com" target="_blank">Google me!</a>
       <br />
-      <p style="font-family: '3270 Font'">
+      <p style="font-family: '3270 Font'; font-size: 1.5rem">
         My name is ${this.name} and I am a ${this.job}
       </p>
     `;
