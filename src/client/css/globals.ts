@@ -31,10 +31,15 @@ export const globals = css`
 
   hr {
     margin: 1rem 0;
+    width: 100%;
   }
 
   ol,
   ul {
     list-style-type: none;
+  }
+
+  p {
+    margin: 0;
   }
 `;

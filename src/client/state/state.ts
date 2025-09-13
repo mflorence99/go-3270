@@ -66,14 +66,27 @@ abstract class Base<T> {
   }
 }
 
-// 📘 a conceptual model for real states
-//    may morph into a real app-state
+// 📘 the entire state of the app
+
+export type Config = {
+  color: string;
+  emulation: string;
+  host: string;
+  port: string;
+};
 
 export type StateModel = {
+  config: Config;
   pageNum: number;
 };
 
 const defaultState: StateModel = {
+  config: {
+    color: 'green',
+    emulation: '2',
+    host: 'localhost',
+    port: '3270'
+  },
   pageNum: 0
 };
 
@@ -90,13 +103,9 @@ export class State extends Base<StateModel> {
     this.mutate((state) => void (state.pageNum = pageNum));
   }
 
-  // 👇 just an example of a mutator
-  turnPage(): void {
-    this.mutate((state) => {
-      if (state.pageNum === 0) state.pageNum = 1;
-      else if (state.pageNum === 1) state.pageNum = 2;
-      else if (state.pageNum === 2) state.pageNum = 0;
-    });
+  // 👇 update the config
+  updateConfig(config: Config): void {
+    this.mutate((state) => void (state.config = config));
   }
 }
 
