@@ -30,7 +30,7 @@ export class Icon extends LitElement {
         vertical-align: middle;
       }
 
-      .material-icons {
+      .material-icon {
         color: var(--app-icon-color, var(--md-sys-color-primary));
         direction: ltr;
         display: inline-block;
@@ -56,7 +56,7 @@ export class Icon extends LitElement {
 
   override render(): TemplateResult {
     return html`
-      <i class="material-icons">${this.icon}</i>
+      <i class="material-icon">${this.icon}</i>
     `;
   }
 }

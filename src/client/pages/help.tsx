@@ -23,17 +23,18 @@ export class Help extends SignalWatcher(LitElement) {
   static override styles = [
     globals,
     css`
-      article {
+      section {
         display: grid;
         height: 100%;
         place-items: center;
         width: 100%;
 
-        section {
-          color: green;
+        header {
+          color: #00cc00;
           font-family: '3270 Font';
-          font-size: 200px;
+          font-size: 16rem;
           font-weight: bold;
+          text-shadow: 0.33rem 0.33rem #008000;
         }
       }
     `
@@ -44,9 +45,9 @@ export class Help extends SignalWatcher(LitElement) {
   override render(): TemplateResult {
     // const model = this.theState.model;
     return html`
-      <article>
-        <section>3270</section>
-      </article>
+      <section>
+        <header>3270</header>
+      </section>
     `;
   }
 }
