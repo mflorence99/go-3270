@@ -19,7 +19,10 @@ abstract class Base<T> {
     if (persist) {
       const raw = localStorage.getItem(key);
       const persistedState = raw ? JSON.parse(raw) : defaultState;
-      this.model = signal<T>(persistedState);
+      // 👇 watch out! the new state maybe completely different from the old
+      //    better to also remove any deprecated properties
+      //    but this is simpler and always works, even for optionals
+      this.model = signal<T>({ ...defaultState, ...persistedState });
       effect(() =>
         localStorage.setItem(key, JSON.stringify(this.model.get()))
       );

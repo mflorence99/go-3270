@@ -51,17 +51,14 @@ export class Root extends SignalWatcher(LitElement) {
       <main @click=${(): void => this.theState.turnPage()}>
         <app-home
           style=${styleMap({
-            background: 'red',
             opacity: model.get().pageNum === 0 ? 1 : 0
           })}></app-home>
         <app-help
           style=${styleMap({
-            background: 'green',
             opacity: model.get().pageNum === 1 ? 1 : 0
           })}></app-help>
         <app-screen
           style=${styleMap({
-            background: 'yellow',
             opacity: model.get().pageNum === 2 ? 1 : 0
           })}></app-screen>
       </main>

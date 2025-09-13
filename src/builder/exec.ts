@@ -39,6 +39,11 @@ const todos: Task[] = reducer(taskNames ?? []);
 
 // 👇 this closure will run each requested task
 
+const error = (): void => {
+  banner('See errors above', { color: '#ff8080', icon: '' });
+  exit(1);
+};
+
 const run = async (todos: Task[]): Promise<void> => {
   for (const todo of todos) {
     try {
@@ -53,7 +58,7 @@ const run = async (todos: Task[]): Promise<void> => {
           const existing = plist.find((p) => p.cmd === cmd);
           if (existing) kill(existing.pid, 'SIGINT');
           const { exitCode } = await $`${{ raw: cmd }}`.nothrow();
-          if (exitCode !== 0) exit(1);
+          if (exitCode !== 0) error();
         }
       }
       // 👇 could be a function
@@ -61,11 +66,11 @@ const run = async (todos: Task[]): Promise<void> => {
         log({ important: todo.name, text: 'function invoked' });
         await todo.kill?.();
         const result = await todo.func({ prod, verbose });
-        if (!result) exit(1);
+        if (!result) error();
       }
     } catch (e: any) {
       log({ error: true, data: e.message });
-      exit(1);
+      error();
     }
   }
 };

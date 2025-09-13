@@ -20,14 +20,33 @@ declare global {
 
 @customElement('app-help')
 export class Help extends SignalWatcher(LitElement) {
-  static override styles = [globals, css``];
+  static override styles = [
+    globals,
+    css`
+      article {
+        display: grid;
+        height: 100%;
+        place-items: center;
+        width: 100%;
+
+        section {
+          color: green;
+          font-family: '3270 Font';
+          font-size: 200px;
+          font-weight: bold;
+        }
+      }
+    `
+  ];
 
   @consume({ context: stateContext }) theState!: State;
 
   override render(): TemplateResult {
-    const model = this.theState.model;
+    // const model = this.theState.model;
     return html`
-      <h1>Help #${model.get().pageNum}</h1>
+      <article>
+        <section>3270</section>
+      </article>
     `;
   }
 }
