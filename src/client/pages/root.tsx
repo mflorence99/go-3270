@@ -18,9 +18,9 @@ declare global {
   }
 }
 
-const Pages = {
-  home: 0,
-  screen: 1
+export const Pages = {
+  connector: 0,
+  emulator: 1
 };
 
 // 📘 the whole enchilada
@@ -30,8 +30,8 @@ export class Root extends SignalWatcher(LitElement) {
   static override styles = [
     globals,
     css`
-      app-home,
-      app-screen {
+      app-connector,
+      app-emulator {
         display: block;
         height: 100vh;
         opacity: 0;
@@ -53,19 +53,19 @@ export class Root extends SignalWatcher(LitElement) {
   override render(): TemplateResult {
     return html`
       <main>
-        <app-home
-          data-page-num="${Pages.home}"
+        <app-connector
+          data-page-num="${Pages.connector}"
           style=${styleMap({
-            opacity: this.#isPage(Pages.home) ? 1 : 0,
-            zIndex: this.#isPage(Pages.home) ? 1 : -1
-          })}></app-home>
+            opacity: this.#isPage(Pages.connector) ? 1 : 0,
+            zIndex: this.#isPage(Pages.connector) ? 1 : -1
+          })}></app-connector>
 
-        <app-screen
-          data-page-num="${Pages.screen}"
+        <app-emulator
+          data-page-num="${Pages.emulator}"
           style=${styleMap({
-            opacity: this.#isPage(Pages.screen) ? 1 : 0,
-            zIndex: this.#isPage(Pages.screen) ? 1 : -1
-          })}></app-screen>
+            opacity: this.#isPage(Pages.emulator) ? 1 : 0,
+            zIndex: this.#isPage(Pages.emulator) ? 1 : -1
+          })}></app-emulator>
       </main>
     `;
   }

@@ -1,4 +1,5 @@
 import { Signal } from '@lit-labs/signals';
+import { Tn3270 } from '$client/services/tn3270';
 
 import { computed } from '$client/types/signals';
 import { config } from '$client/config';
@@ -91,6 +92,8 @@ const defaultState: StateModel = {
 };
 
 export class State extends Base<StateModel> {
+  static theTn3270: Tn3270 | null;
+
   // 👇 just an example of a computed property
   asJSON = computed(() => JSON.stringify(this.model.get()));
 

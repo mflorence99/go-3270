@@ -17,7 +17,7 @@ type Context = {
   webSocket?: ServerWebSocket<Context>;
 };
 
-const contexts = <Context[] | undefined[]>[];
+const contexts = <(Context | undefined)[]>[];
 let sessionID = 0;
 
 // 👇 stop server and close all sockets on SIGINT
@@ -136,15 +136,15 @@ const tcpSocketImpl = (ctx: Context): void => {
     ctx.webSocket?.send(data);
   });
   // 👇 ERROR
-  // 🔥 watch out - identical to close, except for log entry
-  ctx.tcpSocket.on('error', (error: Error) => {
+  // 🔥 watch out - ALMOST identical to close
+  ctx.tcpSocket.on('error', (e: Error) => {
     log({
       error: true,
       important: `#${ctx.sessionID} 3270 \uea99 SERVER`,
-      text: error.message
+      text: e.message
     });
     ctx.tcpSocket = undefined;
-    ctx.webSocket?.close();
+    ctx.webSocket?.close(1011, e.message);
   });
   // 👇 CLOSE
   ctx.tcpSocket.on('end', () => {
@@ -153,7 +153,7 @@ const tcpSocketImpl = (ctx: Context): void => {
       text: 'disconnected'
     });
     ctx.tcpSocket = undefined;
-    ctx.webSocket?.close();
+    ctx.webSocket?.close(1000);
   });
 };
 
@@ -179,17 +179,17 @@ const webSocketImpl = {
     }
   },
   // 👇 ERROR
-  // 🔥 watch out - identical to close, except for log entry
-  error: (ws: ServerWebSocket<Context>, error: Error): void => {
+  // 🔥 watch out - ALMOST identical to close
+  error: (ws: ServerWebSocket<Context>, e: Error): void => {
     const ctx = contexts[ws.data.sessionID];
     if (ctx) {
       log({
         error: true,
         important: `#${ctx.sessionID} CLIENT \uea99 SERVER`,
-        text: error.message
+        text: e.message
       });
       ctx.webSocket = undefined;
-      ctx.tcpSocket?.end();
+      ctx.tcpSocket?.destroy(e);
       contexts[ctx.sessionID] = undefined;
     }
   },

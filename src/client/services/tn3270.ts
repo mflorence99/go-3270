@@ -30,52 +30,53 @@ const reverse: Record<number, string> = Object.fromEntries(
 export class Tn3270 {
   stream$: Observable<Uint8Array>;
 
-  #socket: WebSocket;
+  #socket?: WebSocket;
 
   private constructor(
     public host: string,
     public port: string,
     public model: string
   ) {
-    this.#socket = new WebSocket(
-      `ws://${location.hostname}:${location.port}?host=${host}&port=${port}`
-    );
     this.stream$ = new Observable((observer: Observer<Uint8Array>) => {
+      this.#socket = new WebSocket(
+        `ws://${location.hostname}:${location.port}?host=${host}&port=${port}`
+      );
       // 👇 OPEN
       this.#socket.onopen = (): void => {
         console.log(
-          `%c3270 -> Server -> Client %cConnected ${host}:${port}`,
+          `%c3270 -> Server -> Client %cConnecting to ${host}:${port}`,
           'color: palegreen',
           'color: skyblue'
         );
       };
       // 👇 MESSAGE
       this.#socket.onmessage = async (
-        event: MessageEvent
+        e: MessageEvent
       ): Promise<void> => {
-        const data = new Uint8Array(await event.data.arrayBuffer());
+        const data = new Uint8Array(await e.data.arrayBuffer());
         this.#dataHandler(data, observer);
       };
       // 🔥 ERROR
-      this.#socket.onerror = (error): void => {
-        console.log(
-          `%c3270 -> Server -> Client %c${error.type}`,
+      this.#socket.onerror = (e: Event): void => {
+        console.error(
+          `%c3270 -> Server -> Client %c${e.type}`,
           'color: palegreen',
           'color: coral'
         );
-        observer.error(error);
+        observer.error(e);
       };
       // 👇 CLOSE
-      this.#socket.onclose = (event: CloseEvent): void => {
+      this.#socket.onclose = (e: CloseEvent): void => {
         console.log(
-          `%c3270 -> Server -> Client %cDisconnected ${event.reason}`,
+          `%c3270 -> Server -> Client %cDisconnecting ${e.code} ${e.reason}`,
           'color: palegreen',
           'color: cyan'
         );
-        observer.complete();
+        if (e.code === 1000) observer.complete();
+        else observer.error(e);
       };
       // 👇 return cleanup function called when complete
-      return (): any => this.#socket.close();
+      return (): void => this.close();
     });
   }
 
@@ -84,23 +85,24 @@ export class Tn3270 {
     port: string,
     model: string
   ): Promise<Tn3270> {
-    try {
-      // 👇 initialize the WebSocket protocol
-      await fetch(`http://${location.hostname}:${location.port}`, {
-        headers: {
-          upgrade: 'websocket'
-        },
-        mode: 'no-cors'
-      });
-      return new Tn3270(host, port, model);
-    } catch (e: any) {
-      throw e;
-    }
+    // 👇 initialize the WebSocket protocol
+    await fetch(`http://${location.hostname}:${location.port}`, {
+      headers: {
+        upgrade: 'websocket'
+      },
+      mode: 'no-cors'
+    });
+    return new Tn3270(host, port, model);
+  }
+
+  close(): void {
+    this.#socket?.close(1000);
+    this.#socket = undefined;
   }
 
   write(data: Uint8Array): void {
     this.#dump(data, 'Client -> Server -> 3270', true, 'yellow');
-    this.#socket.send(data);
+    this.#socket?.send(data);
   }
 
   #dataHandler(data: Uint8Array, observer: Observer<Uint8Array>): void {
@@ -135,7 +137,7 @@ export class Tn3270 {
           'color: palegreen',
           'color: lightgray'
         );
-        this.#socket.send(negotiator.encode(response));
+        this.#socket?.send(negotiator.encode(response));
       }
     } else {
       this.#dump(data, '3270 -> Server -> Client', true, 'palegreen');

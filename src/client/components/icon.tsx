@@ -31,7 +31,7 @@ export class Icon extends LitElement {
       }
 
       .material-icon {
-        color: var(--app-icon-color, var(--md-sys-color-primary));
+        color: var(--app-icon-color, var(--md-sys-on-background));
         direction: ltr;
         display: inline-block;
         filter: var(--app-icon-filter, none);
@@ -52,7 +52,7 @@ export class Icon extends LitElement {
     `
   ];
 
-  @property() icon: string | null = null;
+  @property() icon!: string;
 
   override render(): TemplateResult {
     return html`
