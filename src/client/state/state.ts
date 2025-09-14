@@ -70,7 +70,7 @@ abstract class Base<T> {
 
 export type Config = {
   color: string;
-  emulation: string;
+  emulator: string;
   host: string;
   port: string;
 };
@@ -83,7 +83,7 @@ export type StateModel = {
 const defaultState: StateModel = {
   config: {
     color: 'green',
-    emulation: '2',
+    emulator: '2',
     host: 'localhost',
     port: '3270'
   },

@@ -83,7 +83,7 @@ export class Tn3270 {
     host: string,
     port: string,
     model: string
-  ): Promise<Tn3270 | null> {
+  ): Promise<Tn3270> {
     try {
       // 👇 initialize the WebSocket protocol
       await fetch(`http://${location.hostname}:${location.port}`, {
@@ -94,8 +94,7 @@ export class Tn3270 {
       });
       return new Tn3270(host, port, model);
     } catch (e: any) {
-      console.error(e.message);
-      return Promise.resolve(null);
+      throw e;
     }
   }
 

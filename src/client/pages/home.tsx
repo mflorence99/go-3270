@@ -1,11 +1,12 @@
 import { Colors } from '$lib/types/3270';
 import { Config } from '$client/state/state';
 import { Dimensions } from '$lib/types/3270';
+import { Emulators } from '$lib/types/3270';
 import { LitElement } from 'lit';
-import { Models } from '$lib/types/3270';
 import { SignalWatcher } from '@lit-labs/signals';
 import { State } from '$client/state/state';
 import { TemplateResult } from 'lit';
+import { Tn3270 } from '$client/services/tn3270';
 
 import { consume } from '@lit/context';
 import { css } from 'lit';
@@ -53,6 +54,7 @@ export class Home extends SignalWatcher(LitElement) {
 
           .minor {
             font-size: 2rem;
+            font-weight: bold;
             text-transform: uppercase;
           }
         }
@@ -70,6 +72,10 @@ export class Home extends SignalWatcher(LitElement) {
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
+
+            .instructions {
+              font-weight: bold;
+            }
           }
 
           .color .sample {
@@ -128,22 +134,22 @@ export class Home extends SignalWatcher(LitElement) {
           </article>
 
           <article class="emulation">
-            <p>Select 3270 Model to Emulate</p>
+            <p class="instructions">Select 3270 Model to Emulate</p>
 
             ${repeat(
-              Object.entries(Models),
-              (emulation) => emulation[0],
-              (emulation) => html`
+              Object.entries(Emulators),
+              (emulator) => emulator[0],
+              (emulator) => html`
                 <label>
                   <md-radio
-                    ?checked=${model.get().config.emulation ===
-                    emulation[1]}
-                    name="emulation"
-                    value=${emulation[1]}></md-radio>
-                  ${emulation[0]} &mdash;
+                    ?checked=${model.get().config.emulator ===
+                    emulator[0]}
+                    name="emulator"
+                    value=${emulator[0]}></md-radio>
+                  ${emulator[0]} &mdash;
                   <em class="dims">
-                    ${Dimensions[emulation[1]]?.[0]} x
-                    ${Dimensions[emulation[1]]?.[1]}
+                    ${Dimensions[emulator[0]]?.[0]} x
+                    ${Dimensions[emulator[0]]?.[1]}
                   </em>
                 </label>
               `
@@ -151,7 +157,7 @@ export class Home extends SignalWatcher(LitElement) {
           </article>
 
           <article class="color">
-            <p>Select Default 3270 Color</p>
+            <p class="instructions">Select Default 3270 Color</p>
 
             ${repeat(
               Object.entries(Colors),
@@ -184,8 +190,22 @@ export class Home extends SignalWatcher(LitElement) {
     const form = event.target as HTMLFormElement;
     if (form) {
       const formData = new FormData(form);
-      const formValues = Object.fromEntries(formData.entries());
-      this.theState.updateConfig(formValues as Config);
+      const config = Object.fromEntries(formData.entries()) as Config;
+      this.theState.updateConfig(config);
+      // 🔥 TEMPORARY
+      Tn3270.tn3270(
+        config.host,
+        config.port,
+        Emulators[config.emulator] as string
+      )
+        .then((tn3270) => {
+          tn3270?.stream$.subscribe({
+            next: () => {},
+            error: (e: Error) => console.error(e),
+            complete: () => console.log('All done!')
+          });
+        })
+        .catch((e: Error) => console.error(e));
     }
   }
 }
