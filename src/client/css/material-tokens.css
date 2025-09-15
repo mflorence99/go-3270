@@ -1,0 +1,5 @@
+:root {
+  --md-dialog-container-shape: 0.5rem;
+  --md-filled-button-container-shape: 0.25rem;
+  --md-outlined-button-container-shape: 0.25rem;
+}

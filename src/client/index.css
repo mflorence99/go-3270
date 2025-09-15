@@ -1,11 +1,9 @@
-/* 👁️ we have extracted the good parts from: 
-      https://github.com/google/material-design-icons */
-@import url('css/material-icons.css');
-
 /* 👁️ http://material-foundation.github.io/material-theme-builder/?primary=%23769CDF&tertiary=%239BCF85&bodyFont=Roboto&displayFont=Roboto+Serif&colorMatch=false */
-@import url('./css/material-theme/dark.css');
-@import url('./css/material-theme/light.css');
+@import url('$client/css/material-theme/dark.css');
+@import url('$client/css/material-theme/light.css');
 
 /* 👇 app styles */
-@import url('./css/globals.css');
-@import url('./css/3270.css');
+@import url('$client/css/globals/light-dom.css');
+
+/* 👁️ https://material-web.dev/theming/material-theming/ */
+@import url('$client/css/material-tokens.css');

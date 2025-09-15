@@ -2,14 +2,29 @@
   font-family: Roboto;
   font-style: normal;
   font-weight: normal;
-  src: url('../fonts/roboto-latin-400.woff2') format('woff2');
+  src: url('$client/fonts/roboto-latin-400.woff2') format('woff2');
 }
 
 @font-face {
   font-family: Roboto;
   font-style: normal;
   font-weight: bold;
-  src: url('../fonts/roboto-latin-700.woff2') format('woff2');
+  src: url('$client/fonts/roboto-latin-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: '3270 Font';
+  font-style: normal;
+  font-weight: 500;
+  src: url('$client/fonts/3270Medium.otf') format('opentype');
+}
+
+@font-face {
+  font-display: block;
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url('$client/fonts/material-icons.woff2') format('woff2');
 }
 
 /* 👉 global styles that are used in the light DOM */

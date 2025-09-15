@@ -6,7 +6,7 @@ import { TemplateResult } from 'lit';
 
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { globals } from '$client/css/globals';
+import { globals } from '$client/css/globals/shadow-dom';
 import { html } from 'lit';
 import { provide } from '@lit/context';
 import { stateContext } from '$client/state/state';

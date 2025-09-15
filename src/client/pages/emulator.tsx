@@ -6,7 +6,7 @@ import { TemplateResult } from 'lit';
 import { consume } from '@lit/context';
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { globals } from '$client/css/globals';
+import { globals } from '$client/css/globals/shadow-dom';
 import { html } from 'lit';
 import { stateContext } from '$client/state/state';
 
@@ -26,9 +26,11 @@ export class Emulator extends SignalWatcher(LitElement) {
 
   override render(): TemplateResult {
     return html`
-      <md-filled-button @click=${(): void => State.theTn3270?.close()}>
-        Disconnect
-      </md-filled-button>
+      <md-icon-button
+        @click=${(): void => State.theTn3270?.close()}
+        title="Disconnect from 3270">
+        <app-icon icon="power_settings_new"></app-icon>
+      </md-icon-button>
     `;
   }
 }

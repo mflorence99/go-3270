@@ -13,7 +13,7 @@ import { Tn3270 } from '$client/services/tn3270';
 import { consume } from '@lit/context';
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { globals } from '$client/css/globals';
+import { globals } from '$client/css/globals/shadow-dom';
 import { html } from 'lit';
 import { query } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
@@ -167,7 +167,7 @@ export class Connector extends SignalWatcher(LitElement) {
                     emulator[0]}
                     name="emulator"
                     value=${emulator[0]}></md-radio>
-                  ${emulator[0]} &mdash;
+                  ${emulator[1]} &mdash;
                   <em class="dims">
                     ${Dimensions[emulator[0]]?.[0]} x
                     ${Dimensions[emulator[0]]?.[1]}
@@ -207,7 +207,8 @@ export class Connector extends SignalWatcher(LitElement) {
         <header slot="headline">3270 Connection Error</header>
         <section slot="content">
           <p>
-            An error occured while connecting to the 3270 device at
+            An error occured while connecting to the
+            ${model.get().config.emulator} at
             ${model.get().config.host}:${model.get().config.port}.
             Please take any necessary corrective action and retry.
             <br />
@@ -216,7 +217,7 @@ export class Connector extends SignalWatcher(LitElement) {
           </p>
         </section>
         <form slot="actions" method="dialog">
-          <md-text-button>OK</md-text-button>
+          <md-outlined-button>OK</md-outlined-button>
         </form>
       </md-dialog>
     `;
