@@ -76,8 +76,15 @@ export type Config = {
   port: string;
 };
 
+export type FontSize = {
+  actual: number;
+  max: number;
+  min: number;
+};
+
 export type StateModel = {
   config: Config;
+  fontSize: FontSize;
   pageNum: number;
 };
 
@@ -87,6 +94,11 @@ const defaultState: StateModel = {
     emulator: '2',
     host: 'localhost',
     port: '3270'
+  },
+  fontSize: {
+    actual: 18,
+    max: 36,
+    min: 10
   },
   pageNum: 0
 };
@@ -101,9 +113,19 @@ export class State extends Base<StateModel> {
     super(defaultState, key, true);
   }
 
-  // 👇 just an example of a mutator
+  // 👇 decrease font size
+  decreaseFontSize(): void {
+    this.mutate((state) => void (state.fontSize.actual -= 1));
+  }
+
+  // 👇 flip between pages
   gotoPage(pageNum: number): void {
     this.mutate((state) => void (state.pageNum = pageNum));
+  }
+
+  // 👇 increase font size
+  increaseFontSize(): void {
+    this.mutate((state) => void (state.fontSize.actual += 1));
   }
 
   // 👇 update the config

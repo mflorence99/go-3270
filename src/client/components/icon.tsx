@@ -26,6 +26,7 @@ export class Icon extends LitElement {
     css`
       :host {
         display: inline-block;
+        height: 1rem;
         text-align: center;
         vertical-align: middle;
       }
@@ -57,6 +58,7 @@ export class Icon extends LitElement {
   override render(): TemplateResult {
     return html`
       <i class="material-icon">${this.icon}</i>
+      <slot></slot>
     `;
   }
 }

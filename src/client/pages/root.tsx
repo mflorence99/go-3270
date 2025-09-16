@@ -52,21 +52,19 @@ export class Root extends SignalWatcher(LitElement) {
 
   override render(): TemplateResult {
     return html`
-      <main>
-        <app-connector
-          data-page-num="${Pages.connector}"
-          style=${styleMap({
-            opacity: this.#isPage(Pages.connector) ? 1 : 0,
-            zIndex: this.#isPage(Pages.connector) ? 1 : -1
-          })}></app-connector>
+      <app-connector
+        data-page-num="${Pages.connector}"
+        style=${styleMap({
+          opacity: this.#isPage(Pages.connector) ? 1 : 0,
+          zIndex: this.#isPage(Pages.connector) ? 1 : -1
+        })}></app-connector>
 
-        <app-emulator
-          data-page-num="${Pages.emulator}"
-          style=${styleMap({
-            opacity: this.#isPage(Pages.emulator) ? 1 : 0,
-            zIndex: this.#isPage(Pages.emulator) ? 1 : -1
-          })}></app-emulator>
-      </main>
+      <app-emulator
+        data-page-num="${Pages.emulator}"
+        style=${styleMap({
+          opacity: this.#isPage(Pages.emulator) ? 1 : 0,
+          zIndex: this.#isPage(Pages.emulator) ? 1 : -1
+        })}></app-emulator>
     `;
   }
 

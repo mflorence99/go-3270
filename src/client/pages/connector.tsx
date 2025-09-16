@@ -40,72 +40,76 @@ export class Connector extends SignalWatcher(LitElement) {
   static override styles = [
     globals,
     css`
-      .connector {
+      .stretcher {
         align-items: center;
         display: flex;
         flex-direction: column;
-        gap: 2rem;
         height: 100%;
         justify-content: center;
-        min-width: 800px;
-        width: 100%;
 
-        .header {
-          text-align: center;
-
-          .major {
-            color: #00cc00;
-            font-family: '3270 Font';
-            font-size: 12rem;
-            font-weight: bold;
-            line-height: 1;
-            text-shadow: 0.33rem 0.33rem #008000;
-          }
-
-          .minor {
-            font-size: 2rem;
-            font-weight: bold;
-            text-transform: uppercase;
-          }
-        }
-
-        .config {
-          align-items: stretch;
+        .connector {
           display: flex;
-          flex-direction: row;
-          gap: 1rem;
-          justify-content: center;
+          flex-direction: column;
+          gap: 2rem;
+          justify-content: stretch;
 
-          .color,
-          .connection,
-          .emulation {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+          .header {
+            text-align: center;
 
-            .instructions {
+            .major {
+              color: #00cc00;
+              font-family: '3270 Font';
+              font-size: 12rem;
               font-weight: bold;
+              line-height: 1;
+              text-shadow: 0.33rem 0.33rem #008000;
+            }
+
+            .minor {
+              font-size: 2rem;
+              font-weight: bold;
+              text-transform: uppercase;
             }
           }
 
-          .color .sample {
-            font-family: '3270 Font';
-            font-size: larger;
-          }
-
-          .connection {
-            align-items: center;
-            justify-content: space-between;
-          }
-
-          .connection .host {
+          .config {
+            align-items: stretch;
             display: flex;
             flex-direction: row;
-            gap: 0.5rem;
-          }
+            gap: 1rem;
+            justify-content: center;
 
-          .emulation .dims {
-            font-size: smaller;
+            .color,
+            .connection,
+            .emulation {
+              display: flex;
+              flex-direction: column;
+              gap: 0.5rem;
+
+              .instructions {
+                font-weight: bold;
+              }
+            }
+
+            .color .sample {
+              font-family: '3270 Font';
+              font-size: larger;
+            }
+
+            .connection {
+              align-items: center;
+              justify-content: space-between;
+            }
+
+            .connection .host {
+              display: flex;
+              flex-direction: row;
+              gap: 0.5rem;
+            }
+
+            .emulation .dims {
+              font-size: smaller;
+            }
           }
         }
       }
@@ -120,88 +124,92 @@ export class Connector extends SignalWatcher(LitElement) {
   override render(): TemplateResult {
     const model = this.theState.model;
     return html`
-      <section class="connector">
-        <article class="header">
-          <header class="major">3270</header>
-          <p class="minor">Go-powered 3270 Emulator</p>
-        </article>
-
-        <hr />
-
-        <form @submit=${this.#submit} class="config" name="config">
-          <article class="connection">
-            <div class="host">
-              <md-filled-text-field
-                label="Hostname or IP"
-                name="host"
-                style="width: 10rem"
-                value=${model.get().config.host}></md-filled-text-field>
-              <md-filled-text-field
-                label="Port"
-                name="port"
-                style="width: 5rem"
-                value=${model.get().config.port}></md-filled-text-field>
-            </div>
-
-            <md-filled-button ?disabled=${this.connecting}>
-              ${this.connecting ? 'Connnecting...' : 'Connect'}
-              <app-icon
-                icon="hourglass_full"
-                style=${styleMap({
-                  display: this.connecting ? 'block' : 'none'
-                })}
-                slot="icon"></app-icon>
-            </md-filled-button>
+      <main class="stretcher">
+        <section class="connector">
+          <article class="header">
+            <header class="major">3270</header>
+            <p class="minor">Go-powered 3270 Emulator</p>
           </article>
 
-          <article class="emulation">
-            <p class="instructions">Select 3270 Model to Emulate</p>
+          <hr />
 
-            ${repeat(
-              Object.entries(Emulators),
-              (emulator) => emulator[0],
-              (emulator) => html`
-                <label>
-                  <md-radio
-                    ?checked=${model.get().config.emulator ===
-                    emulator[0]}
-                    name="emulator"
-                    value=${emulator[0]}></md-radio>
-                  ${emulator[1]} &mdash;
-                  <em class="dims">
-                    ${Dimensions[emulator[0]]?.[0]} x
-                    ${Dimensions[emulator[0]]?.[1]}
-                  </em>
-                </label>
-              `
-            )}
-          </article>
+          <form @submit=${this.#submit} class="config" name="config">
+            <article class="connection">
+              <div class="host">
+                <md-filled-text-field
+                  label="Hostname or IP"
+                  name="host"
+                  style="width: 10rem"
+                  value=${model.get().config
+                    .host}></md-filled-text-field>
+                <md-filled-text-field
+                  label="Port"
+                  name="port"
+                  style="width: 5rem"
+                  value=${model.get().config
+                    .port}></md-filled-text-field>
+              </div>
 
-          <article class="color">
-            <p class="instructions">Select Default 3270 Color</p>
+              <md-filled-button ?disabled=${this.connecting}>
+                ${this.connecting ? 'Connnecting...' : 'Connect'}
+                <app-icon
+                  icon="hourglass_full"
+                  style=${styleMap({
+                    display: this.connecting ? 'block' : 'none'
+                  })}
+                  slot="icon"></app-icon>
+              </md-filled-button>
+            </article>
 
-            ${repeat(
-              Object.entries(Colors),
-              (color) => color[0],
-              (color) => html`
-                <label>
-                  <md-radio
-                    ?checked=${model.get().config.color === color[0]}
-                    name="color"
-                    value=${color[0]}></md-radio>
-                  <span
-                    class="sample"
-                    style=${styleMap({
-                      color: color[1]
-                    })}>
-                    CUSTOMER NUM: 123456
-                  </span>
-                </label>
-              `
-            )}
-          </article>
-        </form>
-      </section>
+            <article class="emulation">
+              <p class="instructions">Select 3270 Model to Emulate</p>
+
+              ${repeat(
+                Object.entries(Emulators),
+                (emulator) => emulator[0],
+                (emulator) => html`
+                  <label>
+                    <md-radio
+                      ?checked=${model.get().config.emulator ===
+                      emulator[0]}
+                      name="emulator"
+                      value=${emulator[0]}></md-radio>
+                    ${emulator[1]} &mdash;
+                    <em class="dims">
+                      ${Dimensions[emulator[0]]?.[0]} x
+                      ${Dimensions[emulator[0]]?.[1]}
+                    </em>
+                  </label>
+                `
+              )}
+            </article>
+
+            <article class="color">
+              <p class="instructions">Select Default 3270 Color</p>
+
+              ${repeat(
+                Object.entries(Colors),
+                (color) => color[0],
+                (color) => html`
+                  <label>
+                    <md-radio
+                      ?checked=${model.get().config.color === color[0]}
+                      name="color"
+                      value=${color[0]}></md-radio>
+                    <span
+                      class="sample"
+                      style=${styleMap({
+                        color: color[1]
+                      })}>
+                      CUSTOMER NUM: 123456
+                    </span>
+                  </label>
+                `
+              )}
+            </article>
+          </form>
+        </section>
+      </main>
 
       <md-dialog id="dialog">
         <header slot="headline">3270 Connection Error</header>

@@ -7,7 +7,8 @@ export const Colors: Record<string, string> = {
   white: '#f9f9f9'
 };
 
-export const Dimensions: Record<string, number[]> = {
+export const Dimensions: Record<string, [number, number]> = {
+  // 👇 [width, var(--toolbar-height)]
   '1': [80, 12],
   '2': [80, 24],
   '3': [80, 32],

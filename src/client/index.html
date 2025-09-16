@@ -47,7 +47,7 @@
               if (m !== mtime) location.reload();
             })
             .catch(() => clearInterval(timerID));
-        }, 500 /* 🔥 better be shorter than debounceTime! */);
+        }, 500 /* 🔥 not sure how to optimize this */);
       }
     </script>
 

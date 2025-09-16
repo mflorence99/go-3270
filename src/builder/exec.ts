@@ -39,12 +39,12 @@ const todos: Task[] = reducer(taskNames ?? []);
 
 // 👇 this closure will run each requested task
 
-const error = (): void => {
+const error = (code: number): Promise<number> => {
   banner('See errors above', { color: '#ff8080', icon: '' });
-  exit(1);
+  return Promise.resolve(code);
 };
 
-const run = async (todos: Task[]): Promise<void> => {
+const run = async (todos: Task[]): Promise<number> => {
   for (const todo of todos) {
     try {
       // 👇 this looks pretty, but has no other function
@@ -58,7 +58,7 @@ const run = async (todos: Task[]): Promise<void> => {
           const existing = plist.find((p) => p.cmd === cmd);
           if (existing) kill(existing.pid, 'SIGINT');
           const { exitCode } = await $`${{ raw: cmd }}`.nothrow();
-          if (exitCode !== 0) error();
+          if (exitCode !== 0) return error(1);
         }
       }
       // 👇 could be a function
@@ -66,13 +66,15 @@ const run = async (todos: Task[]): Promise<void> => {
         log({ important: todo.name, text: 'function invoked' });
         await todo.kill?.();
         const result = await todo.func({ prod, verbose });
-        if (!result) error();
+        if (!result) return error(1);
       }
     } catch (e: any) {
       log({ error: true, data: e.message });
-      error();
+      return error(1);
     }
   }
+  // 👇 no early return means everything worked!!
+  return Promise.resolve(0);
 };
 
 // 👇 if in watch mode, lookout for changes and run todos
@@ -114,7 +116,4 @@ if (watch) {
 }
 
 // 👇 otherwise, just run the todos and be done
-if (allWatchedDirs.length === 0) {
-  await run(todos);
-  exit(0);
-}
+if (allWatchedDirs.length === 0) exit(await run(todos));
