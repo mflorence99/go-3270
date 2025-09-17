@@ -19,7 +19,7 @@
     <figure class="startup-loading">
       <img class="startup-logo" role="none" src="assets/3270.png" />
 
-      <figcaption class="startup-caption">Go 3270 xx</figcaption>
+      <figcaption class="startup-caption">Go 3270</figcaption>
 
       <svg
         class="startup-wiggle"
@@ -36,17 +36,21 @@
     <script type="module">
       // 📘 super-simple hot reload
       if (location.hostname === 'localhost') {
-        var mtime = 0;
-        fetch('/mtime')
-          .then((response) => response.text())
-          .then((m) => (mtime = m));
-        var timerID = setInterval(() => {
+        let mtime = 0;
+        const timerID = setInterval(() => {
           fetch('/mtime')
             .then((response) => response.text())
             .then((m) => {
-              if (m !== mtime) location.reload();
+              if (mtime === 0) mtime = m;
+              else if (m !== mtime) {
+                clearInterval(timerID);
+                location.reload();
+              }
             })
-            .catch(() => clearInterval(timerID));
+            .catch((e) => {
+              console.error(e);
+              clearInterval(timerID);
+            });
         }, 500 /* 🔥 not sure how to optimize this */);
       }
     </script>

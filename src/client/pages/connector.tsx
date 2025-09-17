@@ -46,6 +46,7 @@ export class Connector extends SignalWatcher(LitElement) {
         flex-direction: column;
         height: 100%;
         justify-content: center;
+        min-width: 800px /* 👈 to prevent wrapping */;
 
         .connector {
           display: flex;

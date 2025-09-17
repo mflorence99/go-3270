@@ -107,9 +107,11 @@ export class Emulator extends SignalWatcher(LitElement) {
       <main class="stretcher">
         <section class="emulator">
           <header class="header">
-            <h1 class="title">
-              ${model.get().config.host}:${model.get().config.port}
-            </h1>
+            <md-icon-button
+              @click=${(): void => State.theTn3270?.close()}
+              title="Disconnect from 3270">
+              <app-icon icon="power_settings_new"></app-icon>
+            </md-icon-button>
 
             <article class="controls">
               <md-icon-button
@@ -128,15 +130,6 @@ export class Emulator extends SignalWatcher(LitElement) {
                 <app-icon icon="text_decrease"></app-icon>
               </md-icon-button>
 
-              <md-icon-button title="Show keyboard">
-                <app-icon icon="keyboard"></app-icon>
-              </md-icon-button>
-
-              <md-icon-button
-                @click=${(): void => State.theTn3270?.close()}
-                title="Disconnect from 3270">
-                <app-icon icon="power_settings_new"></app-icon>
-              </md-icon-button>
               <md-icon-button title="Get help">
                 <app-icon icon="help"></app-icon>
               </md-icon-button>
