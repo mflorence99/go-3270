@@ -108,7 +108,6 @@ export class Emulator extends SignalWatcher(LitElement) {
         <section class="emulator">
           <header class="header">
             <h1 class="title">
-              ${Emulators[model.get().config.emulator]} at
               ${model.get().config.host}:${model.get().config.port}
             </h1>
 
@@ -177,8 +176,9 @@ export class Emulator extends SignalWatcher(LitElement) {
             <article class="left">
               <app-icon icon="computer">
                 ${Emulators[model.get().config.emulator]}
+                ${dims[0]}x${dims[1]}
               </app-icon>
-              <app-icon icon="hourglass_bottom">WAIT</app-icon>
+              <app-icon icon="access_time">WAIT</app-icon>
               <app-icon icon="clear">MSG</app-icon>
             </article>
 

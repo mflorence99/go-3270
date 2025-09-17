@@ -82,16 +82,29 @@ const fetchMTime = (): Response => {
 const fetchStatic = (url: URL, req: Request): Response => {
   if (
     // 🔥 a quirk of Bun.serve ???
-    !url.pathname.startsWith('/src:') &&
-    !url.pathname.startsWith('/.')
+    url.pathname.startsWith('/src:') ||
+    url.pathname.startsWith('/.')
   ) {
-    // log({ important: req.method, text: url.pathname });
-    return new Response(Bun.file(`${root}${url.pathname}`));
-  }
-  // 👇 everything else is an error
-  else {
-    log({ warning: true, important: req.method, text: url.pathname });
-    return new Response('Not found', { status: 404 });
+    return new Response();
+  } else {
+    try {
+      statSync(`${root}/${url.pathname}`);
+      const response = new Response(Bun.file(`${root}${url.pathname}`));
+      log({ important: req.method, text: url.pathname });
+      return response;
+      // 🔥 don't know why we need this
+      // 🔥 specifying no-unused-vars doesn't work!
+      // eslint-disable-next-line
+    } catch (ignored) {
+      // 👇 these errors occur as we are rebuilding client
+      //    watch code kicks in before all changes have settled down
+      log({
+        error: true,
+        important: req.method,
+        text: `ENOENT ${url.pathname}`
+      });
+      return new Response();
+    }
   }
 };
 
