@@ -59,7 +59,7 @@ export class Connector extends SignalWatcher(LitElement) {
 
             .major {
               color: #00cc00;
-              font-family: '3270 Font';
+              font-family: Terminal;
               font-size: 12rem;
               font-weight: bold;
               line-height: 1;
@@ -93,7 +93,7 @@ export class Connector extends SignalWatcher(LitElement) {
             }
 
             .color .sample {
-              font-family: '3270 Font';
+              font-family: Terminal;
               font-size: larger;
             }
 

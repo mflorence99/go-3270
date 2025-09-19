@@ -13,15 +13,14 @@
 }
 
 @font-face {
-  font-family: '3270 Font';
+  font-family: Terminal;
   font-style: normal;
   font-weight: 500;
-  src: url('$client/fonts/3270Medium.otf') format('opentype');
+  src: url('$client/fonts/3270Medium.woff2') format('woff2');
 }
 
 @font-face {
-  font-display: block;
-  font-family: 'Material Icons';
+  font-family: Material;
   font-style: normal;
   font-weight: 400;
   src: url('$client/fonts/material-icons.woff2') format('woff2');

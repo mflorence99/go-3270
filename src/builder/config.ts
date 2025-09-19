@@ -13,6 +13,7 @@ export class ConfigClass {
     'builder-ts': `${root}/src/builder`,
     'client-js': `${root}/dist/client`,
     'client-ts': `${root}/src/client`,
+    'emulator-go': `${root}/src/emulator`,
     'lib': `${root}/src/lib`,
     'root': root,
     'tsconfig': `${root}/tsconfig-app.json`,

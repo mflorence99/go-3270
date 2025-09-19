@@ -37,7 +37,7 @@ export class Icon extends LitElement {
         direction: ltr;
         display: inline-block;
         filter: var(--app-icon-filter, none);
-        font-family: Material Icons;
+        font-family: Material;
         font-feature-settings: 'liga';
         font-size: var(--app-icon-size, 1em);
         font-style: normal;

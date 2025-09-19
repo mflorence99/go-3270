@@ -66,7 +66,7 @@ export class Emulator extends SignalWatcher(LitElement) {
           .simulation {
             align-items: start;
             display: grid;
-            font-family: '3270 Font';
+            font-family: Terminal;
             justify-content: center;
 
             .cell {
@@ -80,7 +80,7 @@ export class Emulator extends SignalWatcher(LitElement) {
             border-top: 1px solid currentColor;
             display: flex;
             flex-direction: row;
-            font-family: '3270 Font';
+            font-family: Terminal;
             justify-content: space-between;
             margin-top: 0.5rem;
 

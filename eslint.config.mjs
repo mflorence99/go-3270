@@ -14,6 +14,6 @@ export default [
     }
   },
   {
-    ignores: ['eslint.config.mjs']
+    ignores: ['eslint.config.mjs', 'wasm_exec.js']
   }
 ];

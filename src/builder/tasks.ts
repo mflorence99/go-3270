@@ -31,12 +31,14 @@ const colors = {
 };
 
 const icons = {
+  assets: '',
   bundle: '',
   check: '',
   clean: '',
   css: '',
   js: '',
-  lint: ''
+  lint: '',
+  wasm: ''
 };
 
 // 👇 all the tasks we can perform
@@ -50,7 +52,7 @@ export const allTasks = [
     name: 'bundle:builder',
     description: 'Fully bundle builder',
     banner: { color: colors.builder, icon: icons.bundle },
-    subTasks: ['clean:builder', 'check:builder', 'bundle:builder:js'],
+    subTasks: ['check:builder', 'clean:builder', 'bundle:builder:js'],
     watchDirs: [
       config.paths.lib,
       `${config.paths.root}/tsconfig-app.json`,
@@ -79,35 +81,31 @@ export const allTasks = [
     name: 'bundle:client',
     description: 'Fully bundle client',
     banner: { color: colors.client, icon: icons.bundle },
-    cmds: [
-      `mkdir -p ${config.paths['client-js']}`,
-      `touch ${config.paths['client-js']}/at-least-one-to-rm`,
-      `rm -rf ${config.paths['client-js']}/*`,
-      `cp ${config.paths['client-ts']}/index.html ${config.paths['client-js']}/`,
-      `cp -r ${config.paths['client-ts']}/assets ${config.paths['client-js']}`
+    subTasks: [
+      'check:client',
+      'clean:client',
+      'bundle:client:assets',
+      'bundle:client:css',
+      'bundle:client:js',
+      'bundle:client:wasm'
     ],
-    subTasks: ['check:client', 'bundle:client:css', 'bundle:client:js'],
     watchDirs: [
       config.paths.lib,
       `${config.paths.root}/tsconfig-app.json`,
       // 🔥 HACK -- a directory must come last
+      config.paths['emulator-go'],
       config.paths['client-ts']
     ]
   }),
+
   new TaskClass({
-    name: 'bundle:client:js',
-    description: 'Bundle client Javascript',
-    banner: { color: colors.client, icon: icons.js },
-    func: ({ prod, verbose }): Promise<boolean> =>
-      bundle({
-        format: 'esm',
-        outdir: `${config.paths['client-js']}`,
-        prod: !!prod,
-        target: 'browser',
-        verbose: !!verbose,
-        roots: [`${config.paths['client-ts']}/index.ts`],
-        tsconfig: config.paths.tsconfig
-      })
+    name: 'bundle:client:assets',
+    description: 'Bundle client assets',
+    banner: { color: colors.client, icon: icons.assets },
+    cmds: [
+      `cp ${config.paths['client-ts']}/index.html ${config.paths['client-js']}/`,
+      `cp -r ${config.paths['client-ts']}/assets ${config.paths['client-js']}`
+    ]
   }),
 
   new TaskClass({
@@ -125,10 +123,33 @@ export const allTasks = [
   }),
 
   new TaskClass({
+    name: 'bundle:client:js',
+    description: 'Bundle client JS',
+    banner: { color: colors.client, icon: icons.js },
+    func: ({ prod, verbose }): Promise<boolean> =>
+      bundle({
+        format: 'esm',
+        outdir: `${config.paths['client-js']}`,
+        prod: !!prod,
+        target: 'browser',
+        verbose: !!verbose,
+        roots: [`${config.paths['client-ts']}/index.ts`],
+        tsconfig: config.paths.tsconfig
+      })
+  }),
+
+  new TaskClass({
+    name: 'bundle:client:wasm',
+    description: 'Bundle client WASM',
+    banner: { color: colors.client, icon: icons.wasm },
+    cmd: `GOOS=js GOARCH=wasm go build -o ${config.paths['client-js']}/main.wasm ${config.paths['emulator-go']}/*.go`
+  }),
+
+  new TaskClass({
     name: 'bundle:server',
     description: 'Fully bundle server',
     banner: { color: colors.server, icon: icons.bundle },
-    subTasks: ['clean:server', 'check:server', 'bundle:server:js'],
+    subTasks: ['check:server', 'clean:server', 'bundle:server:js'],
     watchDirs: [
       config.paths.lib,
       `${config.paths.root}/tsconfig-app.json`,
