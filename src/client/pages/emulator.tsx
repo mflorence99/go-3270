@@ -110,9 +110,13 @@ export class Emulator extends SignalWatcher(LitElement) {
       const dims: [number, number] =
         Dimensions[this.state.model.get().config.emulator] ??
         defaultDimensions;
-      const fontWidth = metrics.width;
+      const paddingLeft = 0.05;
+      const paddingTop = 0.05;
+      const fontWidth = (2 * paddingLeft + 1) * metrics.width;
       const fontHeight =
-        metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+        (2 * paddingTop + 1) *
+        (metrics.fontBoundingBoxAscent +
+          metrics.fontBoundingBoxDescent);
       const ectx = {
         color,
         ctx,
@@ -120,6 +124,8 @@ export class Emulator extends SignalWatcher(LitElement) {
         fontHeight,
         fontSpec,
         fontWidth,
+        paddingLeft,
+        paddingTop,
         responder: this.responder.bind(this)
       };
       // 👇 I *think* we only shoukld do this on a delta
