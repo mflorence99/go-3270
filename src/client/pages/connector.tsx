@@ -27,8 +27,7 @@ declare global {
 }
 
 export type DataStreamEventDetail = {
-  bytes: Uint8Array | undefined;
-  first: boolean /* 👈 first such event after a connection */;
+  bytes: Uint8Array;
 };
 
 // 📘 manage 3270 connection
@@ -147,7 +146,7 @@ export class Connector extends SignalWatcher(LitElement) {
               this.dispatchEvent(new CustomEvent('connected'));
             this.dispatchEvent(
               new CustomEvent<DataStreamEventDetail>('datastream', {
-                detail: { bytes, first: this.connecting }
+                detail: { bytes }
               })
             );
             this.connecting = false;
@@ -312,5 +311,9 @@ export class Connector extends SignalWatcher(LitElement) {
         </form>
       </md-dialog>
     `;
+  }
+
+  response(e: CustomEvent<DataStreamEventDetail>): void {
+    this.tn3270?.response(e.detail.bytes);
   }
 }

@@ -74,6 +74,8 @@ export class Root extends SignalWatcher(LitElement) {
 
       <app-emulator
         @disconnect=${(): any => this.connector.disconnect()}
+        @response=${(e: CustomEvent<DataStreamEventDetail>): any =>
+          this.connector.response(e)}
         class="emulator"
         data-page-num="${Pages.emulator}"
         style=${styleMap({

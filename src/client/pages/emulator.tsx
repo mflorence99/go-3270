@@ -1,8 +1,10 @@
 import { Colors } from '$client/types/3270';
 import { DataStreamEventDetail } from '$client/pages/connector';
 import { Dimensions } from '$client/types/3270';
+import { EmulatorContext } from '$client/services/lu3270';
 import { Emulators } from '$client/types/3270';
 import { LitElement } from 'lit';
+import { Lu3270 } from '$client/services/lu3270';
 import { SignalWatcher } from '@lit-labs/signals';
 import { State } from '$client/state/state';
 import { TemplateResult } from 'lit';
@@ -23,14 +25,6 @@ declare global {
     'app-emulator': Emulator;
   }
 }
-
-type EmulatorContext = {
-  ctx: CanvasRenderingContext2D;
-  dims: [number, number];
-  fontHeight: number;
-  fontSpec: string;
-  fontWidth: number;
-};
 
 // 📘 emulate the 3270 emulator
 
@@ -97,9 +91,54 @@ export class Emulator extends SignalWatcher(LitElement) {
   @consume({ context: stateContext }) state!: State;
   @query('.terminal') terminal!: HTMLCanvasElement;
 
+  lu3270: Lu3270 | null = null;
+
   datastream(e: CustomEvent<DataStreamEventDetail>): void {
-    const ectx = this.#prepareCanvas();
-    if (ectx) this.#renderCanvas(ectx, e.detail.bytes);
+    const ectx = this.prepare();
+    if (ectx) this.lu3270?.outbound(e.detail.bytes);
+  }
+
+  prepare(): EmulatorContext | null {
+    const fontSpec = `${this.state.model.get().fontSize.actual}px Terminal`;
+    const ctx = this.terminal.getContext('2d');
+    if (ctx) {
+      // 👇 resize canvas appropriate to font size and dimensions
+      ctx.font = fontSpec;
+      const metrics = ctx.measureText('A');
+      const color =
+        Colors[this.state.model.get().config.color] ?? defaultColor;
+      const dims: [number, number] =
+        Dimensions[this.state.model.get().config.emulator] ??
+        defaultDimensions;
+      const fontWidth = metrics.width;
+      const fontHeight =
+        metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+      const ectx = {
+        color,
+        ctx,
+        dims,
+        fontHeight,
+        fontSpec,
+        fontWidth,
+        responder: this.responder.bind(this)
+      };
+      // 👇 I *think* we only shoukld do this on a delta
+      const cx = dims[0] * fontWidth;
+      const cy = dims[1] * fontHeight;
+      if (
+        cx !== this.terminal.offsetWidth ||
+        cy !== this.terminal.offsetHeight
+      ) {
+        this.terminal.width = cx;
+        this.terminal.height = cy;
+        // 👇 in any event, we must do this each time the
+        //    emulator changes
+        this.lu3270?.close();
+        this.lu3270 = Lu3270.lu3270(ectx);
+      }
+      ctx.clearRect(0, 0, this.terminal.width, this.terminal.height);
+      return ectx;
+    } else return null;
   }
 
   override render(): TemplateResult {
@@ -163,62 +202,16 @@ export class Emulator extends SignalWatcher(LitElement) {
     `;
   }
 
+  responder(bytes: Uint8Array): void {
+    this.dispatchEvent(
+      new CustomEvent<DataStreamEventDetail>('response', {
+        detail: { bytes }
+      })
+    );
+  }
+
   override updated(): void {
-    const ectx = this.#prepareCanvas();
-    if (ectx) this.#renderCanvas(ectx);
-  }
-
-  #prepareCanvas(): EmulatorContext | null {
-    const fontSpec = `${this.state.model.get().fontSize.actual}px Terminal`;
-    const ctx = this.terminal.getContext('2d');
-    if (ctx) {
-      // 👇 resize canvas appropriate to font size and dimensions
-      ctx.font = fontSpec;
-      const metrics = ctx.measureText('A');
-      const dims: [number, number] =
-        Dimensions[this.state.model.get().config.emulator] ??
-        defaultDimensions;
-      const fontWidth = metrics.width;
-      const fontHeight =
-        metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
-      const cx = dims[0] * fontWidth;
-      const cy = dims[1] * fontHeight;
-      if (
-        cx !== this.terminal.offsetWidth ||
-        cy !== this.terminal.offsetHeight
-      ) {
-        this.terminal.width = cx;
-        this.terminal.height = cy;
-      }
-      ctx.clearRect(0, 0, this.terminal.width, this.terminal.height);
-      return { ctx, dims, fontHeight, fontSpec, fontWidth };
-    } else return null;
-  }
-
-  // 🔥 TEMPORARY - draw random characters to fill screen
-  // 🔥 don't know why we need this
-  // 🔥 specifying no-unused-vars doesn't work!
-  // eslint-disable-next-line
-  #renderCanvas(ectx: EmulatorContext, bytes?: Uint8Array): void {
-    const { ctx, dims, fontHeight, fontSpec, fontWidth } = ectx;
-    // 👇 establish terminal font and color
-    ctx.font = fontSpec;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillStyle =
-      Colors[this.state.model.get().config.color] ?? defaultColor;
-    // 👇 will do something with "bytes" or refresh if null
-
-    const chars =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[{]};:,<.>/?';
-    for (let ix = 0, x = 0; ix < dims[0]; ix++, x += fontWidth) {
-      for (let iy = 0, y = 0; iy < dims[1]; iy++, y += fontHeight) {
-        ctx.fillText(
-          chars.charAt(Math.floor(Math.random() * chars.length)),
-          x,
-          y
-        );
-      }
-    }
+    const ectx = this.prepare();
+    if (ectx) this.lu3270?.refresh();
   }
 }

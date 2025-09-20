@@ -1,8 +1,6 @@
 import { Observable } from 'rxjs';
 import { Observer } from 'rxjs';
 
-import { dumpBytes } from '$lib/dump';
-
 const lookup: Record<string, number> = {
   BINARY: 0,
   DO: 253,
@@ -20,9 +18,8 @@ const reverse: Record<number, string> = Object.fromEntries(
   Object.entries(lookup).map(([k, v]) => [v, k])
 );
 
-// 🟧 3270 Telnet factory
+// 🟧 3270 Telnet protocol
 
-// 🟧 Raw Telnet to 3270
 // 👁️ https://tools.ietf.org/html/rfc1576
 // 👁️ https://tools.ietf.org/html/rfc1647
 // 👁️ http://users.cs.cf.ac.uk/Dave.Marshall/Internet/node141.html
@@ -53,8 +50,8 @@ export class Tn3270 {
       this.#socket.onmessage = async (
         e: MessageEvent
       ): Promise<void> => {
-        const data = new Uint8Array(await e.data.arrayBuffer());
-        this.#dataHandler(data, observer);
+        const bytes = new Uint8Array(await e.data.arrayBuffer());
+        this.datastream(bytes, observer);
       };
       // 🔥 ERROR
       this.#socket.onerror = (e: Event): void => {
@@ -100,14 +97,9 @@ export class Tn3270 {
     this.#socket = undefined;
   }
 
-  write(data: Uint8Array): void {
-    dumpBytes(data, 'Client -> Server -> 3270', true, 'yellow');
-    this.#socket?.send(data);
-  }
-
-  #dataHandler(data: Uint8Array, observer: Observer<Uint8Array>): void {
-    if (data[0] === lookup.IAC) {
-      const negotiator = new Negotiator(data);
+  datastream(bytes: Uint8Array, observer: Observer<Uint8Array>): void {
+    if (bytes[0] === lookup.IAC) {
+      const negotiator = new Negotiator(bytes);
       let response;
       if (negotiator.matches(['IAC', 'DO', 'TERMINAL_TYPE']))
         response = ['IAC', 'WILL', 'TERMINAL_TYPE'];
@@ -139,22 +131,23 @@ export class Tn3270 {
         );
         this.#socket?.send(negotiator.encode(response));
       }
-    } else {
-      dumpBytes(data, '3270 -> Server -> Client', true, 'palegreen');
-      observer.next(data);
-    }
+    } else observer.next(bytes);
+  }
+
+  response(bytes: Uint8Array): void {
+    this.#socket?.send(bytes);
   }
 }
 
 // 🟧 Negotiate Telnet connection 3270 <-> Host
 
 class Negotiator {
-  constructor(private data: Uint8Array) {}
+  constructor(private bytes: Uint8Array) {}
 
   decode(): string[] {
     const commands: string[] = [];
-    for (let ix = 0; ix < this.data.length; ix++) {
-      const byte = this.data[ix] ?? 0;
+    for (let ix = 0; ix < this.bytes.length; ix++) {
+      const byte = this.bytes[ix] ?? 0;
       let decoded = reverse[byte];
       // 👇 decode anything not in lookup as 0xXX
       if (typeof decoded === 'undefined')
@@ -187,7 +180,7 @@ class Negotiator {
 
   matches(commands: string[]): boolean {
     return commands.every((command, ix) => {
-      return lookup[command] === this.data[ix];
+      return lookup[command] === this.bytes[ix];
     });
   }
 }
