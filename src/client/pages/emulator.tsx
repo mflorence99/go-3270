@@ -2,6 +2,7 @@ import { Colors } from '$lib/types/3270';
 import { Dimensions } from '$lib/types/3270';
 import { Emulators } from '$lib/types/3270';
 import { LitElement } from 'lit';
+import { Pages } from '$client/pages/root';
 import { SignalWatcher } from '@lit-labs/signals';
 import { State } from '$client/state/state';
 import { TemplateResult } from 'lit';
@@ -9,9 +10,11 @@ import { TemplateResult } from 'lit';
 import { consume } from '@lit/context';
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
+import { defaultColor } from '$lib/types/3270';
+import { defaultDimensions } from '$lib/types/3270';
 import { globals } from '$client/css/globals/shadow-dom';
 import { html } from 'lit';
-import { repeat } from 'lit/directives/repeat.js';
+import { query } from 'lit/decorators.js';
 import { stateContext } from '$client/state/state';
 import { styleMap } from 'lit/directives/style-map.js';
 
@@ -63,19 +66,6 @@ export class Emulator extends SignalWatcher(LitElement) {
             }
           }
 
-          .simulation {
-            align-items: start;
-            display: grid;
-            font-family: Terminal;
-            justify-content: center;
-
-            .cell {
-              height: 1em;
-              margin: 0.1px;
-              width: 1ch;
-            }
-          }
-
           .status {
             border-top: 1px solid currentColor;
             display: flex;
@@ -96,13 +86,11 @@ export class Emulator extends SignalWatcher(LitElement) {
     `
   ];
 
+  @query('.terminal') terminal!: HTMLCanvasElement;
   @consume({ context: stateContext }) theState!: State;
 
   override render(): TemplateResult {
     const model = this.theState.model;
-    const dims: [number, number] = Dimensions[
-      model.get().config.emulator
-    ] ?? [80, 24];
     return html`
       <main class="stretcher">
         <section class="emulator">
@@ -136,30 +124,7 @@ export class Emulator extends SignalWatcher(LitElement) {
             </article>
           </header>
 
-          <article
-            class="simulation"
-            style=${styleMap({
-              'color': `${Colors[model.get().config.color]}`,
-              'font-size': `${model.get().fontSize.actual}px`,
-              'grid-template-columns': `repeat(${dims[0]}, auto)`,
-              'grid-template-rows': `repeat(${dims[1]}, auto)`
-            })}>
-            ${repeat(
-              Array.from(Array(dims[0] * dims[1]).keys()),
-              (item) => item,
-              () => {
-                const chars =
-                  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[{]};:,<.>/?';
-                return html`
-                  <div class="cell">
-                    ${chars.charAt(
-                      Math.floor(Math.random() * chars.length)
-                    )}
-                  </div>
-                `;
-              }
-            )}
-          </article>
+          <canvas class="terminal"></canvas>
 
           <footer
             class="status"
@@ -169,7 +134,6 @@ export class Emulator extends SignalWatcher(LitElement) {
             <article class="left">
               <app-icon icon="computer">
                 ${Emulators[model.get().config.emulator]}
-                ${dims[0]}x${dims[1]}
               </app-icon>
               <app-icon icon="access_time">WAIT</app-icon>
               <app-icon icon="clear">MSG</app-icon>
@@ -184,5 +148,59 @@ export class Emulator extends SignalWatcher(LitElement) {
         </section>
       </main>
     `;
+  }
+
+  override updated(): void {
+    const model = this.theState.model;
+    // 👇 only when we transition to the emulator page
+    if (model.get().pageNum === Pages.emulator) {
+      const fontSpec = `${model.get().fontSize.actual}px Terminal`;
+      // 👇 maske sure the font is available
+      if (document.fonts.check(fontSpec)) {
+        const ctx = this.terminal.getContext('2d');
+        if (ctx) {
+          // 👇 resize canvas appropraite to font size and dimensions
+          ctx.font = fontSpec;
+          const metrics = ctx.measureText('A');
+          const dims: [number, number] =
+            Dimensions[model.get().config.emulator] ??
+            defaultDimensions;
+          const fontWidth = metrics.width;
+          const fontHeight =
+            metrics.fontBoundingBoxAscent +
+            metrics.fontBoundingBoxDescent;
+          this.terminal.width = dims[0] * fontWidth;
+          this.terminal.height = dims[1] * fontHeight;
+          // 👇 establish terminal font and color
+          ctx.font = fontSpec;
+          ctx.clearRect(
+            0,
+            0,
+            this.terminal.width,
+            this.terminal.height
+          );
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          ctx.fillStyle =
+            Colors[model.get().config.color] ?? defaultColor;
+          // 🔥 TEMPORARY - draw random characters to fill screen
+          const chars =
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[{]};:,<.>/?';
+          for (let ix = 0, x = 0; ix < dims[0]; ix++, x += fontWidth) {
+            for (
+              let iy = 0, y = 0;
+              iy < dims[1];
+              iy++, y += fontHeight
+            ) {
+              ctx.fillText(
+                chars.charAt(Math.floor(Math.random() * chars.length)),
+                x,
+                y
+              );
+            }
+          }
+        }
+      }
+    }
   }
 }

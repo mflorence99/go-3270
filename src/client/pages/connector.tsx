@@ -134,7 +134,7 @@ export class Connector extends SignalWatcher(LitElement) {
 
           <hr />
 
-          <form @submit=${this.#submit} class="config" name="config">
+          <form @submit=${this.#connect} class="config" name="config">
             <article class="connection">
               <div class="host">
                 <md-filled-text-field
@@ -233,7 +233,7 @@ export class Connector extends SignalWatcher(LitElement) {
   }
 
   // 👁️ https://dev.to/blikblum/dry-form-handling-with-lit-19f
-  async #submit(e: Event): Promise<void> {
+  async #connect(e: Event): Promise<void> {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     if (form) {
@@ -252,8 +252,8 @@ export class Connector extends SignalWatcher(LitElement) {
         State.theTn3270.stream$.subscribe({
           // 🔥 need to do a lot more than this
           next: () => {
+            if (this.connecting) this.theState.gotoPage(Pages.emulator);
             this.connecting = false;
-            this.theState.gotoPage(Pages.emulator);
           },
 
           // 🔥 WebSocket connection established, but that failed

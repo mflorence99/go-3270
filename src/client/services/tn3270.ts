@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 import { Observer } from 'rxjs';
 
-import { e2a } from '$lib/convert';
+import { dumpBytes } from '$lib/dump';
 
 const lookup: Record<string, number> = {
   BINARY: 0,
@@ -101,7 +101,7 @@ export class Tn3270 {
   }
 
   write(data: Uint8Array): void {
-    this.#dump(data, 'Client -> Server -> 3270', true, 'yellow');
+    dumpBytes(data, 'Client -> Server -> 3270', true, 'yellow');
     this.#socket?.send(data);
   }
 
@@ -140,77 +140,9 @@ export class Tn3270 {
         this.#socket?.send(negotiator.encode(response));
       }
     } else {
-      this.#dump(data, '3270 -> Server -> Client', true, 'palegreen');
+      dumpBytes(data, '3270 -> Server -> Client', true, 'palegreen');
       observer.next(data);
     }
-  }
-
-  #dump(
-    data: Uint8Array,
-    title: string,
-    ebcdic = false,
-    color = 'blue'
-  ): void {
-    const sliceSize = 32;
-    let offset = 0;
-    const total = data.length;
-    console.groupCollapsed(
-      `%c${title} ${ebcdic ? '(EBCDIC-encoded)' : ''}`,
-      `color: ${color}`
-    );
-    console.log(
-      '%c       00       04       08       0c       10       14       18       1c        00  04  08  0c  10  14  18  1c  ',
-      'color: skyblue; font-weight: bold'
-    );
-    while (true) {
-      const slice = new Uint8Array(
-        data.slice(offset, Math.min(offset + sliceSize, total))
-      );
-      const { hex, str } = this.#dumpSlice(slice, sliceSize, ebcdic);
-      console.log(
-        `%c${this.#toHex(offset, 6)} %c${hex} %c${str}`,
-        'color: skyblue; font-weight: bold',
-        'color: white',
-        'color: wheat'
-      );
-      // setup for next time
-      if (slice.length < sliceSize) break;
-      offset += sliceSize;
-    }
-    console.groupEnd();
-  }
-
-  #dumpSlice(
-    bytes: Uint8Array,
-    sliceSize: number,
-    ebcdic: boolean
-  ): { hex: string; str: string } {
-    let hex = '';
-    let str = '';
-    let ix = 0;
-    // 👇 decode to hex and string equiv
-    for (; ix < bytes.length; ix++) {
-      const byte = bytes[ix];
-      if (byte == null) break;
-      hex += this.#toHex(byte, 2);
-      const char = ebcdic ? e2a([byte]) : String.fromCharCode(byte);
-      // NOTE: use special character in string as a visual aid to counting
-      str += char === '\u00a0' || char === ' ' ? '\u2022' : char;
-      if (ix > 0 && ix % 4 === 3) hex += ' ';
-    }
-    // 👇 pad remainder of slice
-    for (; ix < sliceSize; ix++) {
-      hex += '  ';
-      str += ' ';
-      if (ix > 0 && ix % 4 === 3) hex += ' ';
-    }
-    return { hex, str };
-  }
-
-  #toHex(num: number, pad: number): string {
-    const padding = '0000000000000000'.substring(0, pad);
-    const hex = num.toString(16);
-    return padding.substring(0, padding.length - hex.length) + hex;
   }
 }
 
