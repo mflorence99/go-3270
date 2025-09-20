@@ -1,8 +1,8 @@
-import { Colors } from '$lib/types/3270';
-import { Dimensions } from '$lib/types/3270';
-import { Emulators } from '$lib/types/3270';
+import { Colors } from '$client/types/3270';
+import { DataStreamEventDetail } from '$client/pages/connector';
+import { Dimensions } from '$client/types/3270';
+import { Emulators } from '$client/types/3270';
 import { LitElement } from 'lit';
-import { Pages } from '$client/pages/root';
 import { SignalWatcher } from '@lit-labs/signals';
 import { State } from '$client/state/state';
 import { TemplateResult } from 'lit';
@@ -10,8 +10,8 @@ import { TemplateResult } from 'lit';
 import { consume } from '@lit/context';
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { defaultColor } from '$lib/types/3270';
-import { defaultDimensions } from '$lib/types/3270';
+import { defaultColor } from '$client/types/3270';
+import { defaultDimensions } from '$client/types/3270';
 import { globals } from '$client/css/globals/shadow-dom';
 import { html } from 'lit';
 import { query } from 'lit/decorators.js';
@@ -23,6 +23,14 @@ declare global {
     'app-emulator': Emulator;
   }
 }
+
+type EmulatorContext = {
+  ctx: CanvasRenderingContext2D;
+  dims: [number, number];
+  fontHeight: number;
+  fontSpec: string;
+  fontWidth: number;
+};
 
 // 📘 emulate the 3270 emulator
 
@@ -86,34 +94,39 @@ export class Emulator extends SignalWatcher(LitElement) {
     `
   ];
 
+  @consume({ context: stateContext }) state!: State;
   @query('.terminal') terminal!: HTMLCanvasElement;
-  @consume({ context: stateContext }) theState!: State;
+
+  datastream(e: CustomEvent<DataStreamEventDetail>): void {
+    const ectx = this.#prepareCanvas();
+    if (ectx) this.#renderCanvas(ectx, e.detail.bytes);
+  }
 
   override render(): TemplateResult {
-    const model = this.theState.model;
     return html`
       <main class="stretcher">
         <section class="emulator">
           <header class="header">
             <md-icon-button
-              @click=${(): void => State.theTn3270?.close()}
+              @click=${(): any =>
+                this.dispatchEvent(new CustomEvent('disconnect'))}
               title="Disconnect from 3270">
               <app-icon icon="power_settings_new"></app-icon>
             </md-icon-button>
 
             <article class="controls">
               <md-icon-button
-                @click=${(): void => this.theState.increaseFontSize()}
-                ?disabled=${model.get().fontSize.actual >=
-                model.get().fontSize.max}
+                @click=${(): void => this.state.increaseFontSize()}
+                ?disabled=${this.state.model.get().fontSize.actual >=
+                this.state.model.get().fontSize.max}
                 title="Increase text size">
                 <app-icon icon="text_increase"></app-icon>
               </md-icon-button>
 
               <md-icon-button
-                @click=${(): void => this.theState.decreaseFontSize()}
-                ?disabled=${model.get().fontSize.actual <=
-                model.get().fontSize.min}
+                @click=${(): void => this.state.decreaseFontSize()}
+                ?disabled=${this.state.model.get().fontSize.actual <=
+                this.state.model.get().fontSize.min}
                 title="Decrease text size">
                 <app-icon icon="text_decrease"></app-icon>
               </md-icon-button>
@@ -129,11 +142,11 @@ export class Emulator extends SignalWatcher(LitElement) {
           <footer
             class="status"
             style=${styleMap({
-              color: `${Colors[model.get().config.color]}`
+              color: `${Colors[this.state.model.get().config.color]}`
             })}>
             <article class="left">
               <app-icon icon="computer">
-                ${Emulators[model.get().config.emulator]}
+                ${Emulators[this.state.model.get().config.emulator]}
               </app-icon>
               <app-icon icon="access_time">WAIT</app-icon>
               <app-icon icon="clear">MSG</app-icon>
@@ -151,55 +164,60 @@ export class Emulator extends SignalWatcher(LitElement) {
   }
 
   override updated(): void {
-    const model = this.theState.model;
-    // 👇 only when we transition to the emulator page
-    if (model.get().pageNum === Pages.emulator) {
-      const fontSpec = `${model.get().fontSize.actual}px Terminal`;
-      // 👇 maske sure the font is available
-      if (document.fonts.check(fontSpec)) {
-        const ctx = this.terminal.getContext('2d');
-        if (ctx) {
-          // 👇 resize canvas appropraite to font size and dimensions
-          ctx.font = fontSpec;
-          const metrics = ctx.measureText('A');
-          const dims: [number, number] =
-            Dimensions[model.get().config.emulator] ??
-            defaultDimensions;
-          const fontWidth = metrics.width;
-          const fontHeight =
-            metrics.fontBoundingBoxAscent +
-            metrics.fontBoundingBoxDescent;
-          this.terminal.width = dims[0] * fontWidth;
-          this.terminal.height = dims[1] * fontHeight;
-          // 👇 establish terminal font and color
-          ctx.font = fontSpec;
-          ctx.clearRect(
-            0,
-            0,
-            this.terminal.width,
-            this.terminal.height
-          );
-          ctx.textAlign = 'left';
-          ctx.textBaseline = 'top';
-          ctx.fillStyle =
-            Colors[model.get().config.color] ?? defaultColor;
-          // 🔥 TEMPORARY - draw random characters to fill screen
-          const chars =
-            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[{]};:,<.>/?';
-          for (let ix = 0, x = 0; ix < dims[0]; ix++, x += fontWidth) {
-            for (
-              let iy = 0, y = 0;
-              iy < dims[1];
-              iy++, y += fontHeight
-            ) {
-              ctx.fillText(
-                chars.charAt(Math.floor(Math.random() * chars.length)),
-                x,
-                y
-              );
-            }
-          }
-        }
+    const ectx = this.#prepareCanvas();
+    if (ectx) this.#renderCanvas(ectx);
+  }
+
+  #prepareCanvas(): EmulatorContext | null {
+    const fontSpec = `${this.state.model.get().fontSize.actual}px Terminal`;
+    const ctx = this.terminal.getContext('2d');
+    if (ctx) {
+      // 👇 resize canvas appropriate to font size and dimensions
+      ctx.font = fontSpec;
+      const metrics = ctx.measureText('A');
+      const dims: [number, number] =
+        Dimensions[this.state.model.get().config.emulator] ??
+        defaultDimensions;
+      const fontWidth = metrics.width;
+      const fontHeight =
+        metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+      const cx = dims[0] * fontWidth;
+      const cy = dims[1] * fontHeight;
+      if (
+        cx !== this.terminal.offsetWidth ||
+        cy !== this.terminal.offsetHeight
+      ) {
+        this.terminal.width = cx;
+        this.terminal.height = cy;
+      }
+      ctx.clearRect(0, 0, this.terminal.width, this.terminal.height);
+      return { ctx, dims, fontHeight, fontSpec, fontWidth };
+    } else return null;
+  }
+
+  // 🔥 TEMPORARY - draw random characters to fill screen
+  // 🔥 don't know why we need this
+  // 🔥 specifying no-unused-vars doesn't work!
+  // eslint-disable-next-line
+  #renderCanvas(ectx: EmulatorContext, bytes?: Uint8Array): void {
+    const { ctx, dims, fontHeight, fontSpec, fontWidth } = ectx;
+    // 👇 establish terminal font and color
+    ctx.font = fontSpec;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle =
+      Colors[this.state.model.get().config.color] ?? defaultColor;
+    // 👇 will do something with "bytes" or refresh if null
+
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[{]};:,<.>/?';
+    for (let ix = 0, x = 0; ix < dims[0]; ix++, x += fontWidth) {
+      for (let iy = 0, y = 0; iy < dims[1]; iy++, y += fontHeight) {
+        ctx.fillText(
+          chars.charAt(Math.floor(Math.random() * chars.length)),
+          x,
+          y
+        );
       }
     }
   }

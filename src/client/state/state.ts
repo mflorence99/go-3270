@@ -1,5 +1,4 @@
 import { Signal } from '@lit-labs/signals';
-import { Tn3270 } from '$client/services/tn3270';
 
 import { computed } from '$client/types/signals';
 import { config } from '$client/config';
@@ -85,7 +84,6 @@ export type FontSize = {
 export type StateModel = {
   config: Config;
   fontSize: FontSize;
-  pageNum: number;
 };
 
 const defaultState: StateModel = {
@@ -99,13 +97,10 @@ const defaultState: StateModel = {
     actual: 18,
     max: 36,
     min: 10
-  },
-  pageNum: 0
+  }
 };
 
 export class State extends Base<StateModel> {
-  static theTn3270: Tn3270 | null;
-
   // 👇 just an example of a computed property
   asJSON = computed(() => JSON.stringify(this.model.get()));
 
@@ -116,11 +111,6 @@ export class State extends Base<StateModel> {
   // 👇 decrease font size
   decreaseFontSize(): void {
     this.mutate((state) => void (state.fontSize.actual -= 1));
-  }
-
-  // 👇 flip between pages
-  gotoPage(pageNum: number): void {
-    this.mutate((state) => void (state.pageNum = pageNum));
   }
 
   // 👇 increase font size
@@ -134,4 +124,4 @@ export class State extends Base<StateModel> {
   }
 }
 
-export const stateContext = createContext<State>(Symbol('theState'));
+export const stateContext = createContext<State>(Symbol('state'));

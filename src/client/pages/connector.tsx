@@ -1,10 +1,9 @@
-import { Colors } from '$lib/types/3270';
+import { Colors } from '$client/types/3270';
 import { Config } from '$client/state/state';
-import { Dimensions } from '$lib/types/3270';
-import { Emulators } from '$lib/types/3270';
+import { Dimensions } from '$client/types/3270';
+import { Emulators } from '$client/types/3270';
 import { LitElement } from 'lit';
 import { MdDialog } from '@material/web/dialog/dialog.js';
-import { Pages } from '$client/pages/root';
 import { SignalWatcher } from '@lit-labs/signals';
 import { State } from '$client/state/state';
 import { TemplateResult } from 'lit';
@@ -27,11 +26,10 @@ declare global {
   }
 }
 
-// 📘 close 3270 connection on exit
-
-window.addEventListener('beforeunload', () => {
-  State.theTn3270?.close();
-});
+export type DataStreamEventDetail = {
+  bytes: Uint8Array | undefined;
+  first: boolean /* 👈 first such event after a connection */;
+};
 
 // 📘 manage 3270 connection
 
@@ -120,10 +118,92 @@ export class Connector extends SignalWatcher(LitElement) {
   @state() connecting!: boolean;
   @query('#dialog') dialog!: MdDialog;
   @state() message!: string;
-  @consume({ context: stateContext }) theState!: State;
+  @consume({ context: stateContext }) state!: State;
+
+  tn3270: Tn3270 | null = null;
+
+  // 👁️ https://dev.to/blikblum/dry-form-handling-with-lit-19f
+  // 👇 "connected" here means socket connection
+  async connect(e: Event): Promise<void> {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    if (form) {
+      const formData = new FormData(form);
+      const config = Object.fromEntries(formData.entries()) as Config;
+      this.state.updateConfig(config);
+      try {
+        // 👇 try to connect to 3270
+        this.connecting = true;
+        this.tn3270?.close();
+        this.tn3270 = await Tn3270.tn3270(
+          config.host,
+          config.port,
+          Emulators[config.emulator] as string
+        );
+        this.tn3270.stream$.subscribe({
+          // 🔥 need to do a lot more than this
+          next: (bytes: Uint8Array) => {
+            if (this.connecting)
+              this.dispatchEvent(new CustomEvent('connected'));
+            this.dispatchEvent(
+              new CustomEvent<DataStreamEventDetail>('datastream', {
+                detail: { bytes, first: this.connecting }
+              })
+            );
+            this.connecting = false;
+          },
+
+          // 🔥 WebSocket connection established, but that failed
+          error: async (e: any) => {
+            console.error(e);
+            this.connecting = false;
+            this.message = e.reason;
+            await this.dialog.show();
+            this.dispatchEvent(new CustomEvent('disconnected'));
+            this.tn3270 = null;
+          },
+
+          // 👇 normal completion eg: Tn3270.close()
+          complete: () => {
+            console.log(
+              `%c3270 -> Server -> Client %cClosed`,
+              'color: palegreen',
+              'color: cyan'
+            );
+            this.dispatchEvent(new CustomEvent('disconnected'));
+            this.tn3270 = null;
+          }
+        });
+      } catch (e: any) {
+        // 🔥 tried to upgrade to WebSocket, but that failed
+        console.error(e);
+        this.connecting = false;
+        this.message = `Unable to reach proxy server ${location.hostname}:${location.port}`;
+        await this.dialog.show();
+        this.dispatchEvent(new CustomEvent('disconnected'));
+        this.tn3270 = null;
+      }
+    }
+  }
+
+  // 👇 "connected" here means DOM connection of this element
+  override connectedCallback(): void {
+    super.connectedCallback();
+    window.addEventListener('beforeunload', this.disconnect);
+  }
+
+  // 👇 "connected" here means socket connection
+  disconnect(): void {
+    this.tn3270?.close();
+  }
+
+  // 👇 "connected" here means DOM connection of this element
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    window.removeEventListener('beforeunload', this.disconnect);
+  }
 
   override render(): TemplateResult {
-    const model = this.theState.model;
     return html`
       <main class="stretcher">
         <section class="connector">
@@ -134,20 +214,20 @@ export class Connector extends SignalWatcher(LitElement) {
 
           <hr />
 
-          <form @submit=${this.#connect} class="config" name="config">
+          <form @submit=${this.connect} class="config" name="config">
             <article class="connection">
               <div class="host">
                 <md-filled-text-field
                   label="Hostname or IP"
                   name="host"
                   style="width: 10rem"
-                  value=${model.get().config
+                  value=${this.state.model.get().config
                     .host}></md-filled-text-field>
                 <md-filled-text-field
                   label="Port"
                   name="port"
                   style="width: 5rem"
-                  value=${model.get().config
+                  value=${this.state.model.get().config
                     .port}></md-filled-text-field>
               </div>
 
@@ -171,8 +251,8 @@ export class Connector extends SignalWatcher(LitElement) {
                 (emulator) => html`
                   <label>
                     <md-radio
-                      ?checked=${model.get().config.emulator ===
-                      emulator[0]}
+                      ?checked=${this.state.model.get().config
+                        .emulator === emulator[0]}
                       name="emulator"
                       value=${emulator[0]}></md-radio>
                     ${emulator[1]} &mdash;
@@ -194,7 +274,8 @@ export class Connector extends SignalWatcher(LitElement) {
                 (color) => html`
                   <label>
                     <md-radio
-                      ?checked=${model.get().config.color === color[0]}
+                      ?checked=${this.state.model.get().config.color ===
+                      color[0]}
                       name="color"
                       value=${color[0]}></md-radio>
                     <span
@@ -217,8 +298,9 @@ export class Connector extends SignalWatcher(LitElement) {
         <section slot="content">
           <p>
             An error occured while connecting to the
-            ${model.get().config.emulator} at
-            ${model.get().config.host}:${model.get().config.port}.
+            ${this.state.model.get().config.emulator} at
+            ${this.state.model.get().config
+              .host}:${this.state.model.get().config.port}.
             Please take any necessary corrective action and retry.
             <br />
             <br />
@@ -230,62 +312,5 @@ export class Connector extends SignalWatcher(LitElement) {
         </form>
       </md-dialog>
     `;
-  }
-
-  // 👁️ https://dev.to/blikblum/dry-form-handling-with-lit-19f
-  async #connect(e: Event): Promise<void> {
-    e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    if (form) {
-      const formData = new FormData(form);
-      const config = Object.fromEntries(formData.entries()) as Config;
-      this.theState.updateConfig(config);
-      try {
-        // 👇 try to connect to 3270
-        this.connecting = true;
-        State.theTn3270?.close();
-        State.theTn3270 = await Tn3270.tn3270(
-          config.host,
-          config.port,
-          Emulators[config.emulator] as string
-        );
-        State.theTn3270.stream$.subscribe({
-          // 🔥 need to do a lot more than this
-          next: () => {
-            if (this.connecting) this.theState.gotoPage(Pages.emulator);
-            this.connecting = false;
-          },
-
-          // 🔥 WebSocket connection established, but that failed
-          error: async (e: any) => {
-            console.error(e);
-            this.connecting = false;
-            this.message = e.reason;
-            await this.dialog.show();
-            this.theState.gotoPage(Pages.connector);
-            State.theTn3270 = null;
-          },
-
-          // 👇 normal completion eg: Tn3270.close()
-          complete: () => {
-            console.log(
-              `%c3270 -> Server -> Client %cClosed`,
-              'color: palegreen',
-              'color: cyan'
-            );
-            this.theState.gotoPage(Pages.connector);
-            State.theTn3270 = null;
-          }
-        });
-      } catch (e: any) {
-        // 🔥 tried to upgrade to WebSocket, but that failed
-        console.error(e);
-        this.connecting = false;
-        this.message = `Unable to reach proxy server ${location.hostname}:${location.port}`;
-        await this.dialog.show();
-        this.theState.gotoPage(Pages.connector);
-        State.theTn3270 = null;
-      }
-    }
   }
 }

@@ -1,3 +1,6 @@
+import { Connector } from '$client/pages/connector';
+import { DataStreamEventDetail } from '$client/pages/connector';
+import { Emulator } from '$client/pages/emulator';
 import { LitElement } from 'lit';
 import { SignalWatcher } from '@lit-labs/signals';
 import { Startup } from '$client/controllers/startup';
@@ -9,6 +12,8 @@ import { customElement } from 'lit/decorators.js';
 import { globals } from '$client/css/globals/shadow-dom';
 import { html } from 'lit';
 import { provide } from '@lit/context';
+import { query } from 'lit/decorators.js';
+import { state } from 'lit/decorators.js';
 import { stateContext } from '$client/state/state';
 import { styleMap } from 'lit/directives/style-map.js';
 
@@ -18,7 +23,7 @@ declare global {
   }
 }
 
-export const Pages = {
+const Pages = {
   connector: 0,
   emulator: 1
 };
@@ -30,8 +35,8 @@ export class Root extends SignalWatcher(LitElement) {
   static override styles = [
     globals,
     css`
-      app-connector,
-      app-emulator {
+      .connector,
+      .emulator {
         display: block;
         height: 100vh;
         opacity: 0;
@@ -45,7 +50,10 @@ export class Root extends SignalWatcher(LitElement) {
     `
   ];
 
-  @provide({ context: stateContext }) theState = new State('theState');
+  @query('.connector') connector!: Connector;
+  @query('.emulator') emulator!: Emulator;
+  @state() pageNum = Pages.connector;
+  @provide({ context: stateContext }) state = new State('state');
 
   // eslint-disable-next-line no-unused-private-class-members
   #startup = new Startup(this);
@@ -53,23 +61,25 @@ export class Root extends SignalWatcher(LitElement) {
   override render(): TemplateResult {
     return html`
       <app-connector
+        @connected=${(): any => (this.pageNum = Pages.emulator)}
+        @datastream=${(e: CustomEvent<DataStreamEventDetail>): any =>
+          this.emulator.datastream(e)}
+        @disconnected=${(): any => (this.pageNum = Pages.connector)}
+        class="connector"
         data-page-num="${Pages.connector}"
         style=${styleMap({
-          opacity: this.#isPage(Pages.connector) ? 1 : 0,
-          zIndex: this.#isPage(Pages.connector) ? 1 : -1
+          opacity: this.pageNum === Pages.connector ? 1 : 0,
+          zIndex: this.pageNum === Pages.connector ? 1 : -1
         })}></app-connector>
 
       <app-emulator
+        @disconnect=${(): any => this.connector.disconnect()}
+        class="emulator"
         data-page-num="${Pages.emulator}"
         style=${styleMap({
-          opacity: this.#isPage(Pages.emulator) ? 1 : 0,
-          zIndex: this.#isPage(Pages.emulator) ? 1 : -1
+          opacity: this.pageNum === Pages.emulator ? 1 : 0,
+          zIndex: this.pageNum === Pages.emulator ? 1 : -1
         })}></app-emulator>
     `;
-  }
-
-  #isPage(pageNum: number): boolean {
-    const model = this.theState.model;
-    return model.get().pageNum === pageNum;
   }
 }
