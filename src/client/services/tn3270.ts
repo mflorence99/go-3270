@@ -27,7 +27,7 @@ const reverse: Record<number, string> = Object.fromEntries(
 export class Tn3270 {
   stream$: Observable<Uint8Array>;
 
-  #socket?: WebSocket;
+  #socket: WebSocket | null = null;
 
   private constructor(
     public host: string,
@@ -94,7 +94,7 @@ export class Tn3270 {
 
   close(): void {
     this.#socket?.close(1000);
-    this.#socket = undefined;
+    this.#socket = null;
   }
 
   datastream(bytes: Uint8Array, observer: Observer<Uint8Array>): void {
