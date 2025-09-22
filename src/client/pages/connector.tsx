@@ -1,7 +1,8 @@
-import { Colors } from '$client/types/3270';
+import { Colors } from '$client/pages/root';
 import { Config } from '$client/state/state';
-import { Dimensions } from '$client/types/3270';
-import { Emulators } from '$client/types/3270';
+import { DataStreamEventDetail } from '$client/pages/root';
+import { Dimensions } from '$client/pages/root';
+import { Emulators } from '$client/pages/root';
 import { LitElement } from 'lit';
 import { MdDialog } from '@material/web/dialog/dialog.js';
 import { SignalWatcher } from '@lit-labs/signals';
@@ -25,10 +26,6 @@ declare global {
     'app-connector': Connector;
   }
 }
-
-export type DataStreamEventDetail = {
-  bytes: Uint8Array;
-};
 
 // 📘 manage 3270 connection
 

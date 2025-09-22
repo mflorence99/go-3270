@@ -1,8 +1,7 @@
-import { Colors } from '$client/types/3270';
-import { DataStreamEventDetail } from '$client/pages/connector';
-import { Dimensions } from '$client/types/3270';
-import { EmulatorContext } from '$client/services/lu3270';
-import { Emulators } from '$client/types/3270';
+import { Colors } from '$client/pages/root';
+import { DataStreamEventDetail } from '$client/pages/root';
+import { Dimensions } from '$client/pages/root';
+import { Emulators } from '$client/pages/root';
 import { LitElement } from 'lit';
 import { Lu3270 } from '$client/services/lu3270';
 import { SignalWatcher } from '@lit-labs/signals';
@@ -12,8 +11,8 @@ import { TemplateResult } from 'lit';
 import { consume } from '@lit/context';
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { defaultColor } from '$client/types/3270';
-import { defaultDimensions } from '$client/types/3270';
+import { defaultColor } from '$client/pages/root';
+import { defaultDimensions } from '$client/pages/root';
 import { globals } from '$client/css/globals/shadow-dom';
 import { html } from 'lit';
 import { query } from 'lit/decorators.js';
@@ -94,57 +93,7 @@ export class Emulator extends SignalWatcher(LitElement) {
   lu3270: Lu3270 | null = null;
 
   datastream(e: CustomEvent<DataStreamEventDetail>): void {
-    const ectx = this.prepare();
-    if (ectx) this.lu3270?.outbound(e.detail.bytes);
-  }
-
-  prepare(): EmulatorContext | null {
-    const fontSpec = `${this.state.model.get().fontSize.actual}px Terminal`;
-    const ctx = this.terminal.getContext('2d');
-    if (ctx) {
-      // 👇 resize canvas appropriate to font size and dimensions
-      ctx.font = fontSpec;
-      const metrics = ctx.measureText('A');
-      const color =
-        Colors[this.state.model.get().config.color] ?? defaultColor;
-      const dims: [number, number] =
-        Dimensions[this.state.model.get().config.emulator] ??
-        defaultDimensions;
-      const paddingLeft = 0.05;
-      const paddingTop = 0.05;
-      const fontWidth = (2 * paddingLeft + 1) * metrics.width;
-      const fontHeight =
-        (2 * paddingTop + 1) *
-        (metrics.fontBoundingBoxAscent +
-          metrics.fontBoundingBoxDescent);
-      const ectx = {
-        color,
-        ctx,
-        dims,
-        fontHeight,
-        fontSpec,
-        fontWidth,
-        paddingLeft,
-        paddingTop,
-        responder: this.responder.bind(this)
-      };
-      // 👇 I *think* we only shoukld do this on a delta
-      const cx = dims[0] * fontWidth;
-      const cy = dims[1] * fontHeight;
-      if (
-        cx !== this.terminal.offsetWidth ||
-        cy !== this.terminal.offsetHeight
-      ) {
-        this.terminal.width = cx;
-        this.terminal.height = cy;
-        // 👇 in any event, we must do this each time the
-        //    emulator changes
-        this.lu3270?.close();
-        this.lu3270 = Lu3270.lu3270(ectx);
-      }
-      ctx.clearRect(0, 0, this.terminal.width, this.terminal.height);
-      return ectx;
-    } else return null;
+    this.lu3270?.outbound(e.detail.bytes);
   }
 
   override render(): TemplateResult {
@@ -217,7 +166,42 @@ export class Emulator extends SignalWatcher(LitElement) {
   }
 
   override updated(): void {
-    const ectx = this.prepare();
-    if (ectx) this.lu3270?.refresh();
+    const ctx = this.terminal.getContext('2d');
+    if (ctx) {
+      const fontSpec = `${this.state.model.get().fontSize.actual}px Terminal`;
+      // 👇 resize canvas appropriate to font size and dimensions
+      ctx.font = fontSpec;
+      const metrics = ctx.measureText('A');
+      const color =
+        Colors[this.state.model.get().config.color] ?? defaultColor;
+      const dims: [number, number] =
+        Dimensions[this.state.model.get().config.emulator] ??
+        defaultDimensions;
+      const paddingLeft = 0.05;
+      const paddingTop = 0.05;
+      const fontWidth = (2 * paddingLeft + 1) * metrics.width;
+      const fontHeight =
+        (2 * paddingTop + 1) *
+        (metrics.fontBoundingBoxAscent +
+          metrics.fontBoundingBoxDescent);
+      this.terminal.width = dims[0] * fontWidth;
+      this.terminal.height = dims[1] * fontHeight;
+      // 👇 create a new handler
+      this.lu3270?.close();
+      this.lu3270 = new Lu3270(
+        ctx,
+        color,
+        this.state.model.get().fontSize.actual,
+        this.terminal.width,
+        this.terminal.height,
+        fontWidth,
+        fontHeight,
+        paddingLeft,
+        paddingTop,
+        this.responder.bind(this)
+      );
+      ctx.clearRect(0, 0, this.terminal.width, this.terminal.height);
+      this.lu3270.refresh();
+    }
   }
 }

@@ -17,12 +17,10 @@
     <script>
       const go = new Go();
       WebAssembly.instantiateStreaming(
-        fetch('main.wasm'),
+        fetch('index.wasm'),
         go.importObject
       ).then((result) => {
         go.run(result.instance);
-        // 🔥 TEMPORARY
-        window.greetGo('bollocks!');
       });
     </script>
   </head>

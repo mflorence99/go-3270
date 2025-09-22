@@ -16,7 +16,7 @@
   font-family: Terminal;
   font-style: normal;
   font-weight: 500;
-  src: url('$client/fonts/3270Medium.woff2') format('woff2');
+  src: url('$client/fonts/3270Medium.ttf') format('truetype');
 }
 
 @font-face {

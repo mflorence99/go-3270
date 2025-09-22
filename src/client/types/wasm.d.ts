@@ -1,7 +1,8 @@
 declare global {
   export interface Window {
     Go: any;
-    run: (shape: string) => any[];
+    renderGo: (...args: any) => Uint8Array;
+    testGo: (name: string) => string;
   }
 }
 export {};

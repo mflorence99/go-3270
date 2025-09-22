@@ -142,7 +142,7 @@ export const allTasks = [
     name: 'bundle:client:wasm',
     description: 'Bundle client WASM',
     banner: { color: colors.client, icon: icons.wasm },
-    cmd: `GOOS=js GOARCH=wasm go build -o ${config.paths['client-js']}/main.wasm ${config.paths['emulator-go']}/*.go`
+    cmd: `(cd ${config.paths['emulator-go']} && GOOS=js GOARCH=wasm go build -o ${config.paths['client-js']}/index.wasm *.go)`
   }),
 
   new TaskClass({

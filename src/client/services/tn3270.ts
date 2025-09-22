@@ -30,18 +30,18 @@ export class Tn3270 {
   #socket: WebSocket | null = null;
 
   private constructor(
-    public host: string,
-    public port: string,
-    public model: string
+    private host: string,
+    private port: string,
+    private model: string
   ) {
     this.stream$ = new Observable((observer: Observer<Uint8Array>) => {
       this.#socket = new WebSocket(
-        `ws://${location.hostname}:${location.port}?host=${host}&port=${port}`
+        `ws://${location.hostname}:${location.port}?host=${this.host}&port=${this.port}`
       );
       // 👇 OPEN
       this.#socket.onopen = (): void => {
         console.log(
-          `%c3270 -> Server -> Client %cConnecting to ${host}:${port}`,
+          `%c3270 -> Server -> Client %cConnecting to ${this.host}:${this.port}`,
           'color: palegreen',
           'color: skyblue'
         );
