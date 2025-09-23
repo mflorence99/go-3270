@@ -4,18 +4,17 @@ import (
 	_ "embed"
 	"fmt"
 	"image"
-	"math"
 	"math/rand"
 	"syscall/js"
 
 	"github.com/fogleman/gg"
-	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
 )
 
 // 🔥 Hack alert! we must use extension {js, wasm} and we can't use symlinks, so this file is a copy of the font renamed
 
-//go:embed 3270Medium.wasm
+//go:embed 3270Font.wasm
 var go3270Font []byte
 
 type Go3270 struct {
@@ -29,7 +28,7 @@ type Go3270 struct {
 	dc           *gg.Context
 	dpi          float64
 	face         font.Face
-	font         *truetype.Font
+	font         *opentype.Font
 	fontHeight   float64
 	fontSize     float64
 	fontWidth    float64
@@ -51,12 +50,12 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	c.rows = args[4].Float()
 	c.dpi = args[5].Float()
 	// 👇 constants
-	c.paddedHeight = 1.1
+	c.paddedHeight = 1.05
 	c.paddedWidth = 1.1
 	c.scaleFactor = 2
 	// 👇 load the 3270 font
-	c.font, _ = truetype.Parse(go3270Font)
-	c.face = truetype.NewFace(c.font, &truetype.Options{Size: float64(c.fontSize * c.scaleFactor), DPI: c.dpi, Hinting: font.HintingFull})
+	c.font, _ = opentype.Parse(go3270Font)
+	c.face, _ = opentype.NewFace(c.font, &opentype.FaceOptions{Size: c.fontSize * c.scaleFactor, DPI: c.dpi, Hinting: font.HintingFull})
 	// 👇 resize canvas to fit font, using temporary context
 	img := image.NewRGBA(image.Rect(0, 0, 100, 100))
 	dc := gg.NewContextForRGBA(img)
@@ -83,13 +82,24 @@ func NewGo3270(this js.Value, args []js.Value) any {
 			return c.Inbound()
 		}),
 		"testPattern": js.FuncOf(func(this js.Value, args []js.Value) any {
-			return c.TestPattern()
+			c.TestPattern()
+			return nil
 		}),
 	}
 	return js.ValueOf(obj)
 }
 
-func (c *Go3270) Inbound() any {
+func (c *Go3270) Coords(col, row float64) (float64, float64, float64, float64, float64) {
+	w := c.fontWidth * c.paddedWidth
+	h := c.fontHeight * c.paddedHeight
+	x := col * w
+	y := row * h
+	// 🔥 we could do better calculating the baseline - this is just a WAG, because an em is drawn with a significantly different height than that returned by MeasureString()
+	baseline := y + h - (c.fontSize / 3 * c.scaleFactor)
+	return x, y, w, h, baseline
+}
+
+func (c *Go3270) Inbound() js.Value {
 	// 👇 simulate response
 	data := []byte{193, 194, 195 /* 👈 EBCDIC "ABC" */}
 	uint8ArrayConstructor := js.Global().Get("Uint8Array")
@@ -98,24 +108,50 @@ func (c *Go3270) Inbound() any {
 	return result
 }
 
-func (c *Go3270) TestPattern() any {
+func (c *Go3270) TestPattern() {
 	c.dc.SetRGBA(0, 0, 0, 0)
 	c.dc.Clear()
-	c.dc.SetHexColor(c.color)
 	str := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[{]};:,<.>/?"
-	chars := []rune(str)
-	for x := 0.0; x < c.cols; x++ {
-		for y := 0.0; y < c.rows; y++ {
-			ix := rand.Intn(len(chars))
-			c.dc.DrawString(string(chars[ix]), math.Round(x*c.fontWidth*c.paddedWidth), math.Round((y+1)*c.fontHeight*c.paddedHeight))
+	chs := []rune(str)
+	for col := 0.0; col < c.cols; col++ {
+		for row := 0.0; row < c.rows; row++ {
+			x, y, w, h, baseline := c.Coords(col, row)
+			if !isOdd(int(col)) && isOdd(int(row)) {
+				c.dc.SetHexColor(c.color)
+				c.dc.DrawRectangle(x, y, w, h)
+				c.dc.Fill()
+				c.dc.SetHexColor("#000000")
+			} else if col < 10 {
+				c.dc.SetHexColor("#42a5f5")
+			} else if col < 20 {
+				c.dc.SetHexColor("#f44336")
+			} else if col < 30 {
+				c.dc.SetHexColor("#66be6a")
+			} else if col < 40 {
+				c.dc.SetHexColor("#ec407a")
+			} else if col < 50 {
+				c.dc.SetHexColor("#26c6da")
+			} else if col < 60 {
+				c.dc.SetHexColor("#ffee58")
+			} else if col < 70 {
+				c.dc.SetHexColor("#f5f5f5")
+			} else if col < 80 {
+				c.dc.SetHexColor(c.color)
+			}
+			ich := rand.Intn(len(chs))
+			ch := string(chs[ich])
+			c.dc.DrawString(ch, x, baseline)
 		}
 	}
 	c.imgCopy()
-	return nil
 }
 
 func (c *Go3270) imgCopy() {
 	js.CopyBytesToJS(c.copybuff, c.image.Pix)
 	c.imgData.Get("data").Call("set", c.copybuff)
 	c.ctx.Call("putImageData", c.imgData, 0, 0)
+}
+
+func isOdd(n int) bool {
+	return n%2 != 0
 }

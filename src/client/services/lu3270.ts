@@ -45,7 +45,6 @@ export class Lu3270 {
     dumpBytes(bytes, 'Outbound Application -> 3270', true, 'yellow');
     // 🔥 TEMPORARY
     this.inbound(this.go3270.inbound());
-    this.refresh();
   }
 
   // 🔥 TEMPORARY what we really need to do is to refresh the display with "current" data, but with new font size, color etc
