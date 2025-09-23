@@ -32,6 +32,14 @@ export class Emulator extends SignalWatcher(LitElement) {
   static override styles = [
     globals,
     css`
+      .dpi {
+        height: 1in;
+        left: -100%;
+        position: absolute;
+        top: -100%;
+        width: 1in;
+      }
+
       .stretcher {
         align-items: center;
         display: flex;
@@ -82,18 +90,45 @@ export class Emulator extends SignalWatcher(LitElement) {
               gap: 1rem;
             }
           }
+
+          .wrapper {
+            overflow: hidden;
+
+            .terminal {
+              scale: 1;
+              transform-origin: left top;
+            }
+          }
         }
       }
     `
   ];
 
+  @query('.dpi') dpi!: HTMLDivElement;
   @consume({ context: stateContext }) state!: State;
   @query('.terminal') terminal!: HTMLCanvasElement;
 
   lu3270: Lu3270 | null = null;
 
+  // 👇 "connected" here means DOM connection of this element
+  override connectedCallback(): void {
+    super.connectedCallback();
+    window.addEventListener('beforeunload', this.disconnect);
+  }
+
   datastream(e: CustomEvent<DataStreamEventDetail>): void {
     this.lu3270?.outbound(e.detail.bytes);
+  }
+
+  // 👇 "connected" here means socket connection
+  disconnect(): void {
+    this.lu3270?.close();
+  }
+
+  // 👇 "connected" here means DOM connection of this element
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    window.removeEventListener('beforeunload', this.disconnect);
   }
 
   override render(): TemplateResult {
@@ -131,7 +166,9 @@ export class Emulator extends SignalWatcher(LitElement) {
             </article>
           </header>
 
-          <canvas class="terminal"></canvas>
+          <article class="wrapper">
+            <canvas class="terminal"></canvas>
+          </article>
 
           <footer
             class="status"
@@ -154,6 +191,8 @@ export class Emulator extends SignalWatcher(LitElement) {
           </footer>
         </section>
       </main>
+
+      <div class="dpi"></div>
     `;
   }
 
@@ -166,42 +205,21 @@ export class Emulator extends SignalWatcher(LitElement) {
   }
 
   override updated(): void {
-    const ctx = this.terminal.getContext('2d');
-    if (ctx) {
-      const fontSpec = `${this.state.model.get().fontSize.actual}px Terminal`;
-      // 👇 resize canvas appropriate to font size and dimensions
-      ctx.font = fontSpec;
-      const metrics = ctx.measureText('A');
-      const color =
-        Colors[this.state.model.get().config.color] ?? defaultColor;
-      const dims: [number, number] =
-        Dimensions[this.state.model.get().config.emulator] ??
-        defaultDimensions;
-      const paddingLeft = 0.05;
-      const paddingTop = 0.05;
-      const fontWidth = (2 * paddingLeft + 1) * metrics.width;
-      const fontHeight =
-        (2 * paddingTop + 1) *
-        (metrics.fontBoundingBoxAscent +
-          metrics.fontBoundingBoxDescent);
-      this.terminal.width = dims[0] * fontWidth;
-      this.terminal.height = dims[1] * fontHeight;
-      // 👇 create a new handler
-      this.lu3270?.close();
-      this.lu3270 = new Lu3270(
-        ctx,
-        color,
-        this.state.model.get().fontSize.actual,
-        this.terminal.width,
-        this.terminal.height,
-        fontWidth,
-        fontHeight,
-        paddingLeft,
-        paddingTop,
-        this.responder.bind(this)
-      );
-      ctx.clearRect(0, 0, this.terminal.width, this.terminal.height);
-      this.lu3270.refresh();
-    }
+    const color =
+      Colors[this.state.model.get().config.color] ?? defaultColor;
+    const dims: [number, number] =
+      Dimensions[this.state.model.get().config.emulator] ??
+      defaultDimensions;
+    this.lu3270?.close();
+    this.lu3270 = new Lu3270(
+      this.terminal,
+      color,
+      this.state.model.get().fontSize.actual,
+      dims[0],
+      dims[1],
+      this.dpi.offsetWidth * window.devicePixelRatio,
+      this.responder.bind(this)
+    );
+    this.lu3270.refresh();
   }
 }

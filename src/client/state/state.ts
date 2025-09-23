@@ -94,7 +94,7 @@ const defaultState: StateModel = {
     port: '3270'
   },
   fontSize: {
-    actual: 18,
+    actual: 14,
     max: 36,
     min: 10
   }
