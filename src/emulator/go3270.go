@@ -1,5 +1,11 @@
 package main
 
+// 🟧 3270 data stream protocol
+
+// 👁️ https://bitsavers.org/pdf/ibm/3270/GA23-0059-07_3270_Data_Stream_Programmers_Reference_199206.pdf
+// 👁️ http://www.prycroft6.com.au/misc/3270.html
+// 👁️ http://www.tommysprinkle.com/mvs/P3270/start.htm
+
 import (
 	_ "embed"
 	"fmt"
@@ -78,8 +84,15 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	c.dc.SetFontFace(c.face)
 	// 👇 methods callable by Javascript
 	obj := map[string]any{
-		"inbound": js.FuncOf(func(this js.Value, args []js.Value) any {
-			return c.Inbound()
+		"close": js.FuncOf(func(this js.Value, args []js.Value) any {
+			return c.Close()
+		}),
+		"datastream": js.FuncOf(func(this js.Value, args []js.Value) any {
+			return c.Datastream(args[0])
+		}),
+		"restore": js.FuncOf(func(this js.Value, args []js.Value) any {
+			c.Restore(args[0])
+			return nil
 		}),
 		"testPattern": js.FuncOf(func(this js.Value, args []js.Value) any {
 			c.TestPattern()
@@ -87,6 +100,15 @@ func NewGo3270(this js.Value, args []js.Value) any {
 		}),
 	}
 	return js.ValueOf(obj)
+}
+
+func (c *Go3270) Close() js.Value {
+	// 🔥 simulate the state of the device
+	data := []byte{193, 194, 195 /* 👈 EBCDIC "ABC" */}
+	uint8ArrayConstructor := js.Global().Get("Uint8Array")
+	result := uint8ArrayConstructor.New(len(data))
+	js.CopyBytesToJS(result, data)
+	return result
 }
 
 func (c *Go3270) Coords(col, row float64) (float64, float64, float64, float64, float64) {
@@ -99,13 +121,22 @@ func (c *Go3270) Coords(col, row float64) (float64, float64, float64, float64, f
 	return x, y, w, h, baseline
 }
 
-func (c *Go3270) Inbound() js.Value {
-	// 👇 simulate response
+func (c *Go3270) Datastream(bytes js.Value) js.Value {
+	// 🔥 do something with stream
+	_ = bytes
+	c.TestPattern()
+	// 🔥 simulate response
 	data := []byte{193, 194, 195 /* 👈 EBCDIC "ABC" */}
 	uint8ArrayConstructor := js.Global().Get("Uint8Array")
 	result := uint8ArrayConstructor.New(len(data))
 	js.CopyBytesToJS(result, data)
 	return result
+}
+
+func (c *Go3270) Restore(bytes js.Value) {
+	// 🔥 simulate restoration of state of device
+	_ = bytes
+	c.TestPattern()
 }
 
 func (c *Go3270) TestPattern() {
@@ -116,7 +147,7 @@ func (c *Go3270) TestPattern() {
 	for col := 0.0; col < c.cols; col++ {
 		for row := 0.0; row < c.rows; row++ {
 			x, y, w, h, baseline := c.Coords(col, row)
-			if !isOdd(int(col)) && isOdd(int(row)) {
+			if int(col)%2 == 0 && int(row)%2 != 0 {
 				c.dc.SetHexColor(c.color)
 				c.dc.DrawRectangle(x, y, w, h)
 				c.dc.Fill()
@@ -150,8 +181,4 @@ func (c *Go3270) imgCopy() {
 	js.CopyBytesToJS(c.copybuff, c.image.Pix)
 	c.imgData.Get("data").Call("set", c.copybuff)
 	c.ctx.Call("putImageData", c.imgData, 0, 0)
-}
-
-func isOdd(n int) bool {
-	return n%2 != 0
 }

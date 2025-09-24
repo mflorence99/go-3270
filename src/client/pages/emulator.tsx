@@ -2,8 +2,8 @@ import { Colors } from '$client/pages/root';
 import { DataStreamEventDetail } from '$client/pages/root';
 import { Dimensions } from '$client/pages/root';
 import { Emulators } from '$client/pages/root';
+import { Go3270 } from '$client/types/go3270';
 import { LitElement } from 'lit';
-import { Lu3270 } from '$client/services/lu3270';
 import { SignalWatcher } from '@lit-labs/signals';
 import { State } from '$client/state/state';
 import { TemplateResult } from 'lit';
@@ -108,7 +108,7 @@ export class Emulator extends SignalWatcher(LitElement) {
   @consume({ context: stateContext }) state!: State;
   @query('.terminal') terminal!: HTMLCanvasElement;
 
-  lu3270: Lu3270 | null = null;
+  go3270: Go3270 | null = null;
 
   // 👇 "connected" here means DOM connection of this element
   override connectedCallback(): void {
@@ -117,12 +117,18 @@ export class Emulator extends SignalWatcher(LitElement) {
   }
 
   datastream(e: CustomEvent<DataStreamEventDetail>): void {
-    this.lu3270?.outbound(e.detail.bytes);
+    if (this.go3270) {
+      this.dispatchEvent(
+        new CustomEvent<DataStreamEventDetail>('response', {
+          detail: { bytes: this.go3270.datastream(e.detail.bytes) }
+        })
+      );
+    }
   }
 
   // 👇 "connected" here means socket connection
   disconnect(): void {
-    this.lu3270?.close();
+    this.go3270?.close();
   }
 
   // 👇 "connected" here means DOM connection of this element
@@ -196,30 +202,27 @@ export class Emulator extends SignalWatcher(LitElement) {
     `;
   }
 
-  responder(bytes: Uint8Array): void {
-    this.dispatchEvent(
-      new CustomEvent<DataStreamEventDetail>('response', {
-        detail: { bytes }
-      })
-    );
-  }
-
   override updated(): void {
+    // 👇 save off the state of the device
+    const bytes = this.go3270?.close();
+    // 👇 construct a new device with its new attributes
     const color =
       Colors[this.state.model.get().config.color] ?? defaultColor;
     const dims: [number, number] =
       Dimensions[this.state.model.get().config.emulator] ??
       defaultDimensions;
-    this.lu3270?.close();
-    this.lu3270 = new Lu3270(
+    const dpi = this.dpi.offsetWidth * window.devicePixelRatio;
+    const fontSize = this.state.model.get().fontSize.actual;
+    // 👇 construct a new device with its new attributes
+    this.go3270 = window.NewGo3270?.(
       this.terminal,
       color,
-      this.state.model.get().fontSize.actual,
+      fontSize,
       dims[0],
       dims[1],
-      this.dpi.offsetWidth * window.devicePixelRatio,
-      this.responder.bind(this)
+      dpi
     );
-    this.lu3270.refresh();
+    // 👇 restore the state of the device if we can -- if the config has changed, we must wait until a new datastream appears
+    if (bytes && !this.state.delta.config) this.go3270?.restore(bytes);
   }
 }

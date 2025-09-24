@@ -12,6 +12,8 @@ import StackTrace from 'stacktrace-js';
 // 📘 base state class
 
 abstract class Base<T> {
+  delta: Partial<T> = {};
+
   // 👇 the signal that is the state itself
   model: Signal.State<T>;
 
@@ -45,7 +47,7 @@ abstract class Base<T> {
         caller,
         prevState
       );
-    // 👇 the "new" state and (potentially) the patches that produced it
+    // 👇 derive the new state and accumulate deltas for inspection
     const newState = produce(prevState, mutator, (patches) => {
       if (config.logStateChanges && patches)
         console.log(
@@ -54,7 +56,15 @@ abstract class Base<T> {
           'color: white',
           'color: wheat'
         );
+      this.delta = {};
+      for (const patch of patches) {
+        patch.path.reduce((acc: any, fld, ix, arr) => {
+          acc[fld] = ix === arr.length - 1 ? patch.value : {};
+          return acc[fld];
+        }, this.delta);
+      }
     });
+    // 👇 the "new" state and (potentially) the patches that produced it
     if (config.logStateChanges)
       console.log(
         '%c👉 next state',

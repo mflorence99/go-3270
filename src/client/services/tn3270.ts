@@ -1,6 +1,8 @@
 import { Observable } from 'rxjs';
 import { Observer } from 'rxjs';
 
+import { dumpBytes } from '$lib/dump';
+
 const lookup: Record<string, number> = {
   BINARY: 0,
   DO: 253,
@@ -131,10 +133,16 @@ export class Tn3270 {
         );
         this.#socket?.send(negotiator.encode(response));
       }
-    } else observer.next(bytes);
+    } else {
+      // 🔥 this class emulates the device and "outbound" data streams flow FROM application code TO the device
+      dumpBytes(bytes, 'Outbound Application -> 3270', true, 'yellow');
+      observer.next(bytes);
+    }
   }
 
   response(bytes: Uint8Array): void {
+    // 🔥 this class emulates the device and "inbound" data streams are sent FROM the device TO application code
+    dumpBytes(bytes, 'Inbound 3270 -> Application', true, 'palegreen');
     this.#socket?.send(bytes);
   }
 }
