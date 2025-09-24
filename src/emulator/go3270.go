@@ -133,10 +133,18 @@ func (c *Go3270) Datastream(bytes js.Value) js.Value {
 	return result
 }
 
+func (c *Go3270) DispatchEvent(eventType string, data any) {
+	event := js.Global().Get("CustomEvent").New(eventType, map[string]any{
+		"detail": data,
+	})
+	js.Global().Get("document").Call("dispatchEvent", event)
+}
+
 func (c *Go3270) Restore(bytes js.Value) {
 	// 🔥 simulate restoration of state of device
 	_ = bytes
 	c.TestPattern()
+	c.DispatchEvent("go3270-alarm", true)
 }
 
 func (c *Go3270) TestPattern() {

@@ -104,26 +104,31 @@ export class Emulator extends SignalWatcher(LitElement) {
     `
   ];
 
+  @query('.dinger') dinger!: HTMLAudioElement;
   @query('.dpi') dpi!: HTMLDivElement;
   @consume({ context: stateContext }) state!: State;
   @query('.terminal') terminal!: HTMLCanvasElement;
 
   go3270: Go3270 | null = null;
 
+  // 👇 make sure "this" is right
+  #alarm = this.alarm.bind(this);
+  #disconnect = this.disconnect.bind(this);
+
+  async alarm(): Promise<void> {
+    await this.dinger.play();
+  }
+
   // 👇 "connected" here means DOM connection of this element
   override connectedCallback(): void {
     super.connectedCallback();
-    window.addEventListener('beforeunload', this.disconnect);
+    document.addEventListener('go3270-alarm', this.#alarm);
+    window.addEventListener('beforeunload', this.#disconnect);
   }
 
   datastream(e: CustomEvent<DataStreamEventDetail>): void {
-    if (this.go3270) {
-      this.dispatchEvent(
-        new CustomEvent<DataStreamEventDetail>('response', {
-          detail: { bytes: this.go3270.datastream(e.detail.bytes) }
-        })
-      );
-    }
+    if (this.go3270)
+      this.response(this.go3270.datastream(e.detail.bytes));
   }
 
   // 👇 "connected" here means socket connection
@@ -134,7 +139,8 @@ export class Emulator extends SignalWatcher(LitElement) {
   // 👇 "connected" here means DOM connection of this element
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    window.removeEventListener('beforeunload', this.disconnect);
+    document.removeEventListener('go3270-alarm', this.#alarm);
+    window.removeEventListener('beforeunload', this.#disconnect);
   }
 
   override render(): TemplateResult {
@@ -199,7 +205,17 @@ export class Emulator extends SignalWatcher(LitElement) {
       </main>
 
       <div class="dpi"></div>
+
+      <audio class="dinger" src="assets/ding.mp3"></audio>
     `;
+  }
+
+  response(bytes: Uint8Array): void {
+    this.dispatchEvent(
+      new CustomEvent<DataStreamEventDetail>('response', {
+        detail: { bytes }
+      })
+    );
   }
 
   override updated(): void {
