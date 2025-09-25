@@ -149,26 +149,24 @@ func (c *Go3270) Restore(bytes js.Value) {
 }
 
 func (c *Go3270) TestPattern() {
-	c.gg.SetHexColor(CLUT[0xf0]) /* 👈 ragged fonts if draw on transparent! */
+	c.gg.SetHexColor(CLUT[0xf0][0]) /* 👈 ragged fonts if draw on transparent! */
 	c.gg.Clear()
 	str := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[{]};:,<.>/?"
 	chs := []rune(str)
 	for col := 0.0; col < c.cols; col++ {
 		for row := 0.0; row < c.rows; row++ {
-			x, y, w, h, baseline := c.Coords(col, row)
-			// 👇 choose a color from the CLUT, using the base color if out of range
+			x, _, _, _, baseline := c.Coords(col, row)
+			// 👇 choose colors from the CLUT, using the base color if out of range
 			ix := int(math.Floor(col/10) + 0xf1)
+			bright := c.color
 			color := c.color
 			if ix <= 0xf7 {
-				color = CLUT[ix]
+				bright = CLUT[ix][0]
+				color = CLUT[ix][1]
 			}
-			// 👇 a column of inverted characters
-			if int(col)%10 != 0 && int(row)%2 != 0 {
-				c.gg.SetHexColor(color)
-				c.gg.DrawRectangle(x, y, w+1, h+1)
-				c.gg.Fill()
-				c.gg.SetHexColor(CLUT[0xf0])
-				// 👇 a column of normal characters
+			// 👇 alternate high intensity, normal
+			if int(row)%2 == 0 {
+				c.gg.SetHexColor(bright)
 			} else {
 				c.gg.SetHexColor(color)
 			}
