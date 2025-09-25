@@ -10,6 +10,7 @@ import (
 	_ "embed"
 	"fmt"
 	"image"
+	"math"
 	"math/rand"
 	"syscall/js"
 
@@ -31,7 +32,7 @@ type Go3270 struct {
 	cols         float64
 	copybuff     js.Value
 	ctx          js.Value
-	dc           *gg.Context
+	gg           *gg.Context
 	dpi          float64
 	face         font.Face
 	font         *opentype.Font
@@ -74,15 +75,16 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	wrapper.Get("style").Set("height", fmt.Sprintf("%fpx", c.canvasHeight/c.scaleFactor))
 	c.canvas.Set("width", c.canvasWidth)
 	c.canvas.Set("height", c.canvasHeight)
-	c.canvas.Get("style").Set("scale", 1/c.scaleFactor)
 	// 👇 derivatives
 	c.ctx = c.canvas.Call("getContext", "2d")
 	c.imgData = c.ctx.Call("createImageData", c.canvasWidth, c.canvasHeight)
 	c.image = image.NewRGBA(image.Rect(0, 0, int(c.canvasWidth), int(c.canvasHeight)))
 	c.copybuff = js.Global().Get("Uint8Array").New(len(c.image.Pix))
-	c.dc = gg.NewContextForRGBA(c.image)
-	c.dc.SetFontFace(c.face)
+	c.gg = gg.NewContextForRGBA(c.image)
+	c.gg.SetFontFace(c.face)
+	c.gg.Scale(1/c.scaleFactor, 1/c.scaleFactor)
 	// 👇 methods callable by Javascript
+	// 👁️ go3270.d.ts
 	obj := map[string]any{
 		"close": js.FuncOf(func(this js.Value, args []js.Value) any {
 			return c.Close()
@@ -144,42 +146,35 @@ func (c *Go3270) Restore(bytes js.Value) {
 	// 🔥 simulate restoration of state of device
 	_ = bytes
 	c.TestPattern()
-	c.DispatchEvent("go3270-alarm", true)
 }
 
 func (c *Go3270) TestPattern() {
-	c.dc.SetRGBA(0, 0, 0, 0)
-	c.dc.Clear()
+	c.gg.SetHexColor(CLUT[0xf0]) /* 👈 ragged fonts if draw on transparent! */
+	c.gg.Clear()
 	str := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[{]};:,<.>/?"
 	chs := []rune(str)
 	for col := 0.0; col < c.cols; col++ {
 		for row := 0.0; row < c.rows; row++ {
 			x, y, w, h, baseline := c.Coords(col, row)
-			if int(col)%2 == 0 && int(row)%2 != 0 {
-				c.dc.SetHexColor(c.color)
-				c.dc.DrawRectangle(x, y, w, h)
-				c.dc.Fill()
-				c.dc.SetHexColor("#000000")
-			} else if col < 10 {
-				c.dc.SetHexColor("#42a5f5")
-			} else if col < 20 {
-				c.dc.SetHexColor("#f44336")
-			} else if col < 30 {
-				c.dc.SetHexColor("#66be6a")
-			} else if col < 40 {
-				c.dc.SetHexColor("#ec407a")
-			} else if col < 50 {
-				c.dc.SetHexColor("#26c6da")
-			} else if col < 60 {
-				c.dc.SetHexColor("#ffee58")
-			} else if col < 70 {
-				c.dc.SetHexColor("#f5f5f5")
-			} else if col < 80 {
-				c.dc.SetHexColor(c.color)
+			// 👇 choose a color from the CLUT, using the base color if out of range
+			ix := int(math.Floor(col/10) + 0xf1)
+			color := c.color
+			if ix <= 0xf7 {
+				color = CLUT[ix]
+			}
+			// 👇 a column of inverted characters
+			if int(col)%10 != 0 && int(row)%2 != 0 {
+				c.gg.SetHexColor(color)
+				c.gg.DrawRectangle(x, y, w+1, h+1)
+				c.gg.Fill()
+				c.gg.SetHexColor(CLUT[0xf0])
+				// 👇 a column of normal characters
+			} else {
+				c.gg.SetHexColor(color)
 			}
 			ich := rand.Intn(len(chs))
 			ch := string(chs[ich])
-			c.dc.DrawString(ch, x, baseline)
+			c.gg.DrawString(ch, x, baseline)
 		}
 	}
 	c.imgCopy()

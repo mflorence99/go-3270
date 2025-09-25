@@ -28,13 +28,13 @@ export type DataStreamEventDetail = {
   bytes: Uint8Array;
 };
 
-export const defaultColor = '#61b064';
+export const defaultColor = '#00AA00';
 
 export const Colors: Record<string, string> = {
   green: defaultColor,
-  blue: '#42a5f5',
-  orange: '#eb9a25',
-  white: '#f9f9f9'
+  blue: '#0078FF',
+  orange: '#FFC800',
+  white: '#FAF8E6'
 };
 
 export const defaultDimensions: [number, number] = [80, 24];

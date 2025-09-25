@@ -4,3 +4,17 @@ export type Go3270 = {
   restore: (bytes: Uint8Array) => void;
   testPattern: () => void;
 };
+
+declare global {
+  export interface Window {
+    Go: any;
+    NewGo3270: (
+      canvas: HTMLCanvasElement,
+      color: string,
+      fontSize: number,
+      cols: number,
+      rows: number,
+      dpi: number
+    ) => Go3270;
+  }
+}

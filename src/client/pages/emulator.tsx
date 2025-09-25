@@ -185,7 +185,8 @@ export class Emulator extends SignalWatcher(LitElement) {
           <footer
             class="status"
             style=${styleMap({
-              color: `${Colors[this.state.model.get().config.color]}`
+              'color': `${Colors[this.state.model.get().config.color]}`,
+              'font-size': `${this.state.model.get().fontSize.actual}`
             })}>
             <article class="left">
               <app-icon icon="computer">
