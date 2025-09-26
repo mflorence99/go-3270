@@ -3,6 +3,10 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "go.testEnvVars": {
+    "GOARCH": "",
+    "GOOS": ""
+  },
   "go.toolsEnvVars": {
     "GOARCH": "wasm",
     "GOOS": "js"

@@ -142,7 +142,7 @@ export const allTasks = [
     name: 'bundle:client:wasm',
     description: 'Bundle client WASM',
     banner: { color: colors.client, icon: icons.wasm },
-    cmd: `(cd ${config.paths['emulator-go']} && GOOS=js GOARCH=wasm go build -o ${config.paths['client-js']}/index.wasm *.go)`
+    cmd: `(cd ${config.paths['emulator-go']} && GOOS=js GOARCH=wasm go build -o ${config.paths['client-js']}/index.wasm main.go)`
   }),
 
   new TaskClass({
@@ -288,6 +288,23 @@ export const allTasks = [
       'Validate styles for CSS files and those embedded in TSX',
     banner: { color: colors.server, icon: icons.lint },
     cmd: `bunx stylelint --fix "${config.paths['client-ts']}/**/*.{css,tsx}"`
+  }),
+
+  // ////////////////////////////////////////////////////////
+  // 📘 TEST
+  // ////////////////////////////////////////////////////////
+
+  new TaskClass({
+    name: 'test',
+    description: 'Run unit tests for all code',
+    subTasks: ['test:client:wasm']
+  }),
+
+  new TaskClass({
+    name: 'test:client:wasm',
+    description: 'Run unit tests for client WASM',
+    banner: { color: colors.client, icon: icons.wasm },
+    cmd: `(cd ${config.paths['emulator-go']} && go test emulator/datastream)`
   })
 ];
 
