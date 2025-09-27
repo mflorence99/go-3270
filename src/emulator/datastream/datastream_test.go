@@ -2,6 +2,7 @@ package datastream_test
 
 import (
 	"emulator/datastream"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -34,65 +35,95 @@ func TestOutboundDataStream_Next(t *testing.T) {
 func TestOutboundDataStream_Next16(t *testing.T) {
 	out := datastream.NewOutbound(&data)
 	var u16 uint16
-	var e any
-	u16, e = out.Next16()
+	var err error
+	u16, err = out.Next16()
 	assert.True(t, u16 == 0x01)
-	assert.True(t, e == nil)
-	u16, e = out.Next16()
+	assert.True(t, err == nil)
+	u16, err = out.Next16()
 	assert.True(t, u16 == 0x0203)
-	assert.True(t, e == nil)
-	u16, e = out.Next16()
+	assert.True(t, err == nil)
+	u16, err = out.Next16()
 	assert.True(t, u16 == 0x0405)
-	assert.True(t, e == nil)
-	u16, e = out.Next16()
+	assert.True(t, err == nil)
+	u16, err = out.Next16()
 	assert.True(t, u16 == 0)
-	assert.True(t, e != nil)
+	assert.True(t, err != nil)
 }
 
-func TestOutboundDataStream_Slice(t *testing.T) {
+func TestOutboundDataStream_NextSlice(t *testing.T) {
 	out := datastream.NewOutbound(&data)
 	var u8 uint8
 	var slice []uint8
-	var e any
-	_, e = out.Next()
+	var err error
+	_, _ = out.Next()
 	u8, _ = out.Next()
 	assert.True(t, u8 == 0x01)
-	slice, e = out.NextSlice(4)
-	assert.True(t, slice[0] == 0x02 && slice[3] == 0x05)
-	assert.True(t, e == nil)
-	slice, e = out.NextSlice(4)
+	slice, err = out.NextSlice(4)
+	assert.True(t, slices.Equal(slice, []uint8{0x02, 0x03, 0x04, 0x05}))
+	assert.True(t, err == nil)
+	slice, err = out.NextSlice(4)
 	assert.True(t, slice == nil)
-	assert.True(t, e != nil)
+	assert.True(t, err != nil)
+}
+
+func TestOutboundDataStream_NextSliceUntil(t *testing.T) {
+	out := datastream.NewOutbound(&data)
+	var slice []uint8
+	var err error
+	slice, err = out.NextSliceUntil([]uint8{0x02, 0x03})
+	assert.True(t, slices.Equal(slice, []uint8{0x00, 0x01}))
+	assert.True(t, err == nil)
+	slice, err = out.NextSliceUntil([]uint8{0x03, 0x04})
+	assert.True(t, slices.Equal(slice, []uint8{0x02}))
+	assert.True(t, err == nil)
+	slice, err = out.NextSliceUntil([]uint8{0x06, 0x07})
+	assert.True(t, slice == nil)
+	assert.True(t, err != nil)
 }
 
 func TestOutboundDataStream_Peek(t *testing.T) {
 	out := datastream.NewOutbound(&data)
 	var u8 uint8
 	var slice []uint8
-	var e any
+	var err error
 	u8, _ = out.Peek()
 	assert.True(t, u8 == 0x00)
-	slice, e = out.NextSlice(6)
-	assert.True(t, slice[0] == 0x00 && slice[5] == 0x05)
-	assert.True(t, e == nil)
-	u8, e = out.Peek()
+	slice, err = out.NextSlice(6)
+	assert.True(t, slices.Equal(slice, []uint8{0x00, 0x01, 0x02, 0x03, 0x04, 0x05}))
+	assert.True(t, err == nil)
+	u8, err = out.Peek()
 	assert.True(t, u8 == 0)
-	assert.True(t, e != nil)
+	assert.True(t, err != nil)
 }
 
 func TestOutboundDataStream_PeekSlice(t *testing.T) {
 	out := datastream.NewOutbound(&data)
 	var slice []uint8
-	var e any
-	slice, e = out.PeekSlice(6)
-	assert.True(t, slice[0] == 0x00 && slice[5] == 0x05)
-	assert.True(t, e == nil)
-	slice, e = out.PeekSlice(2)
-	assert.True(t, slice[0] == 0x00 && slice[1] == 0x01)
-	assert.True(t, e == nil)
-	slice, e = out.PeekSlice(7)
+	var err error
+	slice, err = out.PeekSlice(6)
+	assert.True(t, slices.Equal(slice, []uint8{0x00, 0x01, 0x02, 0x03, 0x04, 0x05}))
+	assert.True(t, err == nil)
+	slice, err = out.PeekSlice(2)
+	assert.True(t, slices.Equal(slice, []uint8{0x00, 0x01}))
+	assert.True(t, err == nil)
+	slice, err = out.PeekSlice(7)
 	assert.True(t, slice == nil)
-	assert.True(t, e != nil)
+	assert.True(t, err != nil)
+}
+
+func TestOutboundDataStream_PeekSliceUntil(t *testing.T) {
+	out := datastream.NewOutbound(&data)
+	var slice []uint8
+	var err error
+	slice, err = out.PeekSliceUntil([]uint8{0x02, 0x03})
+	assert.True(t, slices.Equal(slice, []uint8{0x00, 0x01}))
+	assert.True(t, err == nil)
+	slice, err = out.PeekSliceUntil([]uint8{0x03, 0x04})
+	assert.True(t, slices.Equal(slice, []uint8{0x00, 0x01, 0x02}))
+	assert.True(t, err == nil)
+	slice, err = out.PeekSliceUntil([]uint8{0x06, 0x07})
+	assert.True(t, slice == nil)
+	assert.True(t, err != nil)
 }
 
 func TestInboundDataStream_Put(t *testing.T) {

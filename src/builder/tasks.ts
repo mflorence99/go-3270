@@ -84,6 +84,7 @@ export const allTasks = [
     subTasks: [
       'check:client',
       'clean:client',
+      'test:client:wasm',
       'bundle:client:assets',
       'bundle:client:css',
       'bundle:client:js',
