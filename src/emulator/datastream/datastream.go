@@ -94,7 +94,7 @@ func (out *OutboundDataStream) nextSliceImpl(count int, peek bool) ([]uint8, err
 func (out *OutboundDataStream) nextSliceUntilImpl(matches []uint8, peek bool) ([]uint8, error) {
 	count := len(matches)
 	var ix = 0
-	for ix = out.ix; ix+count+1 <= len(*out.bytes); ix++ {
+	for ix = out.ix; ix+count-1 < len(*out.bytes); ix++ {
 		matched := (*out.bytes)[ix : ix+count]
 		if slices.Equal(matched, matches) {
 			slice := (*out.bytes)[out.ix:ix]
