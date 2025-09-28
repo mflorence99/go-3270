@@ -1,5 +1,259 @@
-// 🔥 Bun bundler doesn't like $lib here ???
-import { e2a } from './convert';
+// 🔥 we use this funky conversion just for the purpose of producing a readable dump -- the real conversion is done in the Go code -- we skip the first 64 entries and start on line 64 so it's easy to read the line number as the EDCDIC character and the value as the ASCII equivalent
+
+const ebcdic: any[] = [
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  // start on line 64 to make reconciliation easier
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '¢',
+  '.',
+  '<',
+  '(',
+  '+',
+  '|',
+  '&',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '!',
+  '$',
+  '*',
+  ')',
+  ';',
+  '¬',
+  '-',
+  '/',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '|',
+  ',',
+  '%',
+  '_',
+  '>',
+  '?',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '`',
+  ':',
+  '#',
+  '@',
+  "'",
+  '=',
+  '\"',
+  '\u00a0',
+  'a',
+  'b',
+  'c',
+  'd',
+  'e',
+  'f',
+  'g',
+  'h',
+  'i',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  'j',
+  'k',
+  'l',
+  'm',
+  'n',
+  'o',
+  'p',
+  'q',
+  'r',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  's',
+  't',
+  'u',
+  'v',
+  'w',
+  'x',
+  'y',
+  'z',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '`',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '{',
+  'A',
+  'B',
+  'C',
+  'D',
+  'E',
+  'F',
+  'G',
+  'H',
+  'I',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '}',
+  'J',
+  'K',
+  'L',
+  'M',
+  'N',
+  'O',
+  'P',
+  'Q',
+  'R',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\\',
+  '\u00a0',
+  'S',
+  'T',
+  'U',
+  'V',
+  'W',
+  'X',
+  'Y',
+  'Z',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '0',
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0',
+  '\u00a0'
+];
 
 // 🟧 Log a Uint8ClampedArray like an old-fashioned dump
 
@@ -65,6 +319,16 @@ function dumpSlice(
     if (ix > 0 && ix % 4 === 3) hex += ' ';
   }
   return { hex, str };
+}
+
+export function e2a(e: number[]): string {
+  let a = '';
+  for (let i = 0; i < e.length; i++) {
+    // @ts-ignore 🔥 we know e[i] is always valid
+    if (e[i] >= 64) a += ebcdic[e[i] - 64];
+    else a += '\u2022';
+  }
+  return a;
 }
 
 function toHex(num: number, pad: number): string {
