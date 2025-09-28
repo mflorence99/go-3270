@@ -1,10 +1,10 @@
 // 🔥 Bun bundler doesn't like $lib here ???
 import { e2a } from './convert';
 
-// 🟧 Log a Uint8Array like an old-fashioned dump
+// 🟧 Log a Uint8ClampedArray like an old-fashioned dump
 
 export function dumpBytes(
-  data: Uint8Array,
+  data: Uint8ClampedArray,
   title: string,
   ebcdic = false,
   color = 'blue'
@@ -21,7 +21,7 @@ export function dumpBytes(
     'color: skyblue; font-weight: bold'
   );
   while (true) {
-    const slice = new Uint8Array(
+    const slice = new Uint8ClampedArray(
       data.slice(offset, Math.min(offset + sliceSize, total))
     );
     const { hex, str } = dumpSlice(slice, sliceSize, ebcdic);
@@ -41,7 +41,7 @@ export function dumpBytes(
 // 🟦 Helpers
 
 function dumpSlice(
-  bytes: Uint8Array,
+  bytes: Uint8ClampedArray,
   sliceSize: number,
   ebcdic: boolean
 ): { hex: string; str: string } {

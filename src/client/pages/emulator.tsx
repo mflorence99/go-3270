@@ -211,7 +211,7 @@ export class Emulator extends SignalWatcher(LitElement) {
     `;
   }
 
-  response(bytes: Uint8Array): void {
+  response(bytes: Uint8ClampedArray): void {
     this.dispatchEvent(
       new CustomEvent<DataStreamEventDetail>('response', {
         detail: { bytes }

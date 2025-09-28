@@ -1,7 +1,7 @@
 export type Go3270 = {
-  close: () => Uint8Array;
-  datastream: (bytes: Uint8Array) => Uint8Array;
-  restore: (bytes: Uint8Array) => void;
+  close: () => Uint8ClampedArray;
+  datastream: (bytes: Uint8ClampedArray) => Uint8ClampedArray;
+  restore: (bytes: Uint8ClampedArray) => void;
   testPattern: () => void;
 };
 

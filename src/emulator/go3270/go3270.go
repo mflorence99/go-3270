@@ -3,11 +3,13 @@ package go3270
 import (
 	_ "embed"
 	"emulator/types"
+	"emulator/utils"
 	"fmt"
 	"image"
 	"math"
 	"math/rand"
 	"syscall/js"
+	"time"
 
 	"github.com/fogleman/gg"
 	"golang.org/x/image/font"
@@ -31,7 +33,7 @@ type Go3270 struct {
 	canvasWidth  float64
 	color        string
 	cols         float64
-	copybuff     js.Value
+	copyBuff     js.Value
 	ctx          js.Value
 	gg           *gg.Context
 	dpi          float64
@@ -61,7 +63,8 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	// 👇 constants
 	go3270.paddedHeight = 1.05
 	go3270.paddedWidth = 1.1
-	go3270.scaleFactor = 2
+	// 🔥 scaling 2x does produce slightly crisper font rendering, but it takes about 2x as long to render (see function TestPattern)
+	go3270.scaleFactor = 1
 	// 👇 load the 3270 font
 	go3270.font, _ = opentype.Parse(go3270Font)
 	go3270.face, _ = opentype.NewFace(go3270.font, &opentype.FaceOptions{Size: go3270.fontSize * go3270.scaleFactor, DPI: go3270.dpi, Hinting: font.HintingFull})
@@ -81,7 +84,7 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	go3270.ctx = go3270.canvas.Call("getContext", "2d")
 	go3270.imgData = go3270.ctx.Call("createImageData", go3270.canvasWidth, go3270.canvasHeight)
 	go3270.image = image.NewRGBA(image.Rect(0, 0, int(go3270.canvasWidth), int(go3270.canvasHeight)))
-	go3270.copybuff = js.Global().Get("Uint8Array").New(len(go3270.image.Pix))
+	go3270.copyBuff = js.Global().Get("Uint8ClampedArray").New(len(go3270.image.Pix))
 	go3270.gg = gg.NewContextForRGBA(go3270.image)
 	go3270.gg.SetFontFace(go3270.face)
 	go3270.gg.Scale(1/go3270.scaleFactor, 1/go3270.scaleFactor)
@@ -109,19 +112,9 @@ func NewGo3270(this js.Value, args []js.Value) any {
 func (go3270 *Go3270) Close() js.Value {
 	// 🔥 simulate the state of the device
 	data := []byte{193, 194, 195 /* 👈 EBCDIC "ABC" */}
-	u8 := js.Global().Get("Uint8Array").New(len(data))
+	u8 := js.Global().Get("Uint8ClampedArray").New(len(data))
 	js.CopyBytesToJS(u8, data)
 	return u8
-}
-
-func (go3270 *Go3270) Coords(col, row float64) (float64, float64, float64, float64, float64) {
-	w := go3270.fontWidth * go3270.paddedWidth
-	h := go3270.fontHeight * go3270.paddedHeight
-	x := col * w
-	y := row * h
-	// 🔥 we could do better calculating the baseline - this is just a WAG, because an em is drawn with a significantly different height than that returned by MeasureString()
-	baseline := y + h - (go3270.fontSize / 3 * go3270.scaleFactor)
-	return x, y, w, h, baseline
 }
 
 func (go3270 *Go3270) Datastream(u8in js.Value) js.Value {
@@ -132,7 +125,7 @@ func (go3270 *Go3270) Datastream(u8in js.Value) js.Value {
 	go3270.TestPattern()
 	// 🔥 simulate response
 	data := []byte{193, 194, 195 /* 👈 EBCDIC "ABC" */}
-	u8out := js.Global().Get("Uint8Array").New(len(data))
+	u8out := js.Global().Get("Uint8ClampedArray").New(len(data))
 	js.CopyBytesToJS(u8out, data)
 	return u8out
 }
@@ -151,13 +144,14 @@ func (go3270 *Go3270) Restore(u8 js.Value) {
 }
 
 func (go3270 *Go3270) TestPattern() {
+	defer utils.ElapsedTime(time.Now(), "TestPattern")
 	go3270.gg.SetHexColor(types.CLUT[0xf0][0]) /* 👈 ragged fonts if draw on transparent! */
 	go3270.gg.Clear()
 	str := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[{]};:,<.>/?"
 	chs := []rune(str)
 	for col := 0.0; col < go3270.cols; col++ {
 		for row := 0.0; row < go3270.rows; row++ {
-			x, _, _, _, baseline := go3270.Coords(col, row)
+			x, _, _, _, baseline := go3270.boundingBox(col, row)
 			// 👇 choose colors from the CLUT, using the base color if out of range
 			ix := uint8(math.Floor(col/10) + 0xf1)
 			bright := go3270.color
@@ -180,8 +174,21 @@ func (go3270 *Go3270) TestPattern() {
 	go3270.imgCopy()
 }
 
+// 👇 Helpers
+
+func (go3270 *Go3270) boundingBox(col, row float64) (float64, float64, float64, float64, float64) {
+	w := go3270.fontWidth * go3270.paddedWidth
+	h := go3270.fontHeight * go3270.paddedHeight
+	x := col * w
+	y := row * h
+	// 🔥 we could do better calculating the baseline - this is just a WAG, because an em is drawn with a significantly different height than that returned by MeasureString()
+	baseline := y + h - (go3270.fontSize / 3 * go3270.scaleFactor)
+	return x, y, w, h, baseline
+}
+
+// 🔥 I copied this from go-canvas and the author was worried about 3 separate copies -- I haven't figured how to reduce it to 2 even when using Uint8ClampedArray -- but it only takes ~1ms anyway
 func (go3270 *Go3270) imgCopy() {
-	js.CopyBytesToJS(go3270.copybuff, go3270.image.Pix)
-	go3270.imgData.Get("data").Call("set", go3270.copybuff)
+	js.CopyBytesToJS(go3270.copyBuff, go3270.image.Pix)
+	go3270.imgData.Get("data").Call("set", go3270.copyBuff)
 	go3270.ctx.Call("putImageData", go3270.imgData, 0, 0)
 }

@@ -137,7 +137,7 @@ export class Connector extends SignalWatcher(LitElement) {
           Emulators[config.emulator] as string
         );
         this.tn3270.stream$.subscribe({
-          next: (bytes: Uint8Array) => {
+          next: (bytes: Uint8ClampedArray) => {
             if (this.connecting)
               this.dispatchEvent(new CustomEvent('connected'));
             this.dispatchEvent(

@@ -49,13 +49,6 @@ abstract class Base<T> {
       );
     // 👇 derive the new state and accumulate deltas for inspection
     const newState = produce(prevState, mutator, (patches) => {
-      if (config.logStateChanges && patches)
-        console.log(
-          `%c🆕 patches... %c${caller} %c👉${JSON.stringify(patches)}`,
-          'color: khaki',
-          'color: white',
-          'color: wheat'
-        );
       this.delta = {};
       for (const patch of patches) {
         patch.path.reduce((acc: any, fld, ix, arr) => {
@@ -63,6 +56,13 @@ abstract class Base<T> {
           return acc[fld];
         }, this.delta);
       }
+      if (config.logStateChanges)
+        console.log(
+          `%c🆕 patches... %c${caller} %c👉${JSON.stringify(this.delta)}`,
+          'color: khaki',
+          'color: white',
+          'color: wheat'
+        );
     });
     // 👇 the "new" state and (potentially) the patches that produced it
     if (config.logStateChanges)

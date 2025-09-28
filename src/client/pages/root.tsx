@@ -25,7 +25,7 @@ declare global {
 // 🟧 shared by all pages
 
 export type DataStreamEventDetail = {
-  bytes: Uint8Array;
+  bytes: Uint8ClampedArray;
 };
 
 // 🔥 it would be nice to get these colors from the CLUT in the Go code, but I think not worth losing the ability to treat them as static resources, and instead dependent on the load of the WASM code

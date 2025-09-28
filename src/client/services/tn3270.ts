@@ -27,7 +27,7 @@ const reverse: Record<number, string> = Object.fromEntries(
 // 👁️ http://users.cs.cf.ac.uk/Dave.Marshall/Internet/node141.html
 
 export class Tn3270 {
-  stream$: Observable<Uint8Array>;
+  stream$: Observable<Uint8ClampedArray>;
 
   #socket: WebSocket | null = null;
 
@@ -36,47 +36,51 @@ export class Tn3270 {
     private port: string,
     private model: string
   ) {
-    this.stream$ = new Observable((observer: Observer<Uint8Array>) => {
-      this.#socket = new WebSocket(
-        `ws://${location.hostname}:${location.port}?host=${this.host}&port=${this.port}`
-      );
-      // 👇 OPEN
-      this.#socket.onopen = (): void => {
-        console.log(
-          `%c3270 -> Server -> Client %cConnecting to ${this.host}:${this.port}`,
-          'color: palegreen',
-          'color: skyblue'
+    this.stream$ = new Observable(
+      (observer: Observer<Uint8ClampedArray>) => {
+        this.#socket = new WebSocket(
+          `ws://${location.hostname}:${location.port}?host=${this.host}&port=${this.port}`
         );
-      };
-      // 👇 MESSAGE
-      this.#socket.onmessage = async (
-        e: MessageEvent
-      ): Promise<void> => {
-        const bytes = new Uint8Array(await e.data.arrayBuffer());
-        this.datastream(bytes, observer);
-      };
-      // 🔥 ERROR
-      this.#socket.onerror = (e: Event): void => {
-        console.error(
-          `%c3270 -> Server -> Client %c${e.type}`,
-          'color: palegreen',
-          'color: coral'
-        );
-        observer.error(e);
-      };
-      // 👇 CLOSE
-      this.#socket.onclose = (e: CloseEvent): void => {
-        console.log(
-          `%c3270 -> Server -> Client %cDisconnecting ${e.code} ${e.reason}`,
-          'color: palegreen',
-          'color: cyan'
-        );
-        if (e.code === 1000) observer.complete();
-        else observer.error(e);
-      };
-      // 👇 return cleanup function called when complete
-      return (): void => this.close();
-    });
+        // 👇 OPEN
+        this.#socket.onopen = (): void => {
+          console.log(
+            `%c3270 -> Server -> Client %cConnecting to ${this.host}:${this.port}`,
+            'color: palegreen',
+            'color: skyblue'
+          );
+        };
+        // 👇 MESSAGE
+        this.#socket.onmessage = async (
+          e: MessageEvent
+        ): Promise<void> => {
+          const bytes = new Uint8ClampedArray(
+            await e.data.arrayBuffer()
+          );
+          this.datastream(bytes, observer);
+        };
+        // 🔥 ERROR
+        this.#socket.onerror = (e: Event): void => {
+          console.error(
+            `%c3270 -> Server -> Client %c${e.type}`,
+            'color: palegreen',
+            'color: coral'
+          );
+          observer.error(e);
+        };
+        // 👇 CLOSE
+        this.#socket.onclose = (e: CloseEvent): void => {
+          console.log(
+            `%c3270 -> Server -> Client %cDisconnecting ${e.code} ${e.reason}`,
+            'color: palegreen',
+            'color: cyan'
+          );
+          if (e.code === 1000) observer.complete();
+          else observer.error(e);
+        };
+        // 👇 return cleanup function called when complete
+        return (): void => this.close();
+      }
+    );
   }
 
   static async tn3270(
@@ -99,7 +103,10 @@ export class Tn3270 {
     this.#socket = null;
   }
 
-  datastream(bytes: Uint8Array, observer: Observer<Uint8Array>): void {
+  datastream(
+    bytes: Uint8ClampedArray,
+    observer: Observer<Uint8ClampedArray>
+  ): void {
     if (bytes[0] === lookup.IAC) {
       const negotiator = new Negotiator(bytes);
       let response;
@@ -140,7 +147,7 @@ export class Tn3270 {
     }
   }
 
-  response(bytes: Uint8Array): void {
+  response(bytes: Uint8ClampedArray): void {
     // 🔥 this class emulates the device and "inbound" data streams are sent FROM the device TO application code
     dumpBytes(bytes, 'Inbound 3270 -> Application', true, 'palegreen');
     this.#socket?.send(bytes);
@@ -150,7 +157,7 @@ export class Tn3270 {
 // 🟧 Negotiate Telnet connection 3270 <-> Host
 
 class Negotiator {
-  constructor(private bytes: Uint8Array) {}
+  constructor(private bytes: Uint8ClampedArray) {}
 
   decode(): string[] {
     const commands: string[] = [];
@@ -165,7 +172,7 @@ class Negotiator {
     return commands;
   }
 
-  encode(commands: string[]): Uint8Array {
+  encode(commands: string[]): Uint8ClampedArray {
     const raw = commands.reduce(
       (acc, command) => {
         const encoded = lookup[command];
@@ -183,7 +190,7 @@ class Negotiator {
       },
       <number[]>[]
     );
-    return new Uint8Array(raw);
+    return new Uint8ClampedArray(raw);
   }
 
   matches(commands: string[]): boolean {
