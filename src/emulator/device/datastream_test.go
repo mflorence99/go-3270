@@ -1,7 +1,7 @@
-package datastream_test
+package device_test
 
 import (
-	"emulator/datastream"
+	"emulator/device"
 	"slices"
 	"testing"
 
@@ -11,7 +11,7 @@ import (
 var data = []uint8{0x00, 0x01, 0x02, 0x03, 0x04, 0x05}
 
 func TestOutboundDataStream_HasEnough(t *testing.T) {
-	out := datastream.NewOutbound(&data)
+	out := device.NewOutboundDataStream(&data)
 	assert.True(t, out.HasEnough(0))
 	assert.True(t, out.HasEnough(5))
 	assert.True(t, out.HasEnough(6))
@@ -19,7 +19,7 @@ func TestOutboundDataStream_HasEnough(t *testing.T) {
 }
 
 func TestOutboundDataStream_Next(t *testing.T) {
-	out := datastream.NewOutbound(&data)
+	out := device.NewOutboundDataStream(&data)
 	for ix := 0; ix <= len(data); ix++ {
 		u8, e := out.Next()
 		if ix < len(data) {
@@ -33,7 +33,7 @@ func TestOutboundDataStream_Next(t *testing.T) {
 }
 
 func TestOutboundDataStream_Next16(t *testing.T) {
-	out := datastream.NewOutbound(&data)
+	out := device.NewOutboundDataStream(&data)
 	var u16 uint16
 	var err error
 	u16, err = out.Next16()
@@ -51,7 +51,7 @@ func TestOutboundDataStream_Next16(t *testing.T) {
 }
 
 func TestOutboundDataStream_NextSlice(t *testing.T) {
-	out := datastream.NewOutbound(&data)
+	out := device.NewOutboundDataStream(&data)
 	var u8 uint8
 	var slice []uint8
 	var err error
@@ -67,7 +67,7 @@ func TestOutboundDataStream_NextSlice(t *testing.T) {
 }
 
 func TestOutboundDataStream_NextSliceUntil(t *testing.T) {
-	out := datastream.NewOutbound(&data)
+	out := device.NewOutboundDataStream(&data)
 	var slice []uint8
 	var err error
 	slice, err = out.NextSliceUntil([]uint8{0x02, 0x03})
@@ -82,7 +82,7 @@ func TestOutboundDataStream_NextSliceUntil(t *testing.T) {
 }
 
 func TestOutboundDataStream_Peek(t *testing.T) {
-	out := datastream.NewOutbound(&data)
+	out := device.NewOutboundDataStream(&data)
 	var u8 uint8
 	var slice []uint8
 	var err error
@@ -97,7 +97,7 @@ func TestOutboundDataStream_Peek(t *testing.T) {
 }
 
 func TestOutboundDataStream_PeekSlice(t *testing.T) {
-	out := datastream.NewOutbound(&data)
+	out := device.NewOutboundDataStream(&data)
 	var slice []uint8
 	var err error
 	slice, err = out.PeekSlice(6)
@@ -112,7 +112,7 @@ func TestOutboundDataStream_PeekSlice(t *testing.T) {
 }
 
 func TestOutboundDataStream_PeekSliceUntil(t *testing.T) {
-	out := datastream.NewOutbound(&data)
+	out := device.NewOutboundDataStream(&data)
 	var slice []uint8
 	var err error
 	slice, err = out.PeekSliceUntil([]uint8{0x02, 0x03})
@@ -127,7 +127,7 @@ func TestOutboundDataStream_PeekSliceUntil(t *testing.T) {
 }
 
 func TestInboundDataStream_Put(t *testing.T) {
-	in := datastream.NewInbound()
+	in := device.NewInboundDataStream()
 	var slice []uint8
 	slice = in.Put(0x00)
 	assert.True(t, len(slice) == 1)
@@ -139,7 +139,7 @@ func TestInboundDataStream_Put(t *testing.T) {
 }
 
 func TestInboundDataStream_Put16(t *testing.T) {
-	in := datastream.NewInbound()
+	in := device.NewInboundDataStream()
 	slice := in.Put16(0x1234)
 	assert.True(t, slice[0] == 0x12)
 	assert.True(t, slice[1] == 0x34)

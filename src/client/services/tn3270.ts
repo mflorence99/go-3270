@@ -56,16 +56,16 @@ export class Tn3270 {
           const bytes = new Uint8ClampedArray(
             await e.data.arrayBuffer()
           );
-          this.datastream(bytes, observer);
+          this.receive(bytes, observer);
         };
         // 🔥 ERROR
-        this.#socket.onerror = (e: Event): void => {
+        this.#socket.onerror = (evt: Event): void => {
           console.error(
-            `%c3270 -> Server -> Client %c${e.type}`,
+            `%c3270 -> Server -> Client %c${evt.type}`,
             'color: palegreen',
             'color: coral'
           );
-          observer.error(e);
+          observer.error(evt);
         };
         // 👇 CLOSE
         this.#socket.onclose = (e: CloseEvent): void => {
@@ -103,7 +103,8 @@ export class Tn3270 {
     this.#socket = null;
   }
 
-  datastream(
+  // 🔥 this class emulates the device and "outbound" data streams flow FROM application code TO the device
+  receive(
     bytes: Uint8ClampedArray,
     observer: Observer<Uint8ClampedArray>
   ): void {
@@ -141,14 +142,13 @@ export class Tn3270 {
         this.#socket?.send(negotiator.encode(response));
       }
     } else {
-      // 🔥 this class emulates the device and "outbound" data streams flow FROM application code TO the device
       dumpBytes(bytes, 'Outbound Application -> 3270', true, 'yellow');
       observer.next(bytes);
     }
   }
 
-  response(bytes: Uint8ClampedArray): void {
-    // 🔥 this class emulates the device and "inbound" data streams are sent FROM the device TO application code
+  // 🔥 this class emulates the device and "inbound" data streams are sent FROM the device TO application code
+  send(bytes: Uint8ClampedArray): void {
     dumpBytes(bytes, 'Inbound 3270 -> Application', true, 'palegreen');
     this.#socket?.send(bytes);
   }

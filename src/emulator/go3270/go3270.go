@@ -11,6 +11,7 @@ import (
 	"syscall/js"
 	"time"
 
+	"github.com/asaskevich/EventBus"
 	"github.com/fogleman/gg"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
@@ -23,11 +24,14 @@ var go3270Font []byte
 
 // 🟧 Bridge between Typescript UI and Go-powered emulator
 
+// The design objective is that all Go <-> UI communication goes through this module. No other modulw must use syscall/js. That way, everything but here can be tested with go test.
+
 // 👁️ https://bitsavers.org/pdf/ibm/3270/GA23-0059-07_3270_Data_Stream_Programmers_Reference_199206.pdf
 // 👁️ http://www.prycroft6.com.au/misc/3270.html
 // 👁️ http://www.tommysprinkle.com/mvs/P3270/start.htm
 
 type Go3270 struct {
+	bus          EventBus.Bus
 	canvas       js.Value
 	canvasHeight float64
 	canvasWidth  float64
@@ -88,28 +92,35 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	go3270.gg = gg.NewContextForRGBA(go3270.image)
 	go3270.gg.SetFontFace(go3270.face)
 	go3270.gg.Scale(1/go3270.scaleFactor, 1/go3270.scaleFactor)
-	// 👇 methods callable by Javascript
+	// 🟦 Go WASM methods callable by Javascript
 	// 👁️ go3270.d.ts
 	obj := map[string]any{
 		"close": js.FuncOf(func(this js.Value, args []js.Value) any {
 			return go3270.Close()
 		}),
-		"datastream": js.FuncOf(func(this js.Value, args []js.Value) any {
-			return go3270.Datastream(args[0])
+		"receive": js.FuncOf(func(this js.Value, args []js.Value) any {
+			return go3270.Receive(args[0])
 		}),
 		"restore": js.FuncOf(func(this js.Value, args []js.Value) any {
 			go3270.Restore(args[0])
 			return nil
 		}),
-		"testPattern": js.FuncOf(func(this js.Value, args []js.Value) any {
-			go3270.TestPattern()
-			return nil
-		}),
 	}
+	// 🟦 Go WASM functions invoked by go test-able code
+	go3270.bus = EventBus.New()
+	go3270.bus.Subscribe("go3270-alarm", alarm)
+	go3270.bus.Subscribe("go3270-dumpBytes", dumpBytes)
+	go3270.bus.Subscribe("go3270-send", send)
 	return js.ValueOf(obj)
 }
 
+// 🟦 Go WASM methods callable by Javascript via window.xxx
+
 func (go3270 *Go3270) Close() js.Value {
+	// 🟦 Go WASM functions invoked by go test-able code
+	go3270.bus.Unsubscribe("go3270-alarm", alarm)
+	go3270.bus.Unsubscribe("go3270-dumpBytes", dumpBytes)
+	go3270.bus.Unsubscribe("go3270-send", send)
 	// 🔥 simulate the state of the device
 	data := []byte{193, 194, 195 /* 👈 EBCDIC "ABC" */}
 	u8 := js.Global().Get("Uint8ClampedArray").New(len(data))
@@ -117,24 +128,17 @@ func (go3270 *Go3270) Close() js.Value {
 	return u8
 }
 
-func (go3270 *Go3270) Datastream(u8in js.Value) js.Value {
-	bytes := make([]byte, u8in.Get("length").Int())
-	js.CopyBytesToGo(bytes, u8in)
+func (go3270 *Go3270) Receive(u8in js.Value) js.Value {
+	request := make([]byte, u8in.Get("length").Int())
+	js.CopyBytesToGo(request, u8in)
 	// 🔥 do something with stream
-	_ = bytes
+	_ = request
 	go3270.TestPattern()
 	// 🔥 simulate response
-	data := []byte{193, 194, 195 /* 👈 EBCDIC "ABC" */}
-	u8out := js.Global().Get("Uint8ClampedArray").New(len(data))
-	js.CopyBytesToJS(u8out, data)
+	response := []byte{193, 194, 195 /* 👈 EBCDIC "ABC" */}
+	u8out := js.Global().Get("Uint8ClampedArray").New(len(response))
+	js.CopyBytesToJS(u8out, response)
 	return u8out
-}
-
-func (go3270 *Go3270) DispatchEvent(eventType string, data any) {
-	event := js.Global().Get("CustomEvent").New(eventType, map[string]any{
-		"detail": data,
-	})
-	js.Global().Get("document").Call("dispatchEvent", event)
 }
 
 func (go3270 *Go3270) Restore(u8 js.Value) {
@@ -142,6 +146,42 @@ func (go3270 *Go3270) Restore(u8 js.Value) {
 	_ = u8
 	go3270.TestPattern()
 }
+
+// 🟦 Go WASM functions invoked by go test-able code via EventBus
+
+func alarm() {
+	dispatchEvent("go3270-alarm", true)
+}
+
+func dumpBytes(data []uint8, title string, ebcdic bool, color string) {
+	u8 := js.Global().Get("Uint8ClampedArray").New(len(data))
+	js.CopyBytesToJS(u8, data)
+	dispatchEvent("go3270-dumpBytes", map[string]any{
+		"bytes":  u8,
+		"title":  title,
+		"ebcdic": ebcdic,
+		"color":  color,
+	})
+}
+
+func send(data []uint8) {
+	u8 := js.Global().Get("Uint8ClampedArray").New(len(data))
+	js.CopyBytesToJS(u8, data)
+	dispatchEvent("go3270-send", map[string]any{
+		"bytes": u8,
+	})
+}
+
+func dispatchEvent(eventType string, data any) {
+	event := js.Global().Get("CustomEvent").New(eventType, map[string]any{
+		"detail": data,
+	})
+	js.Global().Get("document").Call("dispatchEvent", event)
+}
+
+// ///////////////////////////////////////////////////////////////////////////
+// 🔥 EVERYTHING BELOW HERE IS JUST TEST CODE
+// ///////////////////////////////////////////////////////////////////////////
 
 func (go3270 *Go3270) TestPattern() {
 	defer utils.ElapsedTime(time.Now(), "TestPattern")

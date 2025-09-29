@@ -305,7 +305,8 @@ export const allTasks = [
     name: 'test:client:wasm',
     description: 'Run unit tests for client WASM',
     banner: { color: colors.client, icon: icons.wasm },
-    cmd: `(cd ${config.paths['emulator-go']} && go test emulator/datastream emulator/types emulator/utils -cover)`
+    // 🔥 can't test packages that depend on syscall/js
+    cmd: `(cd ${config.paths['emulator-go']} && go test emulator/device emulator/types emulator/utils -cover)`
   })
 ];
 

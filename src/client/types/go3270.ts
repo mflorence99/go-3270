@@ -1,8 +1,7 @@
 export type Go3270 = {
   close: () => Uint8ClampedArray;
-  datastream: (bytes: Uint8ClampedArray) => Uint8ClampedArray;
+  receive: (bytes: Uint8ClampedArray) => Uint8ClampedArray;
   restore: (bytes: Uint8ClampedArray) => void;
-  testPattern: () => void;
 };
 
 declare global {

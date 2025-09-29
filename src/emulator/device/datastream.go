@@ -1,4 +1,4 @@
-package datastream
+package device
 
 import (
 	"errors"
@@ -13,7 +13,7 @@ type OutboundDataStream struct {
 	ix    int
 }
 
-func NewOutbound(bytes *[]uint8) *OutboundDataStream {
+func NewOutboundDataStream(bytes *[]uint8) *OutboundDataStream {
 	stream := &OutboundDataStream{}
 	stream.bytes = bytes
 	stream.ix = 0
@@ -114,7 +114,7 @@ type InboundDataStream struct {
 	bytes []uint8
 }
 
-func NewInbound() *InboundDataStream {
+func NewInboundDataStream() *InboundDataStream {
 	in := &InboundDataStream{}
 	in.bytes = []uint8{}
 	return in

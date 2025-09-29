@@ -8,6 +8,7 @@ import { TemplateResult } from 'lit';
 
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
+import { dumpBytes } from '$lib/dump';
 import { globals } from '$client/css/globals/shadow-dom';
 import { html } from 'lit';
 import { provide } from '@lit/context';
@@ -22,43 +23,7 @@ declare global {
   }
 }
 
-// 🟧 shared by all pages
-
-export type DataStreamEventDetail = {
-  bytes: Uint8ClampedArray;
-};
-
-// 🔥 it would be nice to get these colors from the CLUT in the Go code, but I think not worth losing the ability to treat them as static resources, and instead dependent on the load of the WASM code
-
-export const defaultColor = '#88DD88';
-
-export const Colors: Record<string, string> = {
-  green: defaultColor,
-  blue: '#3366CC',
-  orange: '#FFB266',
-  white: '#B8B8B8'
-};
-
-export const defaultDimensions: [number, number] = [80, 24];
-
-export const Dimensions: Record<string, [number, number]> = {
-  // 👇 [width, height]
-  '1': [40, 12],
-  '2': defaultDimensions,
-  '3': [80, 32],
-  '4': [80, 43],
-  '5': [132, 27]
-};
-
-export const Emulators: Record<string, string> = {
-  '1': 'IBM-3277-1',
-  '2': 'IBM-3277-2',
-  '3': 'IBM-3278-3',
-  '4': 'IBM-3278-4',
-  '5': 'IBM-3278-5'
-};
-
-export const Pages = {
+const Pages = {
   connector: 0,
   emulator: 1
 };
@@ -86,20 +51,50 @@ export class Root extends SignalWatcher(LitElement) {
   ];
 
   @query('.connector') connector!: Connector;
+  @query('.dinger') dinger!: HTMLAudioElement;
   @query('.emulator') emulator!: Emulator;
   @state() pageNum = Pages.connector;
   @provide({ context: stateContext }) state = new State('state');
 
+  // 👇 make sure "this" is right
+  #alarm = this.alarm.bind(this);
+  #dumpBytes = this.dumpBytes.bind(this);
+  #send = this.send.bind(this);
+
   // eslint-disable-next-line no-unused-private-class-members
   #startup = new Startup(this);
+
+  async alarm(): Promise<void> {
+    await this.dinger.play();
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+    document.addEventListener('go3270-alarm', this.#alarm);
+    document.addEventListener('go3270-dumpBytes', this.#dumpBytes);
+    document.addEventListener('go3270-send', this.#send);
+  }
+
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    document.removeEventListener('go3270-alarm', this.#alarm);
+    document.removeEventListener('go3270-dumpBytes', this.#dumpBytes);
+    document.removeEventListener('go3270-send', this.#send);
+  }
+
+  dumpBytes(evt: Event): void {
+    const { bytes, title, ebcdic, color } = (evt as CustomEvent).detail;
+    dumpBytes(bytes, title, ebcdic, color);
+  }
 
   override render(): TemplateResult {
     return html`
       <app-connector
-        @connected=${(): any => (this.pageNum = Pages.emulator)}
-        @datastream=${(e: CustomEvent<DataStreamEventDetail>): any =>
-          this.emulator.datastream(e)}
-        @disconnected=${(): any => (this.pageNum = Pages.connector)}
+        @go3270-connected=${(): any => (this.pageNum = Pages.emulator)}
+        @go3270-receive=${(evt: CustomEvent): any =>
+          this.emulator.receive(evt.detail.bytes)}
+        @go3270-disconnected=${(): any =>
+          (this.pageNum = Pages.connector)}
         class="connector"
         data-page-num="${Pages.connector}"
         style=${styleMap({
@@ -109,14 +104,21 @@ export class Root extends SignalWatcher(LitElement) {
 
       <app-emulator
         @disconnect=${(): any => this.connector.disconnect()}
-        @response=${(e: CustomEvent<DataStreamEventDetail>): any =>
-          this.connector.response(e)}
+        @go3270-send=${(evt: CustomEvent): any =>
+          this.connector.send(evt.detail.bytes)}
         class="emulator"
         data-page-num="${Pages.emulator}"
         style=${styleMap({
           opacity: this.pageNum === Pages.emulator ? 1 : 0,
           zIndex: this.pageNum === Pages.emulator ? 1 : -1
         })}></app-emulator>
+
+      <audio class="dinger" src="assets/ding.mp3"></audio>
     `;
+  }
+
+  send(evt: Event): void {
+    const { bytes } = (evt as CustomEvent).detail;
+    this.connector.send(bytes);
   }
 }

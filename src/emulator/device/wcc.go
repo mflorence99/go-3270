@@ -1,4 +1,4 @@
-package datastream
+package device
 
 // 🟧 Model 3270 WCC
 

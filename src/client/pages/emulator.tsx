@@ -1,7 +1,6 @@
-import { Colors } from '$client/pages/root';
-import { DataStreamEventDetail } from '$client/pages/root';
-import { Dimensions } from '$client/pages/root';
-import { Emulators } from '$client/pages/root';
+import { Colors } from '$client/state/constants';
+import { Dimensions } from '$client/state/constants';
+import { Emulators } from '$client/state/constants';
 import { Go3270 } from '$client/types/go3270';
 import { LitElement } from 'lit';
 import { SignalWatcher } from '@lit-labs/signals';
@@ -11,8 +10,8 @@ import { TemplateResult } from 'lit';
 import { consume } from '@lit/context';
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { defaultColor } from '$client/pages/root';
-import { defaultDimensions } from '$client/pages/root';
+import { defaultColor } from '$client/state/constants';
+import { defaultDimensions } from '$client/state/constants';
 import { globals } from '$client/css/globals/shadow-dom';
 import { html } from 'lit';
 import { query } from 'lit/decorators.js';
@@ -104,7 +103,6 @@ export class Emulator extends SignalWatcher(LitElement) {
     `
   ];
 
-  @query('.dinger') dinger!: HTMLAudioElement;
   @query('.dpi') dpi!: HTMLDivElement;
   @consume({ context: stateContext }) state!: State;
   @query('.terminal') terminal!: HTMLCanvasElement;
@@ -112,23 +110,12 @@ export class Emulator extends SignalWatcher(LitElement) {
   go3270: Go3270 | null = null;
 
   // 👇 make sure "this" is right
-  #alarm = this.alarm.bind(this);
   #disconnect = this.disconnect.bind(this);
-
-  async alarm(): Promise<void> {
-    await this.dinger.play();
-  }
 
   // 👇 "connected" here means DOM connection of this element
   override connectedCallback(): void {
     super.connectedCallback();
-    document.addEventListener('go3270-alarm', this.#alarm);
     window.addEventListener('beforeunload', this.#disconnect);
-  }
-
-  datastream(e: CustomEvent<DataStreamEventDetail>): void {
-    if (this.go3270)
-      this.response(this.go3270.datastream(e.detail.bytes));
   }
 
   // 👇 "connected" here means socket connection
@@ -139,8 +126,18 @@ export class Emulator extends SignalWatcher(LitElement) {
   // 👇 "connected" here means DOM connection of this element
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    document.removeEventListener('go3270-alarm', this.#alarm);
     window.removeEventListener('beforeunload', this.#disconnect);
+  }
+
+  receive(bytes: Uint8ClampedArray): void {
+    if (this.go3270) {
+      bytes = this.go3270.receive(bytes);
+      this.dispatchEvent(
+        new CustomEvent('go3270-send', {
+          detail: { bytes }
+        })
+      );
+    }
   }
 
   override render(): TemplateResult {
@@ -206,17 +203,7 @@ export class Emulator extends SignalWatcher(LitElement) {
       </main>
 
       <div class="dpi"></div>
-
-      <audio class="dinger" src="assets/ding.mp3"></audio>
     `;
-  }
-
-  response(bytes: Uint8ClampedArray): void {
-    this.dispatchEvent(
-      new CustomEvent<DataStreamEventDetail>('response', {
-        detail: { bytes }
-      })
-    );
   }
 
   override updated(): void {
@@ -239,7 +226,7 @@ export class Emulator extends SignalWatcher(LitElement) {
       dims[1],
       dpi
     );
-    // 👇 restore the state of the device if we can -- if the config has changed, we must wait until a new datastream appears
+    // 👇 restore the state of the device if we can -- if the config has changed, we must wait until a new datastream is received
     if (bytes && !this.state.delta.config) this.go3270?.restore(bytes);
   }
 }

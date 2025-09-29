@@ -1,8 +1,7 @@
-import { Colors } from '$client/pages/root';
+import { Colors } from '$client/state/constants';
 import { Config } from '$client/state/state';
-import { DataStreamEventDetail } from '$client/pages/root';
-import { Dimensions } from '$client/pages/root';
-import { Emulators } from '$client/pages/root';
+import { Dimensions } from '$client/state/constants';
+import { Emulators } from '$client/state/constants';
 import { LitElement } from 'lit';
 import { MdDialog } from '@material/web/dialog/dialog.js';
 import { SignalWatcher } from '@lit-labs/signals';
@@ -120,9 +119,9 @@ export class Connector extends SignalWatcher(LitElement) {
 
   // 👁️ https://dev.to/blikblum/dry-form-handling-with-lit-19f
   // 👇 "connected" here means socket connection
-  async connect(e: Event): Promise<void> {
-    e.preventDefault();
-    const form = e.target as HTMLFormElement;
+  async connect(evt: Event): Promise<void> {
+    evt.preventDefault();
+    const form = evt.target as HTMLFormElement;
     if (form) {
       const formData = new FormData(form);
       const config = Object.fromEntries(formData.entries()) as Config;
@@ -139,9 +138,9 @@ export class Connector extends SignalWatcher(LitElement) {
         this.tn3270.stream$.subscribe({
           next: (bytes: Uint8ClampedArray) => {
             if (this.connecting)
-              this.dispatchEvent(new CustomEvent('connected'));
+              this.dispatchEvent(new CustomEvent('go3270-connected'));
             this.dispatchEvent(
-              new CustomEvent<DataStreamEventDetail>('datastream', {
+              new CustomEvent('go3270-receive', {
                 detail: { bytes }
               })
             );
@@ -154,7 +153,7 @@ export class Connector extends SignalWatcher(LitElement) {
             this.connecting = false;
             this.message = e.reason;
             await this.dialog.show();
-            this.dispatchEvent(new CustomEvent('disconnected'));
+            this.dispatchEvent(new CustomEvent('go3270-disconnected'));
             this.tn3270 = null;
           },
 
@@ -165,7 +164,7 @@ export class Connector extends SignalWatcher(LitElement) {
               'color: palegreen',
               'color: cyan'
             );
-            this.dispatchEvent(new CustomEvent('disconnected'));
+            this.dispatchEvent(new CustomEvent('go3270-disconnected'));
             this.tn3270 = null;
           }
         });
@@ -175,7 +174,7 @@ export class Connector extends SignalWatcher(LitElement) {
         this.connecting = false;
         this.message = `Unable to reach proxy server ${location.hostname}:${location.port}`;
         await this.dialog.show();
-        this.dispatchEvent(new CustomEvent('disconnected'));
+        this.dispatchEvent(new CustomEvent('go3270-disconnected'));
         this.tn3270 = null;
       }
     }
@@ -309,7 +308,7 @@ export class Connector extends SignalWatcher(LitElement) {
     `;
   }
 
-  response(e: CustomEvent<DataStreamEventDetail>): void {
-    this.tn3270?.response(e.detail.bytes);
+  send(bytes: Uint8ClampedArray): void {
+    this.tn3270?.send(bytes);
   }
 }
