@@ -109,35 +109,22 @@ export class Emulator extends SignalWatcher(LitElement) {
 
   go3270: Go3270 | null = null;
 
-  // 👇 make sure "this" is right
-  #disconnect = this.disconnect.bind(this);
-
-  // 👇 "connected" here means DOM connection of this element
-  override connectedCallback(): void {
-    super.connectedCallback();
-    window.addEventListener('beforeunload', this.#disconnect);
-  }
-
-  // 👇 "connected" here means socket connection
   disconnect(): void {
     this.go3270?.close();
   }
 
-  // 👇 "connected" here means DOM connection of this element
-  override disconnectedCallback(): void {
-    super.disconnectedCallback();
-    window.removeEventListener('beforeunload', this.#disconnect);
+  keystroke(
+    code: string,
+    key: string,
+    alt: boolean,
+    ctrl: boolean,
+    shift: boolean
+  ): void {
+    this.go3270?.keystroke(code, key, alt, ctrl, shift);
   }
 
   receive(bytes: Uint8ClampedArray): void {
-    if (this.go3270) {
-      bytes = this.go3270.receive(bytes);
-      this.dispatchEvent(
-        new CustomEvent('go3270-send', {
-          detail: { bytes }
-        })
-      );
-    }
+    this.go3270?.receive(bytes);
   }
 
   override render(): TemplateResult {
@@ -147,7 +134,9 @@ export class Emulator extends SignalWatcher(LitElement) {
           <header class="header">
             <md-icon-button
               @click=${(): any =>
-                this.dispatchEvent(new CustomEvent('disconnect'))}
+                document.dispatchEvent(
+                  new CustomEvent('go3270-disconnect')
+                )}
               title="Disconnect from 3270">
               <app-icon icon="power_settings_new"></app-icon>
             </md-icon-button>

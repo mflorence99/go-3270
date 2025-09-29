@@ -180,21 +180,8 @@ export class Connector extends SignalWatcher(LitElement) {
     }
   }
 
-  // 👇 "connected" here means DOM connection of this element
-  override connectedCallback(): void {
-    super.connectedCallback();
-    window.addEventListener('beforeunload', this.disconnect);
-  }
-
-  // 👇 "connected" here means socket connection
   disconnect(): void {
     this.tn3270?.close();
-  }
-
-  // 👇 "connected" here means DOM connection of this element
-  override disconnectedCallback(): void {
-    super.disconnectedCallback();
-    window.removeEventListener('beforeunload', this.disconnect);
   }
 
   override render(): TemplateResult {

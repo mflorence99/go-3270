@@ -58,7 +58,10 @@ export class Root extends SignalWatcher(LitElement) {
 
   // 👇 make sure "this" is right
   #alarm = this.alarm.bind(this);
+  #disconnect = this.disconnect.bind(this);
   #dumpBytes = this.dumpBytes.bind(this);
+  #keystroke = this.keystroke.bind(this);
+  #log = this.log.bind(this);
   #send = this.send.bind(this);
 
   // eslint-disable-next-line no-unused-private-class-members
@@ -68,23 +71,52 @@ export class Root extends SignalWatcher(LitElement) {
     await this.dinger.play();
   }
 
+  // 👇 "connected" here means DOM connection of this element
   override connectedCallback(): void {
     super.connectedCallback();
     document.addEventListener('go3270-alarm', this.#alarm);
+    document.addEventListener('go3270-disconnect', this.#disconnect);
     document.addEventListener('go3270-dumpBytes', this.#dumpBytes);
+    document.addEventListener('go3270-log', this.#log);
     document.addEventListener('go3270-send', this.#send);
+    window.addEventListener('beforeunload', this.#disconnect);
+    window.addEventListener('keyup', this.#keystroke);
   }
 
+  // 👇 "connected" here means socket connection to 3270
+  disconnect(): void {
+    this.connector.disconnect();
+    this.emulator.disconnect();
+  }
+
+  // 👇 "connected" here means DOM connection of this element
   override disconnectedCallback(): void {
     super.disconnectedCallback();
     document.removeEventListener('go3270-alarm', this.#alarm);
+    document.removeEventListener('go3270-disconnect', this.#disconnect);
     document.removeEventListener('go3270-dumpBytes', this.#dumpBytes);
+    document.removeEventListener('go3270-log', this.#log);
     document.removeEventListener('go3270-send', this.#send);
+    window.removeEventListener('beforeunload', this.#disconnect);
+    window.removeEventListener('keyup', this.#keystroke);
   }
 
   dumpBytes(evt: Event): void {
     const { bytes, title, ebcdic, color } = (evt as CustomEvent).detail;
     dumpBytes(bytes, title, ebcdic, color);
+  }
+
+  keystroke(evt: KeyboardEvent): void {
+    if (this.pageNum === Pages.emulator) {
+      const { altKey, code, ctrlKey, key, shiftKey } = evt;
+      this.emulator.keystroke(code, key, altKey, ctrlKey, shiftKey);
+      evt.preventDefault();
+    }
+  }
+
+  log(evt: Event): void {
+    const { args } = (evt as CustomEvent).detail;
+    console.log(...args);
   }
 
   override render(): TemplateResult {
@@ -103,9 +135,6 @@ export class Root extends SignalWatcher(LitElement) {
         })}></app-connector>
 
       <app-emulator
-        @disconnect=${(): any => this.connector.disconnect()}
-        @go3270-send=${(evt: CustomEvent): any =>
-          this.connector.send(evt.detail.bytes)}
         class="emulator"
         data-page-num="${Pages.emulator}"
         style=${styleMap({

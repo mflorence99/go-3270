@@ -98,8 +98,13 @@ func NewGo3270(this js.Value, args []js.Value) any {
 		"close": js.FuncOf(func(this js.Value, args []js.Value) any {
 			return go3270.Close()
 		}),
+		"keystroke": js.FuncOf(func(this js.Value, args []js.Value) any {
+			go3270.Keystroke(args[0].String(), args[1].String(), args[2].Bool(), args[3].Bool(), args[4].Bool())
+			return nil
+		}),
 		"receive": js.FuncOf(func(this js.Value, args []js.Value) any {
-			return go3270.Receive(args[0])
+			go3270.Receive(args[0])
+			return nil
 		}),
 		"restore": js.FuncOf(func(this js.Value, args []js.Value) any {
 			go3270.Restore(args[0])
@@ -110,6 +115,7 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	go3270.bus = EventBus.New()
 	go3270.bus.Subscribe("go3270-alarm", alarm)
 	go3270.bus.Subscribe("go3270-dumpBytes", dumpBytes)
+	go3270.bus.Subscribe("go3270-log", log)
 	go3270.bus.Subscribe("go3270-send", send)
 	return js.ValueOf(obj)
 }
@@ -117,9 +123,11 @@ func NewGo3270(this js.Value, args []js.Value) any {
 // 🟦 Go WASM methods callable by Javascript via window.xxx
 
 func (go3270 *Go3270) Close() js.Value {
+	log("%cGo3270 closing", "color: orange")
 	// 🟦 Go WASM functions invoked by go test-able code
 	go3270.bus.Unsubscribe("go3270-alarm", alarm)
 	go3270.bus.Unsubscribe("go3270-dumpBytes", dumpBytes)
+	go3270.bus.Unsubscribe("go3270-log", log)
 	go3270.bus.Unsubscribe("go3270-send", send)
 	// 🔥 simulate the state of the device
 	data := []byte{193, 194, 195 /* 👈 EBCDIC "ABC" */}
@@ -128,17 +136,19 @@ func (go3270 *Go3270) Close() js.Value {
 	return u8
 }
 
-func (go3270 *Go3270) Receive(u8in js.Value) js.Value {
+func (go3270 *Go3270) Keystroke(code string, key string, alt bool, ctrl bool, shift bool) {
+	// 🔥 simulate handling of Keystroke
+	log(fmt.Sprintf("%%ccode=%s %%ckey=%s %%calt=%t ctrl=%t shift=%t", code, key, alt, ctrl, shift), "color: coral", "color: skyblue", "color: gray")
+}
+
+func (go3270 *Go3270) Receive(u8in js.Value) {
 	request := make([]byte, u8in.Get("length").Int())
 	js.CopyBytesToGo(request, u8in)
 	// 🔥 do something with stream
 	_ = request
 	go3270.TestPattern()
 	// 🔥 simulate response
-	response := []byte{193, 194, 195 /* 👈 EBCDIC "ABC" */}
-	u8out := js.Global().Get("Uint8ClampedArray").New(len(response))
-	js.CopyBytesToJS(u8out, response)
-	return u8out
+	send([]byte{193, 194, 195 /* 👈 EBCDIC "ABC" */})
 }
 
 func (go3270 *Go3270) Restore(u8 js.Value) {
@@ -161,6 +171,12 @@ func dumpBytes(data []uint8, title string, ebcdic bool, color string) {
 		"title":  title,
 		"ebcdic": ebcdic,
 		"color":  color,
+	})
+}
+
+func log(args ...any) {
+	dispatchEvent("go3270-log", map[string]any{
+		"args": args,
 	})
 }
 

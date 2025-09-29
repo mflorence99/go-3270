@@ -1,6 +1,13 @@
 export type Go3270 = {
   close: () => Uint8ClampedArray;
-  receive: (bytes: Uint8ClampedArray) => Uint8ClampedArray;
+  keystroke: (
+    code: string,
+    key: string,
+    alt: boolean,
+    ctrl: boolean,
+    shift: boolean
+  ) => void;
+  receive: (bytes: Uint8ClampedArray) => void;
   restore: (bytes: Uint8ClampedArray) => void;
 };
 

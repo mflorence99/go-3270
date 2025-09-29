@@ -99,6 +99,7 @@ export class Tn3270 {
   }
 
   close(): void {
+    console.log('%cTn3270 closing', 'color: tan');
     this.#socket?.close(1000);
     this.#socket = null;
   }
