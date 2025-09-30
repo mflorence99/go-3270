@@ -56,7 +56,7 @@ export class Tn3270 {
           const bytes = new Uint8ClampedArray(
             await e.data.arrayBuffer()
           );
-          this.receive(bytes, observer);
+          this.receiveFromApp(bytes, observer);
         };
         // 🔥 ERROR
         this.#socket.onerror = (evt: Event): void => {
@@ -105,7 +105,7 @@ export class Tn3270 {
   }
 
   // 🔥 this class emulates the device and "outbound" data streams flow FROM application code TO the device
-  receive(
+  receiveFromApp(
     bytes: Uint8ClampedArray,
     observer: Observer<Uint8ClampedArray>
   ): void {
@@ -149,7 +149,7 @@ export class Tn3270 {
   }
 
   // 🔥 this class emulates the device and "inbound" data streams are sent FROM the device TO application code
-  send(bytes: Uint8ClampedArray): void {
+  sendToApp(bytes: Uint8ClampedArray): void {
     dumpBytes(bytes, 'Inbound 3270 -> Application', true, 'palegreen');
     this.#socket?.send(bytes);
   }

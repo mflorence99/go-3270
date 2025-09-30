@@ -26,17 +26,15 @@ var go3270Font []byte
 // 👁️ http://www.tommysprinkle.com/mvs/P3270/start.htm
 
 type Go3270 struct {
-	bus          EventBus.Bus
-	canvasHeight float64
-	canvasWidth  float64
-	ctx          js.Value
-	device       *device.Device
-	image        *image.RGBA
+	bus    EventBus.Bus
+	device *device.Device
 }
 
 // 🔥 main.go places this function name on the DOM's global window object
 func NewGo3270(this js.Value, args []js.Value) any {
 	go3270 := &Go3270{}
+	// 👇 get the bus ready right away
+	go3270.bus = EventBus.New()
 	// 👇 properties
 	canvas := args[0]
 	color := args[1].String()
@@ -53,22 +51,20 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	font, _ := opentype.Parse(go3270Font)
 	face, _ := opentype.NewFace(font, &opentype.FaceOptions{Size: fontSize * scaleFactor, DPI: dpi /* , Hinting: font.HintingFull */})
 	// 👇 resize canvas to fit font, using temporary context
-	img := image.NewRGBA(image.Rect(0, 0, 100, 100))
-	dc := gg.NewContextForRGBA(img)
+	rgba := image.NewRGBA(image.Rect(0, 0, 100, 100))
+	dc := gg.NewContextForRGBA(rgba)
 	dc.SetFontFace(face)
 	fontWidth, fontHeight := dc.MeasureString("M")
-	go3270.canvasWidth = cols * fontWidth * paddedWidth
-	go3270.canvasHeight = rows * fontHeight * paddedHeight
+	canvasWidth := cols * fontWidth * paddedWidth
+	canvasHeight := rows * fontHeight * paddedHeight
 	wrapper := canvas.Get("parentNode")
-	wrapper.Get("style").Set("width", fmt.Sprintf("%fpx", go3270.canvasWidth/scaleFactor))
-	wrapper.Get("style").Set("height", fmt.Sprintf("%fpx", go3270.canvasHeight/scaleFactor))
-	canvas.Set("width", go3270.canvasWidth)
-	canvas.Set("height", go3270.canvasHeight)
-	// 👇 derivatives
-	go3270.bus = EventBus.New()
-	go3270.ctx = canvas.Call("getContext", "2d")
-	go3270.image = image.NewRGBA(image.Rect(0, 0, int(go3270.canvasWidth), int(go3270.canvasHeight)))
-	gg := gg.NewContextForRGBA(go3270.image)
+	wrapper.Get("style").Set("width", fmt.Sprintf("%fpx", canvasWidth/scaleFactor))
+	wrapper.Get("style").Set("height", fmt.Sprintf("%fpx", canvasHeight/scaleFactor))
+	canvas.Set("width", canvasWidth)
+	canvas.Set("height", canvasHeight)
+	// 👇 prepare the rendering surface
+	rgba = image.NewRGBA(image.Rect(0, 0, int(canvasWidth), int(canvasHeight)))
+	gg := gg.NewContextForRGBA(rgba)
 	gg.SetFontFace(face)
 	gg.Scale(1/scaleFactor, 1/scaleFactor)
 	// 👇 delegate all device handling to go test-able handler
@@ -94,8 +90,8 @@ func NewGo3270(this js.Value, args []js.Value) any {
 			go3270.Keystroke(args[0].String(), args[1].String(), args[2].Bool(), args[3].Bool(), args[4].Bool())
 			return nil
 		}),
-		"receive": js.FuncOf(func(this js.Value, args []js.Value) any {
-			go3270.Receive(args[0])
+		"receiveFromApp": js.FuncOf(func(this js.Value, args []js.Value) any {
+			go3270.ReceiveFromApp(args[0])
 			return nil
 		}),
 		"restore": js.FuncOf(func(this js.Value, args []js.Value) any {
@@ -108,8 +104,8 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	go3270.bus.Subscribe("go3270-dispatchEvent", dispatchEvent)
 	go3270.bus.Subscribe("go3270-dumpBytes", dumpBytes)
 	go3270.bus.Subscribe("go3270-log", log)
-	go3270.bus.Subscribe("go3270-render", render(go3270))
-	go3270.bus.Subscribe("go3270-send", send)
+	go3270.bus.Subscribe("go3270-render", render(canvas, rgba))
+	go3270.bus.Subscribe("go3270-sendToApp", sendToApp)
 	// 👇 finally, this is thhe interface through which TypeScript will call us
 	return js.ValueOf(tsInterface)
 }
@@ -125,8 +121,9 @@ func (go3270 *Go3270) Close() js.Value {
 	go3270.bus.Unsubscribe("go3270-dispatchEvent", dispatchEvent)
 	go3270.bus.Unsubscribe("go3270-dumpBytes", dumpBytes)
 	go3270.bus.Unsubscribe("go3270-log", log)
-	go3270.bus.Unsubscribe("go3270-render", render(go3270))
-	go3270.bus.Unsubscribe("go3270-send", send)
+	// 🔥 not sure how this will work??
+	// go3270.bus.Unsubscribe("go3270-render", render)
+	go3270.bus.Unsubscribe("go3270-sendToApp", sendToApp)
 	// 🔥 simulate the state of the device
 	data := []byte{193, 194, 195 /* 👈 EBCDIC "ABC" */}
 	u8 := js.Global().Get("Uint8ClampedArray").New(len(data))
@@ -139,14 +136,14 @@ func (go3270 *Go3270) Keystroke(code string, key string, alt bool, ctrl bool, sh
 	log(fmt.Sprintf("%%ccode=%s %%ckey=%s %%calt=%t ctrl=%t shift=%t", code, key, alt, ctrl, shift), "color: coral", "color: skyblue", "color: gray")
 }
 
-func (go3270 *Go3270) Receive(u8in js.Value) {
+func (go3270 *Go3270) ReceiveFromApp(u8in js.Value) {
 	request := make([]byte, u8in.Get("length").Int())
 	js.CopyBytesToGo(request, u8in)
 	// 🔥 do something with stream
 	_ = request
 	go3270.device.TestPattern()
 	// 🔥 simulate response
-	send([]byte{193, 194, 195 /* 👈 EBCDIC "ABC" */})
+	sendToApp([]byte{193, 194, 195 /* 👈 EBCDIC "ABC" */})
 }
 
 func (go3270 *Go3270) Restore(u8 js.Value) {
@@ -186,20 +183,23 @@ func log(args ...any) {
 }
 
 // 🔥 I copied this from go-canvas and the author was worried about 3 separate copies -- I haven't figured how to reduce it to 2 even when using Uint8ClampedArray -- but it only takes ~1ms anyway
-func render(go3270 *Go3270) func() {
+func render(canvas js.Value, rgba *image.RGBA) func() {
 	return func() {
-		u8 := js.Global().Get("Uint8ClampedArray").New(len(go3270.image.Pix))
-		js.CopyBytesToJS(u8, go3270.image.Pix)
-		imgData := go3270.ctx.Call("createImageData", go3270.canvasWidth, go3270.canvasHeight)
-		imgData.Get("data").Call("set", u8)
-		go3270.ctx.Call("putImageData", imgData, 0, 0)
+		u8 := js.Global().Get("Uint8ClampedArray").New(len(rgba.Pix))
+		js.CopyBytesToJS(u8, rgba.Pix)
+		canvasHeight := canvas.Get("offsetHeight")
+		canvasWidth := canvas.Get("offsetWidth")
+		ctx := canvas.Call("getContext", "2d")
+		pixels := ctx.Call("createImageData", canvasWidth, canvasHeight)
+		pixels.Get("data").Call("set", u8)
+		ctx.Call("putImageData", pixels, 0, 0)
 	}
 }
 
-func send(data []uint8) {
+func sendToApp(data []uint8) {
 	u8 := js.Global().Get("Uint8ClampedArray").New(len(data))
 	js.CopyBytesToJS(u8, data)
-	dispatchEvent("go3270-send", map[string]any{
+	dispatchEvent("go3270-sendToApp", map[string]any{
 		"bytes": u8,
 	})
 }

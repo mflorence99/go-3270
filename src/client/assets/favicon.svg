@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 64 64"
+  width="64"
+  height="64">
+  <!-- monitor body -->
+  <rect
+    x="10"
+    y="8"
+    width="44"
+    height="36"
+    rx="4"
+    ry="4"
+    fill="#0f172a" />
+
+  <!-- screen (square, light green) -->
+  <rect
+    x="14"
+    y="12"
+    width="36"
+    height="28"
+    rx="2"
+    ry="2"
+    fill="#86efac" />
+
+  <!-- bezel outline -->
+  <rect
+    x="10"
+    y="8"
+    width="44"
+    height="36"
+    rx="4"
+    ry="4"
+    fill="none"
+    stroke="#020617"
+    stroke-width="1" />
+
+  <!-- stand -->
+  <rect
+    x="28"
+    y="44"
+    width="8"
+    height="4"
+    rx="1"
+    ry="1"
+    fill="#0f172a" />
+
+  <!-- keyboard base -->
+  <rect
+    x="14"
+    y="50"
+    width="36"
+    height="6"
+    rx="1"
+    ry="1"
+    fill="#1e293b" />
+
+  <!-- keyboard keys (dots) -->
+  <circle cx="20" cy="53" r="1" fill="#f1f5f9" />
+  <circle cx="24" cy="53" r="1" fill="#f1f5f9" />
+  <circle cx="28" cy="53" r="1" fill="#f1f5f9" />
+  <circle cx="32" cy="53" r="1" fill="#f1f5f9" />
+  <circle cx="36" cy="53" r="1" fill="#f1f5f9" />
+  <circle cx="40" cy="53" r="1" fill="#f1f5f9" />
+  <circle cx="44" cy="53" r="1" fill="#f1f5f9" />
+</svg>

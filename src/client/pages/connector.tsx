@@ -140,7 +140,7 @@ export class Connector extends SignalWatcher(LitElement) {
             if (this.connecting)
               this.dispatchEvent(new CustomEvent('go3270-connected'));
             this.dispatchEvent(
-              new CustomEvent('go3270-receive', {
+              new CustomEvent('go3270-receiveFromApp', {
                 detail: { bytes }
               })
             );
@@ -295,7 +295,7 @@ export class Connector extends SignalWatcher(LitElement) {
     `;
   }
 
-  send(bytes: Uint8ClampedArray): void {
-    this.tn3270?.send(bytes);
+  sendToApp(bytes: Uint8ClampedArray): void {
+    this.tn3270?.sendToApp(bytes);
   }
 }

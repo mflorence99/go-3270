@@ -62,7 +62,7 @@ export class Root extends SignalWatcher(LitElement) {
   #dumpBytes = this.dumpBytes.bind(this);
   #keystroke = this.keystroke.bind(this);
   #log = this.log.bind(this);
-  #send = this.send.bind(this);
+  #sendToApp = this.sendToApp.bind(this);
 
   // eslint-disable-next-line no-unused-private-class-members
   #startup = new Startup(this);
@@ -78,7 +78,7 @@ export class Root extends SignalWatcher(LitElement) {
     document.addEventListener('go3270-disconnect', this.#disconnect);
     document.addEventListener('go3270-dumpBytes', this.#dumpBytes);
     document.addEventListener('go3270-log', this.#log);
-    document.addEventListener('go3270-send', this.#send);
+    document.addEventListener('go3270-sendToApp', this.#sendToApp);
     window.addEventListener('beforeunload', this.#disconnect);
     window.addEventListener('keyup', this.#keystroke);
   }
@@ -96,7 +96,7 @@ export class Root extends SignalWatcher(LitElement) {
     document.removeEventListener('go3270-disconnect', this.#disconnect);
     document.removeEventListener('go3270-dumpBytes', this.#dumpBytes);
     document.removeEventListener('go3270-log', this.#log);
-    document.removeEventListener('go3270-send', this.#send);
+    document.removeEventListener('go3270-sendToApp', this.#sendToApp);
     window.removeEventListener('beforeunload', this.#disconnect);
     window.removeEventListener('keyup', this.#keystroke);
   }
@@ -123,8 +123,8 @@ export class Root extends SignalWatcher(LitElement) {
     return html`
       <app-connector
         @go3270-connected=${(): any => (this.pageNum = Pages.emulator)}
-        @go3270-receive=${(evt: CustomEvent): any =>
-          this.emulator.receive(evt.detail.bytes)}
+        @go3270-receiveFromApp=${(evt: CustomEvent): any =>
+          this.emulator.receiveFromApp(evt.detail.bytes)}
         @go3270-disconnected=${(): any =>
           (this.pageNum = Pages.connector)}
         class="connector"
@@ -146,8 +146,8 @@ export class Root extends SignalWatcher(LitElement) {
     `;
   }
 
-  send(evt: Event): void {
+  sendToApp(evt: Event): void {
     const { bytes } = (evt as CustomEvent).detail;
-    this.connector.send(bytes);
+    this.connector.sendToApp(bytes);
   }
 }

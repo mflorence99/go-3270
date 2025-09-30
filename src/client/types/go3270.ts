@@ -7,7 +7,7 @@ export type Go3270 = {
     ctrl: boolean,
     shift: boolean
   ) => void;
-  receive: (bytes: Uint8ClampedArray) => void;
+  receiveFromApp: (bytes: Uint8ClampedArray) => void;
   restore: (bytes: Uint8ClampedArray) => void;
 };
 
