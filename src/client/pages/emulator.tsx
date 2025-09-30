@@ -142,22 +142,6 @@ export class Emulator extends SignalWatcher(LitElement) {
             </md-icon-button>
 
             <article class="controls">
-              <md-icon-button
-                @click=${(): void => this.state.increaseFontSize()}
-                ?disabled=${this.state.model.get().fontSize.actual >=
-                this.state.model.get().fontSize.max}
-                title="Increase text size">
-                <app-icon icon="text_increase"></app-icon>
-              </md-icon-button>
-
-              <md-icon-button
-                @click=${(): void => this.state.decreaseFontSize()}
-                ?disabled=${this.state.model.get().fontSize.actual <=
-                this.state.model.get().fontSize.min}
-                title="Decrease text size">
-                <app-icon icon="text_decrease"></app-icon>
-              </md-icon-button>
-
               <md-icon-button title="Get help">
                 <app-icon icon="help"></app-icon>
               </md-icon-button>
@@ -172,7 +156,7 @@ export class Emulator extends SignalWatcher(LitElement) {
             class="status"
             style=${styleMap({
               'color': `${Colors[this.state.model.get().config.color]}`,
-              'font-size': `${this.state.model.get().fontSize.actual}`
+              'font-size': `${this.state.model.get().config.fontSize}`
             })}>
             <article class="left">
               <app-icon icon="computer">
@@ -196,8 +180,8 @@ export class Emulator extends SignalWatcher(LitElement) {
   }
 
   override updated(): void {
-    // 👇 save off the state of the device
-    const bytes = this.go3270?.close();
+    // 👇 close any prior handler
+    this.go3270?.close();
     // 👇 construct a new device with its new attributes
     const color =
       Colors[this.state.model.get().config.color] ?? defaultColor;
@@ -205,7 +189,7 @@ export class Emulator extends SignalWatcher(LitElement) {
       Dimensions[this.state.model.get().config.emulator] ??
       defaultDimensions;
     const dpi = this.dpi.offsetWidth * window.devicePixelRatio;
-    const fontSize = this.state.model.get().fontSize.actual;
+    const fontSize = Number(this.state.model.get().config.fontSize);
     // 👇 construct a new device with its new attributes
     this.go3270 = window.NewGo3270?.(
       this.terminal,
@@ -215,7 +199,5 @@ export class Emulator extends SignalWatcher(LitElement) {
       dims[1],
       dpi
     );
-    // 👇 restore the state of the device if we can -- if the config has changed, we must wait until a new datastream is received
-    if (bytes && !this.state.delta.config) this.go3270?.restore(bytes);
   }
 }

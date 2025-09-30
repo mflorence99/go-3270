@@ -81,32 +81,22 @@ abstract class Base<T> {
 export type Config = {
   color: string;
   emulator: string;
+  fontSize: string;
   host: string;
   port: string;
 };
 
-export type FontSize = {
-  actual: number;
-  max: number;
-  min: number;
-};
-
 export type StateModel = {
   config: Config;
-  fontSize: FontSize;
 };
 
 const defaultState: StateModel = {
   config: {
     color: 'green',
     emulator: '2',
+    fontSize: '14',
     host: 'localhost',
     port: '3270'
-  },
-  fontSize: {
-    actual: 14,
-    max: 36,
-    min: 10
   }
 };
 
@@ -118,17 +108,6 @@ export class State extends Base<StateModel> {
     super(defaultState, key, true);
   }
 
-  // 👇 decrease font size
-  decreaseFontSize(): void {
-    this.mutate((state) => void (state.fontSize.actual -= 1));
-  }
-
-  // 👇 increase font size
-  increaseFontSize(): void {
-    this.mutate((state) => void (state.fontSize.actual += 1));
-  }
-
-  // 👇 update the config
   updateConfig(config: Config): void {
     this.mutate((state) => void (state.config = config));
   }

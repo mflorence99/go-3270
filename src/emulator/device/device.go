@@ -55,6 +55,9 @@ func (device *Device) Close() {
 	device.bus.Publish("go3270-log", "%cDevice closing", "color: cadetblue")
 }
 
+func (device *Device) ReceiveFromApp(bytes []uint8) {
+}
+
 // ///////////////////////////////////////////////////////////////////////////
 // 🔥 EVERYTHING BELOW HERE IS JUST TEST CODE
 // ///////////////////////////////////////////////////////////////////////////

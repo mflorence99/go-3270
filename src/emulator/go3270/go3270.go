@@ -15,7 +15,7 @@ import (
 // 🔥 Hack alert! we must use extension {js, wasm} and we can't use symlinks, so this file is a copy of the font renamed
 
 //go:embed 3270Font.wasm
-var go3270Font []byte
+var go3270Font []uint8
 
 // 🟧 Bridge between Typescript UI and Go-powered emulator
 
@@ -26,8 +26,9 @@ var go3270Font []byte
 // 👁️ http://www.tommysprinkle.com/mvs/P3270/start.htm
 
 type Go3270 struct {
-	bus    EventBus.Bus
-	device *device.Device
+	bus      EventBus.Bus
+	device   *device.Device
+	renderer func()
 }
 
 // 🔥 main.go places this function name on the DOM's global window object
@@ -84,7 +85,8 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	// 👁️ go3270.d.ts
 	tsInterface := map[string]any{
 		"close": js.FuncOf(func(this js.Value, args []js.Value) any {
-			return go3270.Close()
+			go3270.Close()
+			return nil
 		}),
 		"keystroke": js.FuncOf(func(this js.Value, args []js.Value) any {
 			go3270.Keystroke(args[0].String(), args[1].String(), args[2].Bool(), args[3].Bool(), args[4].Bool())
@@ -94,17 +96,14 @@ func NewGo3270(this js.Value, args []js.Value) any {
 			go3270.ReceiveFromApp(args[0])
 			return nil
 		}),
-		"restore": js.FuncOf(func(this js.Value, args []js.Value) any {
-			go3270.Restore(args[0])
-			return nil
-		}),
 	}
 	// 🟦 Go WASM functions invoked by go test-able code
 	go3270.bus.Subscribe("go3270-alarm", alarm)
 	go3270.bus.Subscribe("go3270-dispatchEvent", dispatchEvent)
 	go3270.bus.Subscribe("go3270-dumpBytes", dumpBytes)
 	go3270.bus.Subscribe("go3270-log", log)
-	go3270.bus.Subscribe("go3270-render", render(canvas, rgba))
+	go3270.renderer = render(canvas, rgba)
+	go3270.bus.Subscribe("go3270-render", go3270.renderer)
 	go3270.bus.Subscribe("go3270-sendToApp", sendToApp)
 	// 👇 finally, this is thhe interface through which TypeScript will call us
 	return js.ValueOf(tsInterface)
@@ -112,7 +111,7 @@ func NewGo3270(this js.Value, args []js.Value) any {
 
 // 🟦 Go WASM methods callable by Javascript via window.xxx
 
-func (go3270 *Go3270) Close() js.Value {
+func (go3270 *Go3270) Close() {
 	log("%cGo3270 closing", "color: orange")
 	// 👇 perform any cleanup
 	go3270.device.Close()
@@ -121,14 +120,8 @@ func (go3270 *Go3270) Close() js.Value {
 	go3270.bus.Unsubscribe("go3270-dispatchEvent", dispatchEvent)
 	go3270.bus.Unsubscribe("go3270-dumpBytes", dumpBytes)
 	go3270.bus.Unsubscribe("go3270-log", log)
-	// 🔥 not sure how this will work??
-	// go3270.bus.Unsubscribe("go3270-render", render)
+	go3270.bus.Unsubscribe("go3270-render", go3270.renderer)
 	go3270.bus.Unsubscribe("go3270-sendToApp", sendToApp)
-	// 🔥 simulate the state of the device
-	data := []byte{193, 194, 195 /* 👈 EBCDIC "ABC" */}
-	u8 := js.Global().Get("Uint8ClampedArray").New(len(data))
-	js.CopyBytesToJS(u8, data)
-	return u8
 }
 
 func (go3270 *Go3270) Keystroke(code string, key string, alt bool, ctrl bool, shift bool) {
@@ -137,19 +130,13 @@ func (go3270 *Go3270) Keystroke(code string, key string, alt bool, ctrl bool, sh
 }
 
 func (go3270 *Go3270) ReceiveFromApp(u8in js.Value) {
-	request := make([]byte, u8in.Get("length").Int())
+	request := make([]uint8, u8in.Get("length").Int())
 	js.CopyBytesToGo(request, u8in)
 	// 🔥 do something with stream
 	_ = request
 	go3270.device.TestPattern()
 	// 🔥 simulate response
-	sendToApp([]byte{193, 194, 195 /* 👈 EBCDIC "ABC" */})
-}
-
-func (go3270 *Go3270) Restore(u8 js.Value) {
-	// 🔥 simulate restoration of state of device
-	_ = u8
-	go3270.device.TestPattern()
+	sendToApp([]uint8{193, 194, 195 /* 👈 EBCDIC "ABC" */})
 }
 
 // 🟦 Go WASM functions invoked by go test-able code via EventBus

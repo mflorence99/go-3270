@@ -1,5 +1,5 @@
 export type Go3270 = {
-  close: () => Uint8ClampedArray;
+  close: () => void;
   keystroke: (
     code: string,
     key: string,
@@ -8,7 +8,6 @@ export type Go3270 = {
     shift: boolean
   ) => void;
   receiveFromApp: (bytes: Uint8ClampedArray) => void;
-  restore: (bytes: Uint8ClampedArray) => void;
 };
 
 declare global {
