@@ -3,9 +3,12 @@ package go3270
 import (
 	_ "embed"
 	"emulator/device"
+	"emulator/utils"
 	"fmt"
 	"image"
+	"slices"
 	"syscall/js"
+	"time"
 
 	"github.com/asaskevich/EventBus"
 	"github.com/fogleman/gg"
@@ -19,16 +22,23 @@ var go3270Font []uint8
 
 // 🟧 Bridge between Typescript UI and Go-powered emulator
 
-// The design objective is that all Go <-> UI communication goes through this module. No other modulw must use syscall/js. That way, everything but here can be tested with go test.
+// The design objective is that all Go <-> UI communication goes through this module. No other module must use syscall/js. That way, everything but here can be tested with go test.
+
+// The device module is handed a drawing context into which it renders thev 3270 stream and any operator input. Using requestAnimationFrame, this module actually draws the context onto a supplied HTML canvas whenever the context changes
 
 // 👁️ https://bitsavers.org/pdf/ibm/3270/GA23-0059-07_3270_Data_Stream_Programmers_Reference_199206.pdf
 // 👁️ http://www.prycroft6.com.au/misc/3270.html
 // 👁️ http://www.tommysprinkle.com/mvs/P3270/start.htm
 
 type Go3270 struct {
-	bus      EventBus.Bus
-	device   *device.Device
-	renderer func()
+	bus    EventBus.Bus
+	device *device.Device
+
+	// 👇 manage frame rendering
+	lastImage     []uint8
+	lastTimestamp float64
+	renderContext js.Func
+	reqID         js.Value
 }
 
 // 🔥 main.go places this function name on the DOM's global window object
@@ -44,6 +54,7 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	rows := args[4].Float()
 	dpi := args[5].Float()
 	// 👇 constants
+	maxFPS := 30.0
 	paddedHeight := 1.05
 	paddedWidth := 1.1
 	// 🔥 scaling 2x does produce slightly crisper font rendering, but it takes about 2x as long to render (see function TestPattern)
@@ -102,25 +113,59 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	go3270.bus.Subscribe("go3270-dispatchEvent", dispatchEvent)
 	go3270.bus.Subscribe("go3270-dumpBytes", dumpBytes)
 	go3270.bus.Subscribe("go3270-log", log)
-	go3270.renderer = render(canvas, rgba)
-	go3270.bus.Subscribe("go3270-render", go3270.renderer)
 	go3270.bus.Subscribe("go3270-sendToApp", sendToApp)
+	// 👇 start the requestAnimationFrame to render "gg" context changes
+	go3270.startRenderContextLoop(canvas, rgba, maxFPS)
 	// 👇 finally, this is thhe interface through which TypeScript will call us
 	return js.ValueOf(tsInterface)
 }
+
+// ///////////////////////////////////////////////////////////////////////////
+
+func (go3270 *Go3270) startRenderContextLoop(canvas js.Value, rgba *image.RGBA, maxFPS float64) {
+	go3270.renderContext = js.FuncOf(func(this js.Value, args []js.Value) any {
+		timestamp := args[0].Float()
+		// 👇 make sure we don't bust the max FPS we were given
+		if timestamp-go3270.lastTimestamp >= (1000 / maxFPS) {
+			if go3270.lastImage == nil || !slices.Equal(go3270.lastImage, rgba.Pix) {
+				timeNow := time.Now()
+				// 🔥 I copied this from go-canvas and the author was worried about 3 separate copies -- I haven't figured how to reduce it to 2 even when using Uint8ClampedArray -- but it only takes ~1ms anyway
+				u8 := js.Global().Get("Uint8ClampedArray").New(len(rgba.Pix))
+				js.CopyBytesToJS(u8, rgba.Pix)
+				canvasHeight := canvas.Get("offsetHeight")
+				canvasWidth := canvas.Get("offsetWidth")
+				ctx := canvas.Call("getContext", "2d")
+				pixels := ctx.Call("createImageData", canvasWidth, canvasHeight)
+				pixels.Get("data").Call("set", u8)
+				ctx.Call("putImageData", pixels, 0, 0)
+				// 👇 set up for next time
+				go3270.lastImage = make([]uint8, len(rgba.Pix))
+				copy(go3270.lastImage, rgba.Pix)
+				go3270.lastTimestamp = timestamp
+				utils.ElapsedTime(timeNow, "render")
+			}
+		}
+		go3270.reqID = js.Global().Call("requestAnimationFrame", go3270.renderContext)
+		return nil
+	})
+	// 👇 kick off the rendering loop
+	js.Global().Call("requestAnimationFrame", go3270.renderContext)
+}
+
+// ///////////////////////////////////////////////////////////////////////////
 
 // 🟦 Go WASM methods callable by Javascript via window.xxx
 
 func (go3270 *Go3270) Close() {
 	log("%cGo3270 closing", "color: orange")
 	// 👇 perform any cleanup
+	js.Global().Call("cancelAnimationFrame", go3270.reqID)
 	go3270.device.Close()
 	// 🟦 Go WASM functions invoked by go test-able code
 	go3270.bus.Unsubscribe("go3270-alarm", alarm)
 	go3270.bus.Unsubscribe("go3270-dispatchEvent", dispatchEvent)
 	go3270.bus.Unsubscribe("go3270-dumpBytes", dumpBytes)
 	go3270.bus.Unsubscribe("go3270-log", log)
-	go3270.bus.Unsubscribe("go3270-render", go3270.renderer)
 	go3270.bus.Unsubscribe("go3270-sendToApp", sendToApp)
 }
 
@@ -167,20 +212,6 @@ func log(args ...any) {
 	dispatchEvent("go3270-log", map[string]any{
 		"args": args,
 	})
-}
-
-// 🔥 I copied this from go-canvas and the author was worried about 3 separate copies -- I haven't figured how to reduce it to 2 even when using Uint8ClampedArray -- but it only takes ~1ms anyway
-func render(canvas js.Value, rgba *image.RGBA) func() {
-	return func() {
-		u8 := js.Global().Get("Uint8ClampedArray").New(len(rgba.Pix))
-		js.CopyBytesToJS(u8, rgba.Pix)
-		canvasHeight := canvas.Get("offsetHeight")
-		canvasWidth := canvas.Get("offsetWidth")
-		ctx := canvas.Call("getContext", "2d")
-		pixels := ctx.Call("createImageData", canvasWidth, canvasHeight)
-		pixels.Get("data").Call("set", u8)
-		ctx.Call("putImageData", pixels, 0, 0)
-	}
 }
 
 func sendToApp(data []uint8) {

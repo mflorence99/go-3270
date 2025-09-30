@@ -3,7 +3,10 @@ import { Socket as TCPSocket } from 'net';
 
 import { cli } from '$server/cli';
 import { log } from '$server/logger';
+import { stat } from 'node:fs/promises';
 import { statSync } from 'node:fs';
+
+import retry from 'async-retry';
 
 let theServer: Bun.Server;
 
@@ -79,7 +82,10 @@ const fetchMTime = (): Response => {
   return new Response(String(statSync(root).mtimeMs));
 };
 
-const fetchStatic = (url: URL, req: Request): Response => {
+const fetchStatic = async (
+  url: URL,
+  req: Request
+): Promise<Response> => {
   if (
     // 🔥 a quirk of Bun.serve ???
     url.pathname.startsWith('/src:') ||
@@ -88,7 +94,20 @@ const fetchStatic = (url: URL, req: Request): Response => {
     return new Response();
   } else {
     try {
-      statSync(`${root}/${url.pathname}`);
+      // 👇 errors may occur as we are rebuilding client
+      //    watch code kicks in before all changes have settled down
+      //    retry up to N times before reporting real failure
+      await retry(() => stat(`${root}/${url.pathname}`), {
+        retries: 5,
+        minTimeout: 100,
+        onRetry: () => {
+          log({
+            warning: true,
+            important: req.method,
+            text: `ENOENT ${url.pathname}`
+          });
+        }
+      });
       const response = new Response(Bun.file(`${root}${url.pathname}`));
       log({ important: req.method, text: url.pathname });
       return response;
@@ -96,8 +115,6 @@ const fetchStatic = (url: URL, req: Request): Response => {
       // 🔥 specifying no-unused-vars doesn't work!
       // eslint-disable-next-line
     } catch (ignored) {
-      // 👇 these errors occur as we are rebuilding client
-      //    watch code kicks in before all changes have settled down
       log({
         error: true,
         important: req.method,

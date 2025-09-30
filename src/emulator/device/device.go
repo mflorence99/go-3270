@@ -25,7 +25,8 @@ type Device struct {
 	scaleFactor  float64
 }
 
-func NewDevice(bus EventBus.Bus,
+func NewDevice(
+	bus EventBus.Bus,
 	color string,
 	cols float64,
 	gg *gg.Context,
@@ -36,6 +37,7 @@ func NewDevice(bus EventBus.Bus,
 	paddedWidth float64,
 	rows float64,
 	scaleFactor float64) *Device {
+	// 👇 initialize member fields
 	device := &Device{}
 	device.bus = bus
 	device.color = color
@@ -72,7 +74,7 @@ func (device *Device) TestPattern() {
 		for row := 0.0; row < device.rows; row++ {
 			x, _, _, _, baseline := device.boundingBox(col, row)
 			// 👇 choose colors from the CLUT, using the base color if out of range
-			ix := uint8(math.Floor(col/10) + 0xf1)
+			ix := uint8(math.Floor(col/10) + 0xF1)
 			bright := device.color
 			color := device.color
 			if ix <= 0xf7 {
@@ -90,7 +92,6 @@ func (device *Device) TestPattern() {
 			device.gg.DrawString(ch, x, baseline)
 		}
 	}
-	device.bus.Publish("go3270-render")
 }
 
 // 👇 Helpers

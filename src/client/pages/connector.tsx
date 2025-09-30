@@ -273,18 +273,30 @@ export class Connector extends SignalWatcher(LitElement) {
               <p class="instructions">Select Font Size</p>
 
               <md-filled-select name="fontSize">
-                <md-select-option value="12">
-                  <div slot="headline">12px</div>
-                </md-select-option>
-                <md-select-option value="13">
-                  <div slot="headline">13px</div>
-                </md-select-option>
-                <md-select-option value="14">
-                  <div slot="headline">14px</div>
-                </md-select-option>
-                <md-select-option value="15">
-                  <div slot="headline">15px</div>
-                </md-select-option>
+                ${repeat(
+                  [
+                    '10',
+                    '11',
+                    '12',
+                    '13',
+                    '14',
+                    '15',
+                    '16',
+                    '17',
+                    '18',
+                    '19',
+                    '20'
+                  ],
+                  (fontSize) => fontSize,
+                  (fontSize) => html`
+                    <md-select-option
+                      ?selected=${this.state.model.get().config
+                        .fontSize === fontSize}
+                      value=${fontSize}>
+                      <div slot="headline">${fontSize}px</div>
+                    </md-select-option>
+                  `
+                )}
               </md-filled-select>
             </article>
           </form>
