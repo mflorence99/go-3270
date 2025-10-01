@@ -11,6 +11,12 @@ import (
 	"github.com/fogleman/gg"
 )
 
+// 🟧 Model the 3270 device in pure go test-able code. We are handed a drawing context into which we render the datastream and any operator input. See the go3270 package for how that context is actually drawn on an HTML canvas.
+
+// 👁️ https://bitsavers.org/pdf/ibm/3270/GA23-0059-07_3270_Data_Stream_Programmers_Reference_199206.pdf
+// 👁️ http://www.prycroft6.com.au/misc/3270.html
+// 👁️ http://www.tommysprinkle.com/mvs/P3270/start.htm
+
 type Device struct {
 	bus          EventBus.Bus
 	color        string
@@ -54,10 +60,20 @@ func NewDevice(
 }
 
 func (device *Device) Close() {
-	device.bus.Publish("go3270-log", "%cDevice closing", "color: cadetblue")
+	device.MessageUI("log", nil, nil, "%cDevice closing", "color: cadetblue")
 }
 
 func (device *Device) ReceiveFromApp(bytes []uint8) {
+	var out = NewOutboundDataStream(&bytes)
+	_ = out
+	// 🔥 simulate render
+	device.TestPattern()
+	// 🔥 simulate response
+	device.MessageUI("sendToApp", []uint8{193, 194, 195 /* 👈 EBCDIC "ABC" */}, nil, nil)
+}
+
+func (device *Device) MessageUI(eventType string, bytes []uint8, params map[string]any, args ...any) {
+	device.bus.Publish("go3270", eventType, bytes, params, args)
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -93,8 +109,6 @@ func (device *Device) TestPattern() {
 		}
 	}
 }
-
-// 👇 Helpers
 
 func (device *Device) boundingBox(col, row float64) (float64, float64, float64, float64, float64) {
 	w := device.fontWidth * device.paddedWidth

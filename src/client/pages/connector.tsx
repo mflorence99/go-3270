@@ -138,9 +138,9 @@ export class Connector extends SignalWatcher(LitElement) {
         this.tn3270.stream$.subscribe({
           next: (bytes: Uint8ClampedArray) => {
             if (this.connecting)
-              this.dispatchEvent(new CustomEvent('go3270-connected'));
+              this.dispatchEvent(new CustomEvent('connected'));
             this.dispatchEvent(
-              new CustomEvent('go3270-receiveFromApp', {
+              new CustomEvent('receiveFromApp', {
                 detail: { bytes }
               })
             );
@@ -153,7 +153,7 @@ export class Connector extends SignalWatcher(LitElement) {
             this.connecting = false;
             this.message = e.reason;
             await this.dialog.show();
-            this.dispatchEvent(new CustomEvent('go3270-disconnected'));
+            this.dispatchEvent(new CustomEvent('disconnected'));
             this.tn3270 = null;
           },
 
@@ -164,7 +164,7 @@ export class Connector extends SignalWatcher(LitElement) {
               'color: palegreen',
               'color: cyan'
             );
-            this.dispatchEvent(new CustomEvent('go3270-disconnected'));
+            this.dispatchEvent(new CustomEvent('disconnected'));
             this.tn3270 = null;
           }
         });
@@ -174,7 +174,7 @@ export class Connector extends SignalWatcher(LitElement) {
         this.connecting = false;
         this.message = `Unable to reach proxy server ${location.hostname}:${location.port}`;
         await this.dialog.show();
-        this.dispatchEvent(new CustomEvent('go3270-disconnected'));
+        this.dispatchEvent(new CustomEvent('disconnected'));
         this.tn3270 = null;
       }
     }

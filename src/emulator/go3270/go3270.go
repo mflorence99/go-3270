@@ -22,13 +22,9 @@ var go3270Font []uint8
 
 // 🟧 Bridge between Typescript UI and Go-powered emulator
 
-// The design objective is that all Go <-> UI communication goes through this module. No other module must use syscall/js. That way, everything but here can be tested with go test.
+// The design objective is that all Go <-> UI communication goes through this package. No other package must use syscall/js. That way, everything but here can be tested with go test.
 
-// The device module is handed a drawing context into which it renders thev 3270 stream and any operator input. Using requestAnimationFrame, this module actually draws the context onto a supplied HTML canvas whenever the context changes
-
-// 👁️ https://bitsavers.org/pdf/ibm/3270/GA23-0059-07_3270_Data_Stream_Programmers_Reference_199206.pdf
-// 👁️ http://www.prycroft6.com.au/misc/3270.html
-// 👁️ http://www.tommysprinkle.com/mvs/P3270/start.htm
+// The device package is handed a drawing context into which it renders the 3270 stream and any operator input. Using requestAnimationFrame, this module actually draws the context onto a supplied HTML canvas whenever the context changes
 
 type Go3270 struct {
 	bus    EventBus.Bus
@@ -109,18 +105,14 @@ func NewGo3270(this js.Value, args []js.Value) any {
 		}),
 	}
 	// 🟦 Go WASM functions invoked by go test-able code
-	go3270.bus.Subscribe("go3270-alarm", alarm)
-	go3270.bus.Subscribe("go3270-dispatchEvent", dispatchEvent)
-	go3270.bus.Subscribe("go3270-dumpBytes", dumpBytes)
-	go3270.bus.Subscribe("go3270-log", log)
-	go3270.bus.Subscribe("go3270-sendToApp", sendToApp)
+	go3270.bus.Subscribe("go3270", go3270Message)
 	// 👇 start the requestAnimationFrame to render "gg" context changes
 	go3270.startRenderContextLoop(canvas, rgba, maxFPS)
 	// 👇 finally, this is thhe interface through which TypeScript will call us
 	return js.ValueOf(tsInterface)
 }
 
-// ///////////////////////////////////////////////////////////////////////////
+// 🟦 Render drawing context when changed via requestAnimationFrame
 
 func (go3270 *Go3270) startRenderContextLoop(canvas js.Value, rgba *image.RGBA, maxFPS float64) {
 	go3270.renderContext = js.FuncOf(func(this js.Value, args []js.Value) any {
@@ -152,72 +144,49 @@ func (go3270 *Go3270) startRenderContextLoop(canvas js.Value, rgba *image.RGBA, 
 	js.Global().Call("requestAnimationFrame", go3270.renderContext)
 }
 
-// ///////////////////////////////////////////////////////////////////////////
-
-// 🟦 Go WASM methods callable by Javascript via window.xxx
+// 🟦 Go WASM methods callable by Javascript via go3270.ts
 
 func (go3270 *Go3270) Close() {
-	log("%cGo3270 closing", "color: orange")
+	js.Global().Get("console").Call("log", "%cGo3270 closing", "color: orange")
 	// 👇 perform any cleanup
 	js.Global().Call("cancelAnimationFrame", go3270.reqID)
 	go3270.device.Close()
 	// 🟦 Go WASM functions invoked by go test-able code
-	go3270.bus.Unsubscribe("go3270-alarm", alarm)
-	go3270.bus.Unsubscribe("go3270-dispatchEvent", dispatchEvent)
-	go3270.bus.Unsubscribe("go3270-dumpBytes", dumpBytes)
-	go3270.bus.Unsubscribe("go3270-log", log)
-	go3270.bus.Unsubscribe("go3270-sendToApp", sendToApp)
+	go3270.bus.Unsubscribe("go3270", go3270Message)
 }
 
 func (go3270 *Go3270) Keystroke(code string, key string, alt bool, ctrl bool, shift bool) {
 	// 🔥 simulate handling of Keystroke
-	log(fmt.Sprintf("%%ccode=%s %%ckey=%s %%calt=%t ctrl=%t shift=%t", code, key, alt, ctrl, shift), "color: coral", "color: skyblue", "color: gray")
+	js.Global().Get("console").Call("log", fmt.Sprintf("%%ccode=%s %%ckey=%s %%calt=%t ctrl=%t shift=%t", code, key, alt, ctrl, shift), "color: coral", "color: skyblue", "color: gray")
 }
 
 func (go3270 *Go3270) ReceiveFromApp(u8in js.Value) {
-	request := make([]uint8, u8in.Get("length").Int())
-	js.CopyBytesToGo(request, u8in)
-	// 🔥 do something with stream
-	_ = request
-	go3270.device.TestPattern()
-	// 🔥 simulate response
-	sendToApp([]uint8{193, 194, 195 /* 👈 EBCDIC "ABC" */})
+	bytes := make([]uint8, u8in.Get("length").Int())
+	js.CopyBytesToGo(bytes, u8in)
+	go3270.device.ReceiveFromApp(bytes)
 }
 
 // 🟦 Go WASM functions invoked by go test-able code via EventBus
 
-func alarm() {
-	dispatchEvent("go3270-alarm", true)
-}
-
-func dispatchEvent(eventType string, data any) {
-	event := js.Global().Get("CustomEvent").New(eventType, map[string]any{
-		"detail": data,
+func go3270Message(eventType string, bytes []uint8, params map[string]any, args ...any) {
+	// 👇 params and args may be nil
+	if params == nil {
+		params = map[string]any{}
+	}
+	if args != nil {
+		params["args"] = args
+	}
+	// 👇 bytes may be nil, but if not convert to JS
+	var u8 js.Value
+	if bytes != nil {
+		u8 = js.Global().Get("Uint8ClampedArray").New(len(bytes))
+		js.CopyBytesToJS(u8, bytes)
+		params["bytes"] = u8
+	}
+	// 👇 dispatch event to JS
+	params["eventType"] = eventType
+	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
+		"detail": params,
 	})
 	js.Global().Get("document").Call("dispatchEvent", event)
-}
-
-func dumpBytes(data []uint8, title string, ebcdic bool, color string) {
-	u8 := js.Global().Get("Uint8ClampedArray").New(len(data))
-	js.CopyBytesToJS(u8, data)
-	dispatchEvent("go3270-dumpBytes", map[string]any{
-		"bytes":  u8,
-		"title":  title,
-		"ebcdic": ebcdic,
-		"color":  color,
-	})
-}
-
-func log(args ...any) {
-	dispatchEvent("go3270-log", map[string]any{
-		"args": args,
-	})
-}
-
-func sendToApp(data []uint8) {
-	u8 := js.Global().Get("Uint8ClampedArray").New(len(data))
-	js.CopyBytesToJS(u8, data)
-	dispatchEvent("go3270-sendToApp", map[string]any{
-		"bytes": u8,
-	})
 }

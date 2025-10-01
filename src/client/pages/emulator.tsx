@@ -134,9 +134,7 @@ export class Emulator extends SignalWatcher(LitElement) {
           <header class="header">
             <md-icon-button
               @click=${(): any =>
-                document.dispatchEvent(
-                  new CustomEvent('go3270-disconnect')
-                )}
+                window.dispatchEvent(new CustomEvent('disconnect'))}
               title="Disconnect from 3270">
               <app-icon icon="power_settings_new"></app-icon>
             </md-icon-button>
