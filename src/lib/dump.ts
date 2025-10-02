@@ -280,7 +280,7 @@ export function dumpBytes(
     );
     const { hex, str } = dumpSlice(slice, sliceSize, ebcdic);
     console.log(
-      `%c${toHex(offset, 6)} %c${hex} %c${str}`,
+      `%c${offset.toString(16).padStart(6, '0')} %c${hex} %c${str}`,
       'color: skyblue; font-weight: bold',
       'color: white',
       'color: wheat'
@@ -306,7 +306,7 @@ function dumpSlice(
   for (; ix < bytes.length; ix++) {
     const byte = bytes[ix];
     if (byte == null) break;
-    hex += toHex(byte, 2);
+    hex += byte.toString(16).padStart(2, '0');
     const char = ebcdic ? e2a([byte]) : String.fromCharCode(byte);
     // 👇 use special character in string as a visual aid to counting
     str += char === '\u00a0' || char === ' ' ? '\u2022' : char;
@@ -329,10 +329,4 @@ export function e2a(e: number[]): string {
     else a += '\u2022';
   }
   return a;
-}
-
-function toHex(num: number, pad: number): string {
-  const padding = '0000000000000000'.substring(0, pad);
-  const hex = num.toString(16);
-  return padding.substring(0, padding.length - hex.length) + hex;
 }

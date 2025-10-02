@@ -1,8 +1,12 @@
+import { Colors } from '$client/state/constants';
+import { Dimensions } from '$client/state/constants';
 import { Signal } from '@lit-labs/signals';
 
 import { computed } from '$client/types/signals';
 import { config } from '$client/config';
 import { createContext } from '@lit/context';
+import { defaultColor } from '$client/state/constants';
+import { defaultDimensions } from '$client/state/constants';
 import { effect } from '$client/types/signals';
 import { produce } from 'immer';
 import { signal } from '@lit-labs/signals';
@@ -86,8 +90,19 @@ export type Config = {
   port: string;
 };
 
+export type Status = {
+  alarm: boolean;
+  cursorAt: number;
+  error: boolean;
+  message: string;
+  numeric: boolean;
+  protected: boolean;
+  waiting: boolean;
+};
+
 export type StateModel = {
   config: Config;
+  status: Status;
 };
 
 const defaultState: StateModel = {
@@ -97,6 +112,15 @@ const defaultState: StateModel = {
     fontSize: '14',
     host: 'localhost',
     port: '3270'
+  },
+  status: {
+    alarm: false,
+    cursorAt: -1,
+    error: false,
+    message: '',
+    numeric: false,
+    protected: false,
+    waiting: false
   }
 };
 
@@ -104,12 +128,37 @@ export class State extends Base<StateModel> {
   // 👇 just an example of a computed property
   asJSON = computed(() => JSON.stringify(this.model.get()));
 
+  color = computed(
+    () => Colors[this.model.get().config.color] ?? defaultColor
+  );
+
+  dims = computed(
+    () =>
+      Dimensions[this.model.get().config.emulator] ?? defaultDimensions
+  );
+
+  // 🔥 must come after dims
+  // eslint-disable-next-line
+  cursorAt = computed(() => {
+    const cursorAt = this.model.get().status.cursorAt;
+    if (cursorAt >= 0) {
+      const dims = this.dims.get();
+      return `${String(Math.trunc(cursorAt / dims[0]) + 1).padStart(3, '0')}/${String((cursorAt % dims[0]) + 1).padStart(3, '0')}`;
+    } else return '';
+  });
+
   constructor(key: string) {
     super(defaultState, key, true);
   }
 
   updateConfig(config: Config): void {
     this.mutate((state) => void (state.config = config));
+  }
+
+  updateStatus(status: Partial<Status>): void {
+    this.mutate(
+      (state) => void (state.status = { ...state.status, ...status })
+    );
   }
 }
 

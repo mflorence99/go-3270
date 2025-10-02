@@ -121,7 +121,7 @@ func (go3270 *Go3270) startRenderContextLoop(canvas js.Value, rgba *image.RGBA, 
 		if timestamp-go3270.lastTimestamp >= (1000 / maxFPS) {
 			if go3270.lastImage == nil || !slices.Equal(go3270.lastImage, rgba.Pix) {
 				timeNow := time.Now()
-				// 🔥 I copied this from go-canvas and the author was worried about 3 separate copies -- I haven't figured how to reduce it to 2 even when using Uint8ClampedArray -- but it only takes ~1ms anyway
+				// 🔥 I copied this from go-canvas where the author was worried about 3 separate copies -- I haven't figured how to reduce it to 2 even when using Uint8ClampedArray -- but it only takes ~1ms anyway
 				u8 := js.Global().Get("Uint8ClampedArray").New(len(rgba.Pix))
 				js.CopyBytesToJS(u8, rgba.Pix)
 				canvasHeight := canvas.Get("offsetHeight")
@@ -166,14 +166,14 @@ func (go3270 *Go3270) ReceiveFromApp(u8in js.Value) {
 	go3270.device.ReceiveFromApp(bytes)
 }
 
-// 🟦 Go WASM functions invoked by go test-able code via EventBus
+// 🟦 Messages from go test-able code sent to the UI for action
 
-func go3270Message(eventType string, bytes []uint8, params map[string]any, args ...any) {
+func go3270Message(eventType string, bytes []uint8, params map[string]any, args []any) {
 	// 👇 params and args may be nil
 	if params == nil {
 		params = map[string]any{}
 	}
-	if args != nil {
+	if args != nil && args[0] != nil {
 		params["args"] = args
 	}
 	// 👇 bytes may be nil, but if not convert to JS

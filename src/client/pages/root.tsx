@@ -4,6 +4,7 @@ import { LitElement } from 'lit';
 import { SignalWatcher } from '@lit-labs/signals';
 import { Startup } from '$client/controllers/startup';
 import { State } from '$client/state/state';
+import { Status } from '$client/state/state';
 import { TemplateResult } from 'lit';
 
 import { css } from 'lit';
@@ -90,12 +91,8 @@ export class Root extends SignalWatcher(LitElement) {
     window.removeEventListener('keyup', this.#keystroke);
   }
 
-  go3270Message(evt: Event): void {
-    const params: Record<string, any> = (evt as CustomEvent).detail;
-    switch (params.eventType) {
-      case 'alarm':
-        this.dinger.play();
-        break;
+  async go3270Message(evt: Event): Promise<void> {
+    switch ((evt as CustomEvent).detail.eventType) {
       case 'dumpBytes':
         {
           const { bytes, title, ebcdic, color } = (evt as CustomEvent)
@@ -113,6 +110,16 @@ export class Root extends SignalWatcher(LitElement) {
         {
           const { bytes } = (evt as CustomEvent).detail;
           this.connector.sendToApp(bytes);
+        }
+        break;
+      case 'status':
+        {
+          const status: Partial<Status> = (evt as CustomEvent).detail;
+          this.state.updateStatus(status);
+          if (status.alarm) {
+            await this.dinger.play();
+            this.state.updateStatus({ alarm: false });
+          }
         }
         break;
     }

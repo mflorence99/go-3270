@@ -1,5 +1,4 @@
 import { Colors } from '$client/state/constants';
-import { Dimensions } from '$client/state/constants';
 import { Emulators } from '$client/state/constants';
 import { Go3270 } from '$client/types/go3270';
 import { LitElement } from 'lit';
@@ -10,8 +9,6 @@ import { TemplateResult } from 'lit';
 import { consume } from '@lit/context';
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { defaultColor } from '$client/state/constants';
-import { defaultDimensions } from '$client/state/constants';
 import { globals } from '$client/css/globals/shadow-dom';
 import { html } from 'lit';
 import { query } from 'lit/decorators.js';
@@ -153,21 +150,53 @@ export class Emulator extends SignalWatcher(LitElement) {
           <footer
             class="status"
             style=${styleMap({
-              'color': `${Colors[this.state.model.get().config.color]}`,
+              'color': `${this.state.color.get()}`,
               'font-size': `${this.state.model.get().config.fontSize}`
             })}>
             <article class="left">
               <app-icon icon="computer">
                 ${Emulators[this.state.model.get().config.emulator]}
               </app-icon>
-              <app-icon icon="access_time">WAIT</app-icon>
-              <app-icon icon="clear">MSG</app-icon>
+
+              <app-icon
+                icon="hourglass_empty"
+                style=${styleMap({
+                  visibility: `${this.state.model.get().status.waiting ? 'visible' : 'hidden'}`
+                })}>
+                WAIT
+              </app-icon>
+
+              <app-icon
+                icon="clear"
+                style=${styleMap({
+                  color: `${Colors.orange}`,
+                  visibility: `${this.state.model.get().status.error ? 'visible' : 'hidden'}`
+                })}>
+                ${this.state.model.get().status.message}
+              </app-icon>
             </article>
 
             <article class="right">
-              <p>NUM</p>
-              <p>PROT</p>
-              <p>001/001</p>
+              <p
+                style=${styleMap({
+                  visibility: `${this.state.model.get().status.numeric ? 'visible' : 'hidden'}`
+                })}>
+                NUM
+              </p>
+
+              <p
+                style=${styleMap({
+                  visibility: `${this.state.model.get().status.protected ? 'visible' : 'hidden'}`
+                })}>
+                PROT
+              </p>
+
+              <p
+                style=${styleMap({
+                  visibility: `${this.state.model.get().status.cursorAt >= 0 ? 'visible' : 'hidden'}`
+                })}>
+                ${this.state.cursorAt.get()}
+              </p>
             </article>
           </footer>
         </section>
@@ -177,25 +206,25 @@ export class Emulator extends SignalWatcher(LitElement) {
     `;
   }
 
+  // 👇 we rebuild the device emulator as the config changes
   override updated(): void {
-    // 👇 close any prior handler
-    this.go3270?.close();
-    // 👇 construct a new device with its new attributes
-    const color =
-      Colors[this.state.model.get().config.color] ?? defaultColor;
-    const dims: [number, number] =
-      Dimensions[this.state.model.get().config.emulator] ??
-      defaultDimensions;
-    const dpi = this.dpi.offsetWidth * window.devicePixelRatio;
-    const fontSize = Number(this.state.model.get().config.fontSize);
-    // 👇 construct a new device with its new attributes
-    this.go3270 = window.NewGo3270?.(
-      this.terminal,
-      color,
-      fontSize,
-      dims[0],
-      dims[1],
-      dpi
-    );
+    if (this.state.delta.config) {
+      // 👇 close any prior handler
+      this.go3270?.close();
+      // 👇 construct a new device with its new attributes
+      const color = this.state.color.get();
+      const dims = this.state.dims.get();
+      const dpi = this.dpi.offsetWidth * window.devicePixelRatio;
+      const fontSize = Number(this.state.model.get().config.fontSize);
+      // 👇 construct a new device with its new attributes
+      this.go3270 = window.NewGo3270?.(
+        this.terminal,
+        color,
+        fontSize,
+        dims[0],
+        dims[1],
+        dpi
+      );
+    }
   }
 }

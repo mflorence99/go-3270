@@ -60,20 +60,25 @@ func NewDevice(
 }
 
 func (device *Device) Close() {
-	device.MessageUI("log", nil, nil, "%cDevice closing", "color: cadetblue")
+	device.MessageUI("log", nil, nil, "%cDevice closing", "color: violet")
+}
+
+func (device *Device) MessageUI(eventType string, bytes []uint8, params map[string]any, args ...any) {
+	device.bus.Publish("go3270", eventType, bytes, params, args)
 }
 
 func (device *Device) ReceiveFromApp(bytes []uint8) {
+	device.MessageUI("status", nil, map[string]any{"waiting": true}, nil)
+	device.MessageUI("status", nil, map[string]any{"numeric": true}, nil)
+	device.MessageUI("status", nil, map[string]any{"protected": true}, nil)
+	device.MessageUI("status", nil, map[string]any{"cursorAt": 25}, nil)
+	device.MessageUI("status", nil, map[string]any{"error": true, "message": "INVALID"}, nil)
 	var out = NewOutboundDataStream(&bytes)
 	_ = out
 	// 🔥 simulate render
 	device.TestPattern()
 	// 🔥 simulate response
 	device.MessageUI("sendToApp", []uint8{193, 194, 195 /* 👈 EBCDIC "ABC" */}, nil, nil)
-}
-
-func (device *Device) MessageUI(eventType string, bytes []uint8, params map[string]any, args ...any) {
-	device.bus.Publish("go3270", eventType, bytes, params, args)
 }
 
 // ///////////////////////////////////////////////////////////////////////////
