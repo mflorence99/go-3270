@@ -9,7 +9,7 @@ import { nextTick } from '$lib/delay';
 // 👇 finding the patches is "expensive" so we feature flag logging
 if (config.logStateChanges) enablePatches();
 
-// 📘 manage startup tasks
+// 📘 Manage startup tasks
 
 export class Startup implements ReactiveController {
   host: ReactiveControllerHost;

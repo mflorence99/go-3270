@@ -188,5 +188,5 @@ func go3270Message(eventType string, bytes []uint8, params map[string]any, args 
 	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
 		"detail": params,
 	})
-	js.Global().Get("document").Call("dispatchEvent", event)
+	js.Global().Get("window").Call("dispatchEvent", event)
 }

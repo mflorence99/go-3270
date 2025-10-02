@@ -94,6 +94,7 @@ export type Status = {
   alarm: boolean;
   cursorAt: number;
   error: boolean;
+  locked: boolean;
   message: string;
   numeric: boolean;
   protected: boolean;
@@ -117,6 +118,7 @@ const defaultState: StateModel = {
     alarm: false,
     cursorAt: -1,
     error: false,
+    locked: false,
     message: '',
     numeric: false,
     protected: false,
@@ -151,8 +153,16 @@ export class State extends Base<StateModel> {
     super(defaultState, key, true);
   }
 
+  resetStatus(): void {
+    this.mutate((state) => void (state.status = defaultState.status));
+  }
+
   updateConfig(config: Config): void {
-    this.mutate((state) => void (state.config = config));
+    this.mutate(
+      (state) =>
+        void ((state.config = config),
+        (state.status = defaultState.status))
+    );
   }
 
   updateStatus(status: Partial<Status>): void {

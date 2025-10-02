@@ -1,15 +1,15 @@
 import { Connector } from '$client/pages/connector';
 import { Emulator } from '$client/pages/emulator';
 import { LitElement } from 'lit';
+import { Mediator } from '$client/controllers/mediator';
+import { Pages } from '$client/controllers/mediator';
 import { SignalWatcher } from '@lit-labs/signals';
 import { Startup } from '$client/controllers/startup';
 import { State } from '$client/state/state';
-import { Status } from '$client/state/state';
 import { TemplateResult } from 'lit';
 
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import { dumpBytes } from '$lib/dump';
 import { globals } from '$client/css/globals/shadow-dom';
 import { html } from 'lit';
 import { provide } from '@lit/context';
@@ -23,11 +23,6 @@ declare global {
     'app-root': Root;
   }
 }
-
-const Pages = {
-  connector: 0,
-  emulator: 1
-};
 
 // 📘 the whole enchilada
 
@@ -52,85 +47,16 @@ export class Root extends SignalWatcher(LitElement) {
   ];
 
   @query('.connector') connector!: Connector;
-  @query('.dinger') dinger!: HTMLAudioElement;
   @query('.emulator') emulator!: Emulator;
   @state() pageNum = Pages.connector;
   @provide({ context: stateContext }) state = new State('state');
 
   // 👇 make sure "this" is right
-  #disconnect = this.disconnect.bind(this);
-  #go3270Message = this.go3270Message.bind(this);
-  #keystroke = this.keystroke.bind(this);
 
-  // eslint-disable-next-line no-unused-private-class-members
-  #startup = new Startup(this);
-
-  // 👇 "connected" here means DOM connection of this element
-  override connectedCallback(): void {
-    super.connectedCallback();
-    // 👇 this comes from the Go code, requesting UI action
-    document.addEventListener('go3270', this.#go3270Message);
-    // 👇 these are pure UI events
-    window.addEventListener('beforeunload', this.#disconnect);
-    window.addEventListener('disconnect', this.#disconnect);
-    window.addEventListener('keyup', this.#keystroke);
-  }
-
-  // 👇 "connected" here means socket connection to 3270
-  disconnect(): void {
-    this.connector.disconnect();
-    this.emulator.disconnect();
-  }
-
-  // 👇 "connected" here means DOM connection of this element
-  override disconnectedCallback(): void {
-    super.disconnectedCallback();
-    document.addEventListener('go3270', this.#go3270Message);
-    window.removeEventListener('beforeunload', this.#disconnect);
-    window.removeEventListener('disconnect', this.#disconnect);
-    window.removeEventListener('keyup', this.#keystroke);
-  }
-
-  async go3270Message(evt: Event): Promise<void> {
-    switch ((evt as CustomEvent).detail.eventType) {
-      case 'dumpBytes':
-        {
-          const { bytes, title, ebcdic, color } = (evt as CustomEvent)
-            .detail;
-          dumpBytes(bytes, title, ebcdic, color);
-        }
-        break;
-      case 'log':
-        {
-          const { args } = (evt as CustomEvent).detail;
-          console.log(...args.flat());
-        }
-        break;
-      case 'sendToApp':
-        {
-          const { bytes } = (evt as CustomEvent).detail;
-          this.connector.sendToApp(bytes);
-        }
-        break;
-      case 'status':
-        {
-          const status: Partial<Status> = (evt as CustomEvent).detail;
-          this.state.updateStatus(status);
-          if (status.alarm) {
-            await this.dinger.play();
-            this.state.updateStatus({ alarm: false });
-          }
-        }
-        break;
-    }
-  }
-
-  keystroke(evt: KeyboardEvent): void {
-    if (this.pageNum === Pages.emulator) {
-      const { altKey, code, ctrlKey, key, shiftKey } = evt;
-      this.emulator.keystroke(code, key, altKey, ctrlKey, shiftKey);
-      evt.preventDefault();
-    }
+  constructor() {
+    super();
+    new Startup(this);
+    new Mediator(this);
   }
 
   override render(): TemplateResult {
@@ -154,8 +80,6 @@ export class Root extends SignalWatcher(LitElement) {
           opacity: this.pageNum === Pages.emulator ? 1 : 0,
           zIndex: this.pageNum === Pages.emulator ? 1 : -1
         })}></app-emulator>
-
-      <audio class="dinger" src="assets/ding.mp3"></audio>
     `;
   }
 }

@@ -68,11 +68,6 @@ func (device *Device) MessageUI(eventType string, bytes []uint8, params map[stri
 }
 
 func (device *Device) ReceiveFromApp(bytes []uint8) {
-	device.MessageUI("status", nil, map[string]any{"waiting": true}, nil)
-	device.MessageUI("status", nil, map[string]any{"numeric": true}, nil)
-	device.MessageUI("status", nil, map[string]any{"protected": true}, nil)
-	device.MessageUI("status", nil, map[string]any{"cursorAt": 25}, nil)
-	device.MessageUI("status", nil, map[string]any{"error": true, "message": "INVALID"}, nil)
 	var out = NewOutboundDataStream(&bytes)
 	_ = out
 	// 🔥 simulate render
