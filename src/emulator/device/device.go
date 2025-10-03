@@ -4,6 +4,7 @@ import (
 	"emulator/types"
 	"emulator/utils"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/asaskevich/EventBus"
@@ -36,6 +37,7 @@ type Device struct {
 	// 👇 model the device buffer
 	addr     int
 	attrs    []*Attributes
+	blinker  chan struct{}
 	buffer   []uint8
 	changes  *utils.Stack[int]
 	command  uint8
@@ -73,50 +75,51 @@ func NewDevice(
 	device.scaleFactor = scaleFactor
 	device.size = int(device.cols * device.rows)
 	// 👇 initialize buffer
-	device.initializeBuffer()
+	device.InitializeBuffer()
 	return device
 }
 
-func (device *Device) Close() {
-	fmt.Println("device.Close()")
-}
-
-func (device *Device) MessageUI(eventType string, bytes []uint8, params map[string]any, args ...any) {
-	device.bus.Publish("go3270", eventType, bytes, params, args)
-}
-
-func (device *Device) ReceiveFromApp(bytes []uint8) {
-	// 👇 reset changes stack
-	device.changes = utils.NewStack[int](device.size)
-	// 👇 data can be split into multiple frames
-	frames := device.MakeFramesFromBytes(bytes)
-	for ix := range frames {
-		fmt.Printf("device.ReceiveFromApp(frame #%d)\n", ix)
-		// 👇 extract command
-		out := frames[ix]
-		cmd, err := out.Next()
-		if err != nil {
-			panic(fmt.Sprintf("unable to extraact write command: %s", err.Error()))
+func (device *Device) BlinkingCursor() {
+	for ix := 0; ; ix++ {
+		select {
+		case <-device.blinker:
+			fmt.Println("device.BlinkingCursor() stopped")
+			return
+		default:
+			device.changes.Push(device.cursorAt)
+			device.RenderBuffer(true, (ix%2) == 0)
+			time.Sleep(500 * time.Millisecond)
 		}
-		device.command = cmd
-		fmt.Printf("COMMAND=%s\n", types.Command[device.command])
-		// 👇 for all but WSF, extract WCC
-		if device.command != types.CommandLookup["WSF"] {
-			u8, err := out.Next()
-			if err != nil {
-				panic(fmt.Sprintf("unable to extract WCC: %s", err.Error()))
-			}
-			device.wcc = NewWCC(u8)
-			fmt.Println(device.wcc.ToString())
-		}
-		// 👇 dispatch on command
-		device.writeCommands(out)
 	}
-	// 👇 now we can render the buffer to the drawing context
-	device.renderBuffer()
 }
 
-// 👇 Helpers - they need to be public to be tested
+func (device *Device) BoundingBox(addr int) (float64, float64, float64, float64, float64) {
+	col := addr % device.cols
+	row := int(addr / device.cols)
+	w := math.Round(device.fontWidth * device.paddedWidth)
+	h := math.Round(device.fontHeight * device.paddedHeight)
+	x := math.Round(float64(col) * w)
+	y := math.Round(float64(row) * h)
+	// 🔥 we could do better calculating the baseline - this is just a WAG, because an em is drawn with a significantly different height than that returned by MeasureString()
+	baseline := y + h - (device.fontSize / 3 * device.scaleFactor)
+	return x, y, w, h, baseline
+}
+
+func (device *Device) Close() {
+	// 🔥 sorry I had to do this the hard way, here I wanted the colors
+	SendMessage(Message{bus: device.bus, eventType: "log", args: []any{"%cDevice closing", "color: pink"}})
+	close(device.blinker)
+	device.blinker = make(chan struct{})
+}
+
+func (device *Device) InitializeBuffer() {
+	device.addr = 0
+	device.attrs = make([]*Attributes, device.size)
+	device.blinker = make(chan struct{})
+	device.buffer = make([]uint8, device.size)
+	device.cursorAt = 0
+	device.erase = true
+}
 
 func (device *Device) MakeFramesFromBytes(bytes []uint8) []*OutboundDataStream {
 	frames := make([]*OutboundDataStream, 0)
@@ -135,97 +138,100 @@ func (device *Device) MakeFramesFromBytes(bytes []uint8) []*OutboundDataStream {
 	return frames
 }
 
-// 👇 helpers
-
-func (device *Device) boundingBox(addr int) (float64, float64, float64, float64, float64) {
-	col := addr % device.cols
-	row := int(addr / device.cols)
-	w := device.fontWidth * device.paddedWidth
-	h := device.fontHeight * device.paddedHeight
-	x := float64(col) * w
-	y := float64(row) * h
-	// 🔥 we could do better calculating the baseline - this is just a WAG, because an em is drawn with a significantly different height than that returned by MeasureString()
-	baseline := y + h - (device.fontSize / 3 * device.scaleFactor)
-	return x, y, w, h, baseline
-}
-
-func (device *Device) initializeBuffer() {
-	device.addr = 0
-	device.attrs = make([]*Attributes, device.size)
-	device.buffer = make([]uint8, device.size)
-	device.cursorAt = 0
-	device.erase = true
-}
-
-func (device *Device) putBuffer(byte uint8) {
+func (device *Device) PutBuffer(byte uint8, attrs *Attributes) {
+	device.attrs[device.addr] = attrs
 	device.buffer[device.addr] = byte
 	device.changes.Push(device.addr)
 	device.addr += 1
 	// 👇 note wrap around
-	if device.addr > device.size {
+	if device.addr == device.size {
 		device.addr = 0
 	}
 }
 
-func (device *Device) renderBuffer() {
-	defer utils.ElapsedTime(time.Now(), "renderBuffer")
-	// 👇 ragged fonts if drawn on transparent!
+func (device *Device) ReceiveFromApp(bytes []uint8) {
+	// 👇 reset changes stack
+	close(device.blinker)
+	device.blinker = make(chan struct{})
+	device.changes = utils.NewStack[int](device.size)
+	// 👇 data can be split into multiple frames
+	frames := device.MakeFramesFromBytes(bytes)
+	for ix := range frames {
+		fmt.Printf("ReceiveFromApp(frame #%d)\n", ix)
+		// 👇 extract command
+		out := frames[ix]
+		cmd, err := out.Next()
+		if err != nil {
+			SendMessage(Message{bus: device.bus, eventType: "panic", args: []any{fmt.Sprintf("Unable to extract write command: %s", err.Error())}})
+			return
+		}
+		device.command = cmd
+		fmt.Printf("COMMAND=%s\n", types.Command[device.command])
+		// 👇 for all but WSF, extract WCC
+		if device.command != types.CommandLookup["WSF"] {
+			u8, err := out.Next()
+			if err != nil {
+				SendMessage(Message{bus: device.bus, eventType: "panic", args: []any{fmt.Sprintf("Unable to extract WCC: %s", err.Error())}})
+				return
+			}
+			device.wcc = NewWCC(u8)
+			fmt.Println(device.wcc.ToString())
+		}
+		// 👇 dispatch on command
+		device.WriteCommands(out)
+	}
+	// 👇 now we can render the buffer to the drawing context
+	device.SignalStatus()
+	device.RenderBuffer(false, true)
+	if device.cursorAt >= 0 {
+		go device.BlinkingCursor()
+	}
+}
+
+func (device *Device) RenderBuffer(quiet bool, showCursor bool) {
+	if !quiet {
+		defer utils.ElapsedTime(time.Now(), "RenderBuffer")
+	}
+	defer func() { device.erase = false }()
+	// 👇 for example, EW command
 	if device.erase {
 		device.gg.SetHexColor(device.bgColor)
 		device.gg.Clear()
-		device.erase = false
 	}
+	// 👇 iterate over all changed cells
 	for !device.changes.IsEmpty() {
 		addr := device.changes.Pop()
-		// 🔥 TEMPORARY
-		x, _, _, _, baseline := device.boundingBox(addr)
-		device.gg.SetHexColor(device.color)
-		str := string(device.buffer[addr])
-		device.gg.DrawString(str, x, baseline)
-
+		attrs := device.attrs[addr]
+		byte := device.buffer[addr]
+		// 🔥 Go idiom for XOR
+		reverse := attrs.IsReverse() != ((addr == device.cursorAt) && showCursor)
+		visible := byte != 0x00 && !attrs.IsHidden()
+		x, y, w, h, baseline := device.BoundingBox(addr)
+		// 👇 clear background, except when the device has already been cleared
+		if (reverse && visible) || !device.erase {
+			device.gg.SetHexColor(utils.Ternary(reverse, attrs.GetColor(device.color), device.bgColor))
+			device.gg.DrawRectangle(x, y, w, h)
+			device.gg.Fill()
+		}
+		// 👇 a zero byte is hidden, an SF or SFE order
+		if visible {
+			device.gg.SetHexColor(utils.Ternary(reverse, device.bgColor, attrs.GetColor(device.color)))
+			str := string(byte)
+			device.gg.DrawString(str, x, baseline)
+		}
 	}
 }
 
-func (device *Device) writeCommands(out *OutboundDataStream) {
-	// 👇 dispatch on command
-	switch device.command {
-	case types.CommandLookup["RMA"]:
-	case types.CommandLookup["EAU"]:
-	case types.CommandLookup["EWA"]:
-	case types.CommandLookup["W"]:
-	case types.CommandLookup["RB"]:
-	case types.CommandLookup["WSF"]:
-	case types.CommandLookup["EW"]:
-		device.initializeBuffer()
-		device.writeOrdersAndData(out)
-	case types.CommandLookup["RM"]:
+func (device *Device) SignalStatus() {
+	status := map[string]any{
+		"alarm":     false,
+		"cursorAt":  device.cursorAt,
+		"error":     false,
+		"locked":    false,
+		"message":   "",
+		"numeric":   false,
+		"protected": false,
+		"waiting":   false,
 	}
-}
-
-func (device *Device) writeOrdersAndData(out *OutboundDataStream) {
-	for out.HasNext() {
-		// 👇 look at each byte to see if it is an order
-		order, err := out.Next()
-		if err != nil {
-			panic(fmt.Sprintf("unexpected EOF: %s", err.Error()))
-		}
-		// 👇 dispatch on order
-		switch order {
-		case types.OrderLookup["PT"]:
-		case types.OrderLookup["GE"]:
-		case types.OrderLookup["SBA"]:
-		case types.OrderLookup["EUA"]:
-		case types.OrderLookup["IC"]:
-		case types.OrderLookup["SF"]:
-		case types.OrderLookup["SA"]:
-		case types.OrderLookup["SFE"]:
-		case types.OrderLookup["MF"]:
-		case types.OrderLookup["RA"]:
-		// 👇 if it isn't an order, it's data
-		default:
-			if order == 0x00 || order >= 0x40 {
-				device.putBuffer(utils.E2A([]uint8{order})[0])
-			}
-		}
-	}
+	SendMessage(Message{bus: device.bus, eventType: "status", params: status})
 }

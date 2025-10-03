@@ -3,12 +3,11 @@ package go3270
 import (
 	_ "embed"
 	"emulator/device"
-	"emulator/utils"
 	"fmt"
 	"image"
+	"math"
 	"slices"
 	"syscall/js"
-	"time"
 
 	"github.com/asaskevich/EventBus"
 	"github.com/fogleman/gg"
@@ -70,8 +69,8 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	dc := gg.NewContextForRGBA(rgba)
 	dc.SetFontFace(face)
 	fontWidth, fontHeight := dc.MeasureString("M")
-	canvasWidth := float64(cols) * fontWidth * paddedWidth
-	canvasHeight := float64(rows) * fontHeight * paddedHeight
+	canvasWidth := float64(cols) * math.Round(fontWidth*paddedWidth)
+	canvasHeight := float64(rows) * math.Round(fontHeight*paddedHeight)
 	wrapper := canvas.Get("parentNode")
 	wrapper.Get("style").Set("width", fmt.Sprintf("%fpx", canvasWidth/scaleFactor))
 	wrapper.Get("style").Set("height", fmt.Sprintf("%fpx", canvasHeight/scaleFactor))
@@ -128,7 +127,6 @@ func (go3270 *Go3270) startRenderContextLoop(canvas js.Value, rgba *image.RGBA, 
 		// 👇 make sure we don't bust the max FPS we were given
 		if timestamp-go3270.lastTimestamp >= (1000 / maxFPS) {
 			if go3270.lastImage == nil || !slices.Equal(go3270.lastImage, rgba.Pix) {
-				timeNow := time.Now()
 				// 🔥 I copied this from go-canvas where the author was worried about 3 separate copies -- I haven't figured how to reduce it to 2 even when using Uint8ClampedArray -- but it only takes ~1ms anyway
 				u8 := js.Global().Get("Uint8ClampedArray").New(len(rgba.Pix))
 				js.CopyBytesToJS(u8, rgba.Pix)
@@ -142,7 +140,6 @@ func (go3270 *Go3270) startRenderContextLoop(canvas js.Value, rgba *image.RGBA, 
 				go3270.lastImage = make([]uint8, len(rgba.Pix))
 				copy(go3270.lastImage, rgba.Pix)
 				go3270.lastTimestamp = timestamp
-				utils.ElapsedTime(timeNow, "requestAnimationFrame")
 			}
 		}
 		go3270.reqID = js.Global().Call("requestAnimationFrame", go3270.renderContext)

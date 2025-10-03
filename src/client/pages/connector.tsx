@@ -184,6 +184,12 @@ export class Connector extends SignalWatcher(LitElement) {
     this.#tn3270?.close();
   }
 
+  panic(message: string): void {
+    this.message = message;
+    this.dialog.show();
+    this.#tn3270?.close();
+  }
+
   override render(): TemplateResult {
     return html`
       <main class="stretcher">
@@ -308,7 +314,7 @@ export class Connector extends SignalWatcher(LitElement) {
         <section slot="content">
           <p>
             An error occured while connecting to the
-            ${this.state.model.get().config.emulator} at
+            ${Emulators[this.state.model.get().config.emulator]} at
             ${this.state.model.get().config
               .host}:${this.state.model.get().config.port}.
             Please take any necessary corrective action and retry.

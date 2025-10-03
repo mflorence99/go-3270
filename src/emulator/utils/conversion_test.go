@@ -26,13 +26,13 @@ func TestConversion_E2A(t *testing.T) {
 }
 
 func TestConversion_AddrFromBytes(t *testing.T) {
-	addr := uint16(1)
+	addr := 1
 	bytes := []uint8{0x40, 0xC1}
 	assert.True(t, addr == utils.AddrFromBytes(bytes))
 }
 
 func TestConversion_AddrToBytes(t *testing.T) {
-	addr := uint16(79)
+	addr := 79
 	bytes := []uint8{0xC1, 0x4F}
 	assert.True(t, slices.Equal(bytes, utils.AddrToBytes(addr)))
 }

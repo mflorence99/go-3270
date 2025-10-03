@@ -98,7 +98,7 @@ const fetchStatic = async (
       //    watch code kicks in before all changes have settled down
       //    retry up to N times before reporting real failure
       await retry(() => stat(`${root}/${url.pathname}`), {
-        retries: 1000 /* 👈 keep trying as we might have compilke errors */,
+        retries: 10,
         minTimeout: 100,
         onRetry: () => {
           log({

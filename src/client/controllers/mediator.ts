@@ -45,6 +45,12 @@ export class Mediator implements ReactiveController {
           console.log(...args.flat());
         }
         break;
+      case 'panic':
+        {
+          const { args } = (evt as CustomEvent).detail;
+          this.host.connector.panic(args[0]);
+        }
+        break;
       case 'sendToApp':
         {
           const { bytes } = (evt as CustomEvent).detail;

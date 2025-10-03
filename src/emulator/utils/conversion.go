@@ -294,15 +294,15 @@ var six2e = []uint8{
 	0xF8, 0xF9, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F,
 }
 
-func AddrFromBytes(bytes []uint8) uint16 {
-	addr := uint16(bytes[0])
+func AddrFromBytes(bytes []uint8) int {
+	addr := int(bytes[0])
 	addr &= 0b00111111
 	addr = addr << 6
-	addr += uint16(bytes[1] & 0b00111111)
+	addr += int(bytes[1] & 0b00111111)
 	return addr
 }
 
-func AddrToBytes(addr uint16) []uint8 {
+func AddrToBytes(addr int) []uint8 {
 	bytes := make([]uint8, 2)
 	bytes[0] = six2e[(addr>>6)&0b00111111]
 	bytes[1] = six2e[addr&0b00111111]
