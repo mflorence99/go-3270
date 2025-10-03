@@ -47,8 +47,8 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	bgColor := args[1].String()
 	color := args[2].String()
 	fontSize := args[3].Float()
-	cols := args[4].Float()
-	rows := args[5].Float()
+	cols := args[4].Int()
+	rows := args[5].Int()
 	dpi := args[6].Float()
 	// 👇 constants
 	maxFPS := 30.0
@@ -57,15 +57,21 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	// 🔥 scaling 2x does produce slightly crisper font rendering, but it takes about 2x as long to render
 	scaleFactor := 1.0
 	// 👇 load the 3270 font
-	font, _ := opentype.Parse(go3270Font)
-	face, _ := opentype.NewFace(font, &opentype.FaceOptions{Size: fontSize * scaleFactor, DPI: dpi /* , Hinting: font.HintingFull */})
+	font, err := opentype.Parse(go3270Font)
+	if err != nil {
+		panic(fmt.Sprintf("unable to parse 3270 font: %s", err.Error()))
+	}
+	face, err := opentype.NewFace(font, &opentype.FaceOptions{Size: fontSize * scaleFactor, DPI: dpi /* , Hinting: font.HintingFull */})
+	if err != nil {
+		panic(fmt.Sprintf("unable to create 3270 font face: %s", err.Error()))
+	}
 	// 👇 resize canvas to fit font, using temporary context
 	rgba := image.NewRGBA(image.Rect(0, 0, 100, 100))
 	dc := gg.NewContextForRGBA(rgba)
 	dc.SetFontFace(face)
 	fontWidth, fontHeight := dc.MeasureString("M")
-	canvasWidth := cols * fontWidth * paddedWidth
-	canvasHeight := rows * fontHeight * paddedHeight
+	canvasWidth := float64(cols) * fontWidth * paddedWidth
+	canvasHeight := float64(rows) * fontHeight * paddedHeight
 	wrapper := canvas.Get("parentNode")
 	wrapper.Get("style").Set("width", fmt.Sprintf("%fpx", canvasWidth/scaleFactor))
 	wrapper.Get("style").Set("height", fmt.Sprintf("%fpx", canvasHeight/scaleFactor))
