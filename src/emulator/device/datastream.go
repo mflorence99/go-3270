@@ -14,7 +14,7 @@ type OutboundDataStream struct {
 }
 
 func NewOutboundDataStream(bytes *[]uint8) *OutboundDataStream {
-	stream := &OutboundDataStream{}
+	stream := new(OutboundDataStream)
 	stream.bytes = bytes
 	stream.ix = 0
 	return stream
@@ -64,6 +64,10 @@ func (out *OutboundDataStream) PeekSliceUntil(matches []uint8) ([]uint8, error) 
 	return out.nextSliceUntilImpl(matches, true)
 }
 
+func (out *OutboundDataStream) Skip(count int) {
+	out.ix += count
+}
+
 // 👇 Helpers
 
 func (out *OutboundDataStream) nextImpl(peek bool) (uint8, error) {
@@ -104,7 +108,9 @@ func (out *OutboundDataStream) nextSliceUntilImpl(matches []uint8, peek bool) ([
 			return slice, nil
 		}
 	}
-	return nil, errors.New("insufficient bytes in stream")
+	// 👇 if no match, return slice to end
+	slice := (*out.bytes)[out.ix:len(*out.bytes)]
+	return slice, errors.New("no matches found in stream")
 }
 
 // 🟧 Model inbound 3270 data as a stream
@@ -115,7 +121,7 @@ type InboundDataStream struct {
 }
 
 func NewInboundDataStream() *InboundDataStream {
-	in := &InboundDataStream{}
+	in := new(InboundDataStream)
 	in.bytes = []uint8{}
 	return in
 }

@@ -51,12 +51,10 @@ export class Root extends SignalWatcher(LitElement) {
   @state() pageNum = Pages.connector;
   @provide({ context: stateContext }) state = new State('state');
 
-  // 👇 make sure "this" is right
-
   constructor() {
     super();
-    new Startup(this);
-    new Mediator(this);
+    const _startup = new Startup(this);
+    const _mediator = new Mediator(this);
   }
 
   override render(): TemplateResult {

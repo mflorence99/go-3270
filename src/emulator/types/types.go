@@ -54,14 +54,31 @@ var CLUT = map[uint8][]string{
 // 🟦 Command
 
 var Command = map[uint8]string{
+	0x6E: "RMA",
 	0x6F: "EAU",
 	0x7E: "EWA",
 	0xF1: "W",
+	0xF2: "RB",
 	0xF3: "WSF",
 	0xF5: "EW",
+	0xF6: "RM",
 }
 
 var CommandLookup = make(map[string]uint8)
+
+// 🟦 Highlight (attribute)
+
+var Highlight = map[uint8]string{
+	0xF1: "BLINK",
+	0xF2: "REVERSE",
+	0xF4: "UNDERSCORE",
+}
+
+var HighlightLookup = make(map[string]uint8)
+
+// 🟦 LT (delineates outbound stream)
+
+var LT = []uint8{0xFF, 0xEF}
 
 // 🟦 Op
 
@@ -93,11 +110,21 @@ var Order = map[uint8]string{
 
 var OrderLookup = make(map[string]uint8)
 
+// 🟦 TypeCode (attribute)
+
+var TypeCode = map[uint8]string{
+	0xC0: "BASIC",
+	0x41: "HIGHLIGHT",
+	0x42: "COLOR",
+}
+
+var TypeCodeLookup = make(map[string]uint8)
+
 // 🟧 Global Initialization (runs before main)
 
 func init() {
-	origs := []map[uint8]string{AID, Command, Op, Order}
-	reverseds := []map[string]uint8{AIDLookup, CommandLookup, OpLookup, OrderLookup}
+	origs := []map[uint8]string{AID, Command, Highlight, Op, Order, TypeCode}
+	reverseds := []map[string]uint8{AIDLookup, CommandLookup, HighlightLookup, OpLookup, OrderLookup, TypeCodeLookup}
 	for ix := 0; ix < len(origs); ix++ {
 		orig := origs[ix]
 		reversed := reverseds[ix]

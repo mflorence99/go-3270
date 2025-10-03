@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var data = []uint8{0x00, 0x01, 0x02, 0x03, 0x04, 0x05}
+var stream = []uint8{0x00, 0x01, 0x02, 0x03, 0x04, 0x05}
 
 func TestOutboundDataStream_HasEnough(t *testing.T) {
-	out := device.NewOutboundDataStream(&data)
+	out := device.NewOutboundDataStream(&stream)
 	assert.True(t, out.HasEnough(0))
 	assert.True(t, out.HasEnough(5))
 	assert.True(t, out.HasEnough(6))
@@ -19,10 +19,10 @@ func TestOutboundDataStream_HasEnough(t *testing.T) {
 }
 
 func TestOutboundDataStream_Next(t *testing.T) {
-	out := device.NewOutboundDataStream(&data)
-	for ix := 0; ix <= len(data); ix++ {
+	out := device.NewOutboundDataStream(&stream)
+	for ix := 0; ix <= len(stream); ix++ {
 		u8, e := out.Next()
-		if ix < len(data) {
+		if ix < len(stream) {
 			assert.True(t, u8 <= 6)
 			assert.True(t, e == nil)
 		} else {
@@ -33,7 +33,7 @@ func TestOutboundDataStream_Next(t *testing.T) {
 }
 
 func TestOutboundDataStream_Next16(t *testing.T) {
-	out := device.NewOutboundDataStream(&data)
+	out := device.NewOutboundDataStream(&stream)
 	var u16 uint16
 	var err error
 	u16, err = out.Next16()
@@ -51,7 +51,7 @@ func TestOutboundDataStream_Next16(t *testing.T) {
 }
 
 func TestOutboundDataStream_NextSlice(t *testing.T) {
-	out := device.NewOutboundDataStream(&data)
+	out := device.NewOutboundDataStream(&stream)
 	var u8 uint8
 	var slice []uint8
 	var err error
@@ -67,7 +67,7 @@ func TestOutboundDataStream_NextSlice(t *testing.T) {
 }
 
 func TestOutboundDataStream_NextSliceUntil(t *testing.T) {
-	out := device.NewOutboundDataStream(&data)
+	out := device.NewOutboundDataStream(&stream)
 	var slice []uint8
 	var err error
 	slice, err = out.NextSliceUntil([]uint8{0x02, 0x03})
@@ -76,13 +76,14 @@ func TestOutboundDataStream_NextSliceUntil(t *testing.T) {
 	slice, err = out.NextSliceUntil([]uint8{0x03, 0x04})
 	assert.True(t, slices.Equal(slice, []uint8{0x02}))
 	assert.True(t, err == nil)
+	out.Skip(2)
 	slice, err = out.NextSliceUntil([]uint8{0x06, 0x07})
-	assert.True(t, slice == nil)
+	assert.True(t, slices.Equal(slice, []uint8{0x05}))
 	assert.True(t, err != nil)
 }
 
 func TestOutboundDataStream_Peek(t *testing.T) {
-	out := device.NewOutboundDataStream(&data)
+	out := device.NewOutboundDataStream(&stream)
 	var u8 uint8
 	var slice []uint8
 	var err error
@@ -97,7 +98,7 @@ func TestOutboundDataStream_Peek(t *testing.T) {
 }
 
 func TestOutboundDataStream_PeekSlice(t *testing.T) {
-	out := device.NewOutboundDataStream(&data)
+	out := device.NewOutboundDataStream(&stream)
 	var slice []uint8
 	var err error
 	slice, err = out.PeekSlice(6)
@@ -112,7 +113,7 @@ func TestOutboundDataStream_PeekSlice(t *testing.T) {
 }
 
 func TestOutboundDataStream_PeekSliceUntil(t *testing.T) {
-	out := device.NewOutboundDataStream(&data)
+	out := device.NewOutboundDataStream(&stream)
 	var slice []uint8
 	var err error
 	slice, err = out.PeekSliceUntil([]uint8{0x02, 0x03})
@@ -122,7 +123,7 @@ func TestOutboundDataStream_PeekSliceUntil(t *testing.T) {
 	assert.True(t, slices.Equal(slice, []uint8{0x00, 0x01, 0x02}))
 	assert.True(t, err == nil)
 	slice, err = out.PeekSliceUntil([]uint8{0x06, 0x07})
-	assert.True(t, slice == nil)
+	assert.True(t, slices.Equal(slice, []uint8{0x00, 0x01, 0x02, 0x03, 0x04, 0x05}))
 	assert.True(t, err != nil)
 }
 
@@ -132,7 +133,7 @@ func TestInboundDataStream_Put(t *testing.T) {
 	slice = in.Put(0x00)
 	assert.True(t, len(slice) == 1)
 	assert.True(t, slice[0] == 0x00)
-	slice = in.PutSlice(data)
+	slice = in.PutSlice(stream)
 	assert.True(t, len(slice) == 7)
 	assert.True(t, slice[0] == 0x00)
 	assert.True(t, slice[6] == 0x05)

@@ -10,7 +10,7 @@ type WCC struct {
 }
 
 func NewWCC(byte uint8) *WCC {
-	wcc := &WCC{}
+	wcc := new(WCC)
 	wcc.alarm = (byte & 0b00000100) != 0
 	wcc.reset = (byte & 0b01000000) != 0
 	wcc.resetMDT = (byte & 0b00000001) != 0

@@ -22,6 +22,11 @@ func TestTypes_Command(t *testing.T) {
 	assert.True(t, types.CommandLookup["EW"] == 0xF5)
 }
 
+func TestTypes_Highlight(t *testing.T) {
+	assert.True(t, types.Highlight[0xF2] == "REVERSE")
+	assert.True(t, types.HighlightLookup["UNDERSCORE"] == 0xF4)
+}
+
 func TestTypes_Op(t *testing.T) {
 	assert.True(t, types.Op[0x02] == "Q")
 	assert.True(t, types.OpLookup["RM"] == 0xF6)
@@ -30,4 +35,9 @@ func TestTypes_Op(t *testing.T) {
 func TestTypes_Order(t *testing.T) {
 	assert.True(t, types.Order[0x1D] == "SF")
 	assert.True(t, types.OrderLookup["EUA"] == 0x12)
+}
+
+func TestTypes_TypeCode(t *testing.T) {
+	assert.True(t, types.TypeCode[0xC0] == "BASIC")
+	assert.True(t, types.TypeCodeLookup["COLOR"] == 0x42)
 }

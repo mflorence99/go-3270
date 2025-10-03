@@ -115,7 +115,7 @@ export class Connector extends SignalWatcher(LitElement) {
   @state() message!: string;
   @consume({ context: stateContext }) state!: State;
 
-  tn3270: Tn3270 | null = null;
+  #tn3270: Tn3270 | null = null;
 
   // 👁️ https://dev.to/blikblum/dry-form-handling-with-lit-19f
   // 👇 "connected" here means socket connection
@@ -129,13 +129,13 @@ export class Connector extends SignalWatcher(LitElement) {
       try {
         // 👇 try to connect to 3270
         this.connecting = true;
-        this.tn3270?.close();
-        this.tn3270 = await Tn3270.tn3270(
+        this.#tn3270?.close();
+        this.#tn3270 = await Tn3270.tn3270(
           config.host,
           config.port,
           Emulators[config.emulator] as string
         );
-        this.tn3270.stream$.subscribe({
+        this.#tn3270.stream$.subscribe({
           next: (bytes: Uint8ClampedArray) => {
             if (this.connecting)
               this.dispatchEvent(new CustomEvent('connected'));
@@ -154,7 +154,7 @@ export class Connector extends SignalWatcher(LitElement) {
             this.message = e.reason;
             await this.dialog.show();
             this.dispatchEvent(new CustomEvent('disconnected'));
-            this.tn3270 = null;
+            this.#tn3270 = null;
           },
 
           // 👇 normal completion eg: Tn3270.close()
@@ -165,7 +165,7 @@ export class Connector extends SignalWatcher(LitElement) {
               'color: cyan'
             );
             this.dispatchEvent(new CustomEvent('disconnected'));
-            this.tn3270 = null;
+            this.#tn3270 = null;
           }
         });
       } catch (e: any) {
@@ -175,13 +175,13 @@ export class Connector extends SignalWatcher(LitElement) {
         this.message = `Unable to reach proxy server ${location.hostname}:${location.port}`;
         await this.dialog.show();
         this.dispatchEvent(new CustomEvent('disconnected'));
-        this.tn3270 = null;
+        this.#tn3270 = null;
       }
     }
   }
 
   disconnect(): void {
-    this.tn3270?.close();
+    this.#tn3270?.close();
   }
 
   override render(): TemplateResult {
@@ -325,6 +325,6 @@ export class Connector extends SignalWatcher(LitElement) {
   }
 
   sendToApp(bytes: Uint8ClampedArray): void {
-    this.tn3270?.sendToApp(bytes);
+    this.#tn3270?.sendToApp(bytes);
   }
 }

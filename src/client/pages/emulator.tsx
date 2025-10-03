@@ -104,10 +104,10 @@ export class Emulator extends SignalWatcher(LitElement) {
   @consume({ context: stateContext }) state!: State;
   @query('.terminal') terminal!: HTMLCanvasElement;
 
-  go3270: Go3270 | null = null;
+  #go3270: Go3270 | null = null;
 
   disconnect(): void {
-    this.go3270?.close();
+    this.#go3270?.close();
   }
 
   keystroke(
@@ -117,11 +117,11 @@ export class Emulator extends SignalWatcher(LitElement) {
     ctrl: boolean,
     shift: boolean
   ): void {
-    this.go3270?.keystroke(code, key, alt, ctrl, shift);
+    this.#go3270?.keystroke(code, key, alt, ctrl, shift);
   }
 
   receiveFromApp(bytes: Uint8ClampedArray): void {
-    this.go3270?.receiveFromApp(bytes);
+    this.#go3270?.receiveFromApp(bytes);
   }
 
   override render(): TemplateResult {
@@ -210,15 +210,18 @@ export class Emulator extends SignalWatcher(LitElement) {
   override updated(): void {
     if (this.state.delta.config) {
       // 👇 close any prior handler
-      this.go3270?.close();
+      this.#go3270?.close();
       // 👇 construct a new device with its new attributes
+      const bgColor =
+        '#111318'; /* 👈 it'd be super nice not to hardcode */
       const color = this.state.color.get();
       const dims = this.state.dims.get();
       const dpi = this.dpi.offsetWidth * window.devicePixelRatio;
       const fontSize = Number(this.state.model.get().config.fontSize);
       // 👇 construct a new device with its new attributes
-      this.go3270 = window.NewGo3270?.(
+      this.#go3270 = window.NewGo3270?.(
         this.terminal,
+        bgColor,
         color,
         fontSize,
         dims[0],

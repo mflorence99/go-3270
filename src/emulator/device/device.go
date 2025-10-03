@@ -3,9 +3,7 @@ package device
 import (
 	"emulator/types"
 	"emulator/utils"
-	"math"
-	"math/rand"
-	"time"
+	"fmt"
 
 	"github.com/asaskevich/EventBus"
 	"github.com/fogleman/gg"
@@ -18,10 +16,13 @@ import (
 // 👁️ http://www.tommysprinkle.com/mvs/P3270/start.htm
 
 type Device struct {
-	bus          EventBus.Bus
+	bus EventBus.Bus
+	gg  *gg.Context
+
+	// 👇 properties
+	bgColor      string
 	color        string
 	cols         float64
-	gg           *gg.Context
 	fontHeight   float64
 	fontSize     float64
 	fontWidth    float64
@@ -29,26 +30,38 @@ type Device struct {
 	paddedWidth  float64
 	rows         float64
 	scaleFactor  float64
+
+	// 👇 model the device buffer
+	addr     int
+	attrs    []*Attributes
+	buffer   []uint8
+	changed  []bool
+	command  uint8
+	cursorAt int
+	erase    bool
+	wcc      *WCC
 }
 
 func NewDevice(
 	bus EventBus.Bus,
+	gg *gg.Context,
+	bgColor string,
 	color string,
 	cols float64,
-	gg *gg.Context,
+	rows float64,
 	fontHeight float64,
 	fontSize float64,
 	fontWidth float64,
 	paddedHeight float64,
 	paddedWidth float64,
-	rows float64,
 	scaleFactor float64) *Device {
-	// 👇 initialize member fields
-	device := &Device{}
+	device := new(Device)
 	device.bus = bus
+	device.gg = gg
+	// 👇 initialize properties
+	device.bgColor = bgColor
 	device.color = color
 	device.cols = cols
-	device.gg = gg
 	device.fontHeight = fontHeight
 	device.fontSize = fontSize
 	device.fontWidth = fontWidth
@@ -56,11 +69,13 @@ func NewDevice(
 	device.paddedWidth = paddedWidth
 	device.rows = rows
 	device.scaleFactor = scaleFactor
+	// 👇 initialize buffer
+	device.initializeBuffer()
 	return device
 }
 
 func (device *Device) Close() {
-	device.MessageUI("log", nil, nil, "%cDevice closing", "color: violet")
+	fmt.Println("device.Close()")
 }
 
 func (device *Device) MessageUI(eventType string, bytes []uint8, params map[string]any, args ...any) {
@@ -68,54 +83,101 @@ func (device *Device) MessageUI(eventType string, bytes []uint8, params map[stri
 }
 
 func (device *Device) ReceiveFromApp(bytes []uint8) {
-	var out = NewOutboundDataStream(&bytes)
-	_ = out
-	// 🔥 simulate render
-	device.TestPattern()
-	// 🔥 simulate response
-	device.MessageUI("sendToApp", []uint8{193, 194, 195 /* 👈 EBCDIC "ABC" */}, nil, nil)
+	frames := device.MakeFramesFromBytes(bytes)
+	for ix := range frames {
+		fmt.Printf("device.ReceiveFromApp(frame #%d)\n", ix)
+		// 👇 extract command
+		out := frames[ix]
+		device.command, _ = out.Next()
+		fmt.Printf("COMMAND=%s\n", types.Command[device.command])
+		// 👇 for all but WSF, extract WCC
+		if device.command != types.CommandLookup["WSF"] {
+			u8, _ := out.Next()
+			device.wcc = NewWCC(u8)
+			fmt.Println(device.wcc.ToString())
+		}
+		// 👇 dispatch on command
+		device.writeCommands(out)
+	}
+	// 👇 now we can render the buffer to the drawing context
+	device.renderBuffer()
 }
 
-// ///////////////////////////////////////////////////////////////////////////
-// 🔥 EVERYTHING BELOW HERE IS JUST TEST CODE
-// ///////////////////////////////////////////////////////////////////////////
+// 👇 Helpers - they need to be public to be tested
 
-func (device *Device) TestPattern() {
-	defer utils.ElapsedTime(time.Now(), "TestPattern")
-	device.gg.SetHexColor(types.CLUT[0xf0][0]) /* 👈 ragged fonts if draw on transparent! */
-	device.gg.Clear()
-	str := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[{]};:,<.>/?"
-	chs := []rune(str)
-	for col := 0.0; col < device.cols; col++ {
-		for row := 0.0; row < device.rows; row++ {
-			x, _, _, _, baseline := device.boundingBox(col, row)
-			// 👇 choose colors from the CLUT, using the base color if out of range
-			ix := uint8(math.Floor(col/10) + 0xF1)
-			bright := device.color
-			color := device.color
-			if ix <= 0xf7 {
-				bright = types.CLUT[ix][0]
-				color = types.CLUT[ix][1]
-			}
-			// 👇 alternate high intensity, normal
-			if int(row)%2 == 0 {
-				device.gg.SetHexColor(bright)
-			} else {
-				device.gg.SetHexColor(color)
-			}
-			ich := rand.Intn(len(chs))
-			ch := string(chs[ich])
-			device.gg.DrawString(ch, x, baseline)
+func (device *Device) MakeFramesFromBytes(bytes []uint8) []*OutboundDataStream {
+	frames := make([]*OutboundDataStream, 0)
+	whole := NewOutboundDataStream(&bytes)
+	for {
+		slice, err := whole.NextSliceUntil(types.LT)
+		if len(slice) > 0 {
+			frame := NewOutboundDataStream(&slice)
+			frames = append(frames, frame)
 		}
+		if err != nil {
+			break
+		}
+		whole.Skip(len(types.LT))
+	}
+	return frames
+}
+
+// 👇 helpers
+
+func (device *Device) initializeBuffer() {
+	size := int(device.cols * device.rows)
+	device.addr = 0
+	device.attrs = make([]*Attributes, size)
+	device.buffer = make([]uint8, size)
+	device.changed = make([]bool, size)
+	device.cursorAt = 0
+	device.erase = true
+}
+
+func (device *Device) renderBuffer() {
+	if device.erase {
+		// 👈 ragged fonts if draw on transparent!
+		device.gg.SetHexColor(device.bgColor)
+		device.gg.Clear()
+		device.erase = false
 	}
 }
 
-func (device *Device) boundingBox(col, row float64) (float64, float64, float64, float64, float64) {
-	w := device.fontWidth * device.paddedWidth
-	h := device.fontHeight * device.paddedHeight
-	x := col * w
-	y := row * h
-	// 🔥 we could do better calculating the baseline - this is just a WAG, because an em is drawn with a significantly different height than that returned by MeasureString()
-	baseline := y + h - (device.fontSize / 3 * device.scaleFactor)
-	return x, y, w, h, baseline
+func (device *Device) writeCommands(out *OutboundDataStream) {
+	switch device.command {
+	case types.CommandLookup["RMA"]:
+	case types.CommandLookup["EAU"]:
+	case types.CommandLookup["EWA"]:
+	case types.CommandLookup["W"]:
+	case types.CommandLookup["RB"]:
+	case types.CommandLookup["WSF"]:
+	case types.CommandLookup["EW"]:
+		device.initializeBuffer()
+		device.writeOrdersAndData(out)
+	case types.CommandLookup["RM"]:
+	}
+}
+
+func (device *Device) writeOrdersAndData(out *OutboundDataStream) {
+	for out.HasNext() {
+		order, _ := out.Next()
+		switch order {
+		case types.OrderLookup["PT"]:
+		case types.OrderLookup["GE"]:
+		case types.OrderLookup["SBA"]:
+		case types.OrderLookup["EUA"]:
+		case types.OrderLookup["IC"]:
+		case types.OrderLookup["SF"]:
+		case types.OrderLookup["SA"]:
+		case types.OrderLookup["SFE"]:
+		case types.OrderLookup["MF"]:
+		case types.OrderLookup["RA"]:
+		default:
+			// 👇 if it isn't an order, it's data
+			if order == 0x00 || order >= 0x40 {
+				device.buffer[device.addr] = utils.E2A([]uint8{order})[0]
+				device.changed[device.addr] = true
+			}
+		}
+	}
 }

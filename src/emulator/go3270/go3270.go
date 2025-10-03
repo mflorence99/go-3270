@@ -39,21 +39,22 @@ type Go3270 struct {
 
 // 🔥 main.go places this function name on the DOM's global window object
 func NewGo3270(this js.Value, args []js.Value) any {
-	go3270 := &Go3270{}
+	go3270 := new(Go3270)
 	// 👇 get the bus ready right away
 	go3270.bus = EventBus.New()
 	// 👇 properties
 	canvas := args[0]
-	color := args[1].String()
-	fontSize := args[2].Float()
-	cols := args[3].Float()
-	rows := args[4].Float()
-	dpi := args[5].Float()
+	bgColor := args[1].String()
+	color := args[2].String()
+	fontSize := args[3].Float()
+	cols := args[4].Float()
+	rows := args[5].Float()
+	dpi := args[6].Float()
 	// 👇 constants
 	maxFPS := 30.0
 	paddedHeight := 1.05
 	paddedWidth := 1.1
-	// 🔥 scaling 2x does produce slightly crisper font rendering, but it takes about 2x as long to render (see function TestPattern)
+	// 🔥 scaling 2x does produce slightly crisper font rendering, but it takes about 2x as long to render
 	scaleFactor := 1.0
 	// 👇 load the 3270 font
 	font, _ := opentype.Parse(go3270Font)
@@ -78,15 +79,16 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	// 👇 delegate all device handling to go test-able handler
 	go3270.device = device.NewDevice(
 		go3270.bus,
+		gg,
+		bgColor,
 		color,
 		cols,
-		gg,
+		rows,
 		fontHeight,
 		fontSize,
 		fontWidth,
 		paddedHeight,
 		paddedWidth,
-		rows,
 		scaleFactor)
 	// 🟦 Go WASM methods callable by Javascript
 	// 👁️ go3270.d.ts
@@ -134,7 +136,7 @@ func (go3270 *Go3270) startRenderContextLoop(canvas js.Value, rgba *image.RGBA, 
 				go3270.lastImage = make([]uint8, len(rgba.Pix))
 				copy(go3270.lastImage, rgba.Pix)
 				go3270.lastTimestamp = timestamp
-				utils.ElapsedTime(timeNow, "render")
+				utils.ElapsedTime(timeNow, "requestAnimationFrame")
 			}
 		}
 		go3270.reqID = js.Global().Call("requestAnimationFrame", go3270.renderContext)

@@ -15,6 +15,7 @@ declare global {
     Go: any;
     NewGo3270: (
       canvas: HTMLCanvasElement,
+      bgColor: string,
       color: string,
       fontSize: number,
       cols: number,
