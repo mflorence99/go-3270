@@ -38,6 +38,7 @@ type Device struct {
 	addr     int
 	attrs    []*Attributes
 	blinker  chan struct{}
+	blinks   map[int]bool
 	buffer   []uint8
 	changes  *utils.Stack[int]
 	command  uint8
@@ -79,20 +80,6 @@ func NewDevice(
 	return device
 }
 
-func (device *Device) BlinkingCursor() {
-	for ix := 0; ; ix++ {
-		select {
-		case <-device.blinker:
-			fmt.Println("device.BlinkingCursor() stopped")
-			return
-		default:
-			device.changes.Push(device.cursorAt)
-			device.RenderBuffer(true, (ix%2) == 0)
-			time.Sleep(500 * time.Millisecond)
-		}
-	}
-}
-
 func (device *Device) BoundingBox(addr int) (float64, float64, float64, float64, float64) {
 	col := addr % device.cols
 	row := int(addr / device.cols)
@@ -116,12 +103,15 @@ func (device *Device) InitializeBuffer() {
 	device.addr = 0
 	device.attrs = make([]*Attributes, device.size)
 	device.blinker = make(chan struct{})
+	// 👇 capacity is just a WAG, but blinking isn't common
+	device.blinks = make(map[int]bool, 10)
 	device.buffer = make([]uint8, device.size)
 	device.cursorAt = 0
 	device.erase = true
 }
 
 func (device *Device) MakeFramesFromBytes(bytes []uint8) []*OutboundDataStream {
+	// 👇 we know there's going to be one frame, and more isn't common
 	frames := make([]*OutboundDataStream, 0)
 	whole := NewOutboundDataStream(&bytes)
 	for {
@@ -140,6 +130,11 @@ func (device *Device) MakeFramesFromBytes(bytes []uint8) []*OutboundDataStream {
 
 func (device *Device) PutBuffer(byte uint8, attrs *Attributes) {
 	device.attrs[device.addr] = attrs
+	if attrs.IsBlink() {
+		device.blinks[device.addr] = true
+	} else {
+		delete(device.blinks, device.addr)
+	}
 	device.buffer[device.addr] = byte
 	device.changes.Push(device.addr)
 	device.addr += 1
@@ -180,15 +175,34 @@ func (device *Device) ReceiveFromApp(bytes []uint8) {
 		// 👇 dispatch on command
 		device.WriteCommands(out)
 	}
-	// 👇 now we can render the buffer to the drawing context
+	// 👇 now we can render the buffer to the drawing context --
 	device.SignalStatus()
+	// 🔥 after RenderBuffer is called, the "changes" stack is empty
 	device.RenderBuffer(false, true)
 	if device.cursorAt >= 0 {
-		go device.BlinkingCursor()
+		go device.RenderBlinkingAddrs()
 	}
 }
 
-func (device *Device) RenderBuffer(quiet bool, showCursor bool) {
+func (device *Device) RenderBlinkingAddrs() {
+	for ix := 0; ; ix++ {
+		select {
+		case <-device.blinker:
+			fmt.Println("device.BlinkingCursor() stopped")
+			return
+		default:
+			device.changes.Push(device.cursorAt)
+			for addr := range device.blinks {
+				device.changes.Push(addr)
+			}
+			// 🔥 after RenderBuffer is called, the "changes" stack is empty
+			device.RenderBuffer(true, (ix%2) == 0)
+			time.Sleep(500 * time.Millisecond)
+		}
+	}
+}
+
+func (device *Device) RenderBuffer(quiet bool, blinkOn bool) {
 	if !quiet {
 		defer utils.ElapsedTime(time.Now(), "RenderBuffer")
 	}
@@ -204,7 +218,7 @@ func (device *Device) RenderBuffer(quiet bool, showCursor bool) {
 		attrs := device.attrs[addr]
 		byte := device.buffer[addr]
 		// 🔥 Go idiom for XOR
-		reverse := attrs.IsReverse() != ((addr == device.cursorAt) && showCursor)
+		reverse := attrs.IsReverse() != ((attrs.IsBlink() || (addr == device.cursorAt)) && blinkOn)
 		visible := byte != 0x00 && !attrs.IsHidden()
 		x, y, w, h, baseline := device.BoundingBox(addr)
 		// 👇 clear background, except when the device has already been cleared
@@ -234,4 +248,63 @@ func (device *Device) SignalStatus() {
 		"waiting":   false,
 	}
 	SendMessage(Message{bus: device.bus, eventType: "status", params: status})
+}
+
+func (device *Device) WriteCommands(out *OutboundDataStream) {
+	defer utils.ElapsedTime(time.Now(), "WriteCommands")
+	// 👇 dispatch on command
+	switch device.command {
+	case types.CommandLookup["RMA"]:
+	case types.CommandLookup["EAU"]:
+	case types.CommandLookup["EWA"]:
+		device.InitializeBuffer()
+		device.WriteOrdersAndData(out)
+	case types.CommandLookup["W"]:
+	case types.CommandLookup["RB"]:
+	case types.CommandLookup["WSF"]:
+	case types.CommandLookup["EW"]:
+		device.InitializeBuffer()
+		device.WriteOrdersAndData(out)
+	case types.CommandLookup["RM"]:
+	}
+}
+
+func (device *Device) WriteOrdersAndData(out *OutboundDataStream) {
+	var lastAttrs *Attributes = NewAttributes([]uint8{0x00})
+	for out.HasNext() {
+		// 👇 look at each byte to see if it is an order
+		order, _ := out.Next()
+		// 👇 dispatch on order
+		switch order {
+		case types.OrderLookup["PT"]:
+		case types.OrderLookup["GE"]:
+		case types.OrderLookup["SBA"]:
+			addr, _ := out.NextSlice(2)
+			device.addr = utils.AddrFromBytes(addr)
+			if device.addr >= device.size {
+				SendMessage(Message{bus: device.bus, eventType: "panic", args: []any{"Data requires a device with a larger screen"}})
+				return
+			}
+		case types.OrderLookup["EUA"]:
+		case types.OrderLookup["IC"]:
+			device.cursorAt = device.addr
+		case types.OrderLookup["SF"]:
+			attrs, _ := out.NextSlice(1)
+			lastAttrs = NewAttributes(attrs)
+			device.PutBuffer(0x00, lastAttrs)
+		case types.OrderLookup["SA"]:
+		case types.OrderLookup["SFE"]:
+			count, _ := out.Next()
+			attrs, _ := out.NextSlice(int(count) * 2)
+			lastAttrs = NewAttributes(attrs)
+			device.PutBuffer(0x00, lastAttrs)
+		case types.OrderLookup["MF"]:
+		case types.OrderLookup["RA"]:
+		// 👇 if it isn't an order, it's data
+		default:
+			if order == 0x00 || order >= 0x40 {
+				device.PutBuffer(utils.E2A([]uint8{order})[0], lastAttrs)
+			}
+		}
+	}
 }
