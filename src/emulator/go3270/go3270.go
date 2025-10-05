@@ -53,38 +53,33 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	maxFPS := 30.0
 	paddedHeight := 1.05
 	paddedWidth := 1.1
-	// 🔥 scaling 2x does produce slightly crisper font rendering, but it takes about 2x as long to render
-	scaleFactor := 1.0
 	// 👇 load the 3270 font
 	font, err := opentype.Parse(go3270Font)
 	if err != nil {
 		panic(fmt.Sprintf("unable to parse 3270 font: %s", err.Error()))
 	}
-	face, err := opentype.NewFace(font, &opentype.FaceOptions{Size: fontSize * scaleFactor, DPI: dpi /* , Hinting: font.HintingFull */})
+	face, err := opentype.NewFace(font, &opentype.FaceOptions{Size: fontSize, DPI: dpi /* , Hinting: font.HintingFull */})
 	if err != nil {
 		panic(fmt.Sprintf("unable to create 3270 font face: %s", err.Error()))
 	}
 	// 👇 resize canvas to fit font, using temporary context
-	rgba := image.NewRGBA(image.Rect(0, 0, 100, 100))
-	dc := gg.NewContextForRGBA(rgba)
-	dc.SetFontFace(face)
-	fontWidth, fontHeight := dc.MeasureString("M")
+	temp := gg.NewContext(100, 100)
+	temp.SetFontFace(face)
+	fontWidth, fontHeight := temp.MeasureString("M")
 	canvasWidth := float64(cols) * math.Round(fontWidth*paddedWidth)
 	canvasHeight := float64(rows) * math.Round(fontHeight*paddedHeight)
 	wrapper := canvas.Get("parentNode")
-	wrapper.Get("style").Set("width", fmt.Sprintf("%fpx", canvasWidth/scaleFactor))
-	wrapper.Get("style").Set("height", fmt.Sprintf("%fpx", canvasHeight/scaleFactor))
+	wrapper.Get("style").Set("width", fmt.Sprintf("%fpx", canvasWidth))
+	wrapper.Get("style").Set("height", fmt.Sprintf("%fpx", canvasHeight))
 	canvas.Set("width", canvasWidth)
 	canvas.Set("height", canvasHeight)
 	// 👇 prepare the rendering surface
-	rgba = image.NewRGBA(image.Rect(0, 0, int(canvasWidth), int(canvasHeight)))
-	gg := gg.NewContextForRGBA(rgba)
-	gg.SetFontFace(face)
-	gg.Scale(1/scaleFactor, 1/scaleFactor)
+	rgba := image.NewRGBA(image.Rect(0, 0, int(canvasWidth), int(canvasHeight)))
 	// 👇 delegate all device handling to go test-able handler
 	go3270.device = device.NewDevice(
 		go3270.bus,
-		gg,
+		rgba,
+		face,
 		bgColor,
 		color,
 		cols,
@@ -93,8 +88,7 @@ func NewGo3270(this js.Value, args []js.Value) any {
 		fontSize,
 		fontWidth,
 		paddedHeight,
-		paddedWidth,
-		scaleFactor)
+		paddedWidth)
 	// 🟦 Go WASM methods callable by Javascript
 	// 👁️ go3270.d.ts
 	tsInterface := map[string]any{

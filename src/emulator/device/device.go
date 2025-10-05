@@ -4,11 +4,13 @@ import (
 	"emulator/types"
 	"emulator/utils"
 	"fmt"
+	"image"
 	"math"
 	"time"
 
 	"github.com/asaskevich/EventBus"
 	"github.com/fogleman/gg"
+	"golang.org/x/image/font"
 )
 
 // 🟧 Model the 3270 device in pure go test-able code. We are handed a drawing context into which we render the datastream and any operator input. See the go3270 package for how that context is actually drawn on an HTML canvas.
@@ -18,8 +20,9 @@ import (
 // 👁️ http://www.tommysprinkle.com/mvs/P3270/start.htm
 
 type Device struct {
-	bus EventBus.Bus
-	gg  *gg.Context
+	bus  EventBus.Bus
+	dc   *gg.Context
+	face font.Face
 
 	// 👇 properties
 	bgColor      string
@@ -31,7 +34,6 @@ type Device struct {
 	paddedHeight float64
 	paddedWidth  float64
 	rows         int
-	scaleFactor  float64
 	size         int
 
 	// 👇 model the device buffer
@@ -45,11 +47,21 @@ type Device struct {
 	cursorAt int
 	erase    bool
 	wcc      *WCC
+
+	// 👇 the glyph cache
+	glyphs map[Glyph]image.Image
+}
+
+type Glyph struct {
+	byte    uint8
+	color   string
+	reverse bool
 }
 
 func NewDevice(
 	bus EventBus.Bus,
-	gg *gg.Context,
+	rgba *image.RGBA,
+	face font.Face,
 	bgColor string,
 	color string,
 	cols int,
@@ -58,11 +70,10 @@ func NewDevice(
 	fontSize float64,
 	fontWidth float64,
 	paddedHeight float64,
-	paddedWidth float64,
-	scaleFactor float64) *Device {
+	paddedWidth float64) *Device {
 	device := new(Device)
 	device.bus = bus
-	device.gg = gg
+	device.face = face
 	// 👇 initialize properties
 	device.bgColor = bgColor
 	device.color = color
@@ -73,10 +84,13 @@ func NewDevice(
 	device.paddedHeight = paddedHeight
 	device.paddedWidth = paddedWidth
 	device.rows = rows
-	device.scaleFactor = scaleFactor
 	device.size = int(device.cols * device.rows)
+	// 👇 prepare rendering context
+	device.dc = gg.NewContextForRGBA(rgba)
 	// 👇 initialize buffer
 	device.InitializeBuffer()
+	// 👇 initialize glyph cache
+	device.glyphs = make(map[Glyph]image.Image)
 	return device
 }
 
@@ -88,15 +102,17 @@ func (device *Device) BoundingBox(addr int) (float64, float64, float64, float64,
 	x := math.Round(float64(col) * w)
 	y := math.Round(float64(row) * h)
 	// 🔥 we could do better calculating the baseline - this is just a WAG, because an em is drawn with a significantly different height than that returned by MeasureString()
-	baseline := y + h - (device.fontSize / 3 * device.scaleFactor)
+	baseline := y + h - (device.fontSize / 3)
 	return x, y, w, h, baseline
 }
 
 func (device *Device) Close() {
 	// 🔥 sorry I had to do this the hard way, here I wanted the colors
 	SendMessage(Message{bus: device.bus, eventType: "log", args: []any{"%cDevice closing", "color: pink"}})
-	close(device.blinker)
-	device.blinker = make(chan struct{})
+	if device.blinker != nil {
+		close(device.blinker)
+		device.blinker = nil
+	}
 }
 
 func (device *Device) InitializeBuffer() {
@@ -145,9 +161,12 @@ func (device *Device) PutBuffer(byte uint8, attrs *Attributes) {
 }
 
 func (device *Device) ReceiveFromApp(bytes []uint8) {
+	// 👇 reset any binking
+	if device.blinker != nil {
+		close(device.blinker)
+		device.blinker = nil
+	}
 	// 👇 reset changes stack
-	close(device.blinker)
-	device.blinker = make(chan struct{})
 	device.changes = utils.NewStack[int](device.size)
 	// 👇 data can be split into multiple frames
 	frames := device.MakeFramesFromBytes(bytes)
@@ -179,16 +198,17 @@ func (device *Device) ReceiveFromApp(bytes []uint8) {
 	device.SignalStatus()
 	// 🔥 after RenderBuffer is called, the "changes" stack is empty
 	device.RenderBuffer(false, true)
-	if device.cursorAt >= 0 {
-		go device.RenderBlinkingAddrs()
+	// 👇 start any blinking
+	if device.cursorAt >= 0 || len(device.blinks) > 0 {
+		device.blinker = make(chan struct{})
+		go device.RenderBlinkingAddrs(device.blinker)
 	}
 }
 
-func (device *Device) RenderBlinkingAddrs() {
+func (device *Device) RenderBlinkingAddrs(quit <-chan struct{}) {
 	for ix := 0; ; ix++ {
 		select {
-		case <-device.blinker:
-			fmt.Println("device.BlinkingCursor() stopped")
+		case <-quit:
 			return
 		default:
 			device.changes.Push(device.cursorAt)
@@ -196,42 +216,61 @@ func (device *Device) RenderBlinkingAddrs() {
 				device.changes.Push(addr)
 			}
 			// 🔥 after RenderBuffer is called, the "changes" stack is empty
-			device.RenderBuffer(true, (ix%2) == 0)
+			device.RenderBuffer(false, (ix%2) == 0)
 			time.Sleep(500 * time.Millisecond)
 		}
 	}
 }
 
 func (device *Device) RenderBuffer(quiet bool, blinkOn bool) {
-	if !quiet {
-		defer utils.ElapsedTime(time.Now(), "RenderBuffer")
-	}
-	defer func() { device.erase = false }()
+	defer utils.ElapsedTime(time.Now(), "RenderBuffer", utils.ElapsedTimeOpts{Quiet: quiet})
 	// 👇 for example, EW command
 	if device.erase {
-		device.gg.SetHexColor(device.bgColor)
-		device.gg.Clear()
+		device.dc.SetHexColor(device.bgColor)
+		device.dc.Clear()
 	}
+	// 🔥 don't do this until we're done because we need the flag
+	defer func() { device.erase = false }()
 	// 👇 iterate over all changed cells
 	for !device.changes.IsEmpty() {
 		addr := device.changes.Pop()
 		attrs := device.attrs[addr]
 		byte := device.buffer[addr]
-		// 🔥 Go idiom for XOR
-		reverse := attrs.IsReverse() != ((attrs.IsBlink() || (addr == device.cursorAt)) && blinkOn)
+		color := attrs.GetColor(device.color)
 		visible := byte != 0x00 && !attrs.IsHidden()
-		x, y, w, h, baseline := device.BoundingBox(addr)
-		// 👇 clear background, except when the device has already been cleared
-		if (reverse && visible) || !device.erase {
-			device.gg.SetHexColor(utils.Ternary(reverse, attrs.GetColor(device.color), device.bgColor))
-			device.gg.DrawRectangle(x, y, w, h)
-			device.gg.Fill()
+		// 👇 quick exit: if not visible, and we've already cleared the device, we don't have to do anything
+		if !visible && device.erase {
+			break
 		}
-		// 👇 a zero byte is hidden, an SF or SFE order
-		if visible {
-			device.gg.SetHexColor(utils.Ternary(reverse, device.bgColor, attrs.GetColor(device.color)))
-			str := string(byte)
-			device.gg.DrawString(str, x, baseline)
+		// 🔥 != here is the Go idiom for XOR
+		reverse := attrs.IsReverse() != ((attrs.IsBlink() || (addr == device.cursorAt)) && blinkOn)
+		x, y, w, h, baseline := device.BoundingBox(addr)
+		// 👇 lookup the glyph in the cache
+		glyph := Glyph{
+			byte:    byte,
+			color:   color,
+			reverse: reverse,
+		}
+		if img, ok := device.glyphs[glyph]; ok {
+			// 👇 cache hit: just bitblt the glyph
+			device.dc.DrawImage(img, int(x), int(y))
+		} else {
+			// 👇 cache hit: draw the glyph in a temporary context
+			rgba := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
+			temp := gg.NewContextForRGBA(rgba)
+			temp.SetFontFace(device.face)
+			// 👇 clear background
+			if reverse {
+				temp.SetHexColor(utils.Ternary(reverse, color, device.bgColor))
+				temp.Clear()
+			}
+			// 👇 render the byte
+			temp.SetHexColor(utils.Ternary(reverse, device.bgColor, color))
+			str := string(utils.E2A([]uint8{byte}))
+			temp.DrawString(str, 0, baseline-y)
+			// 👇 now cache and bitblt the glyph
+			device.glyphs[glyph] = temp.Image()
+			device.dc.DrawImage(temp.Image(), int(x), int(y))
 		}
 	}
 }
@@ -251,7 +290,7 @@ func (device *Device) SignalStatus() {
 }
 
 func (device *Device) WriteCommands(out *OutboundDataStream) {
-	defer utils.ElapsedTime(time.Now(), "WriteCommands")
+	defer utils.ElapsedTime(time.Now(), "WriteCommands", utils.ElapsedTimeOpts{})
 	// 👇 dispatch on command
 	switch device.command {
 	case types.CommandLookup["RMA"]:
@@ -273,9 +312,9 @@ func (device *Device) WriteOrdersAndData(out *OutboundDataStream) {
 	var lastAttrs *Attributes = NewAttributes([]uint8{0x00})
 	for out.HasNext() {
 		// 👇 look at each byte to see if it is an order
-		order, _ := out.Next()
+		byte, _ := out.Next()
 		// 👇 dispatch on order
-		switch order {
+		switch byte {
 		case types.OrderLookup["PT"]:
 		case types.OrderLookup["GE"]:
 		case types.OrderLookup["SBA"]:
@@ -301,9 +340,10 @@ func (device *Device) WriteOrdersAndData(out *OutboundDataStream) {
 		case types.OrderLookup["MF"]:
 		case types.OrderLookup["RA"]:
 		// 👇 if it isn't an order, it's data
+		// 🔥 let's not convert the EBCDIC vyte to ASCII until we actually need to, as we'll cache glyphs by their EDCDIC value
 		default:
-			if order == 0x00 || order >= 0x40 {
-				device.PutBuffer(utils.E2A([]uint8{order})[0], lastAttrs)
+			if byte == 0x00 || byte >= 0x40 {
+				device.PutBuffer(byte, lastAttrs)
 			}
 		}
 	}
