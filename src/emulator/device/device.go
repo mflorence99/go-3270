@@ -36,26 +36,33 @@ type Device struct {
 	rows         int
 	size         int
 
-	// 👇 model the device buffer
-	addr     int
-	attrs    []*Attributes
-	blinker  chan struct{}
-	blinks   map[int]struct{}
-	buffer   []uint8
-	changes  *utils.Stack[int]
-	command  uint8
-	cursorAt int
-	erase    bool
-	wcc      *WCC
+	// 👇 model the 3270 internals
+	addr      int
+	alarm     bool
+	attrs     []*Attributes
+	blinker   chan struct{}
+	blinks    map[int]struct{}
+	buffer    []uint8
+	changes   *utils.Stack[int]
+	command   uint8
+	cursorAt  int
+	erase     bool
+	error     bool
+	locked    bool
+	message   string
+	numeric   bool
+	protected bool
+	waiting   bool
 
 	// 👇 the glyph cache
 	glyphs map[Glyph]image.Image
 }
 
 type Glyph struct {
-	byte    uint8
-	color   string
-	reverse bool
+	byte       uint8
+	color      string
+	reverse    bool
+	underscore bool
 }
 
 func NewDevice(
@@ -72,9 +79,12 @@ func NewDevice(
 	paddedHeight float64,
 	paddedWidth float64) *Device {
 	device := new(Device)
+	// 👇 initialize underlying data structures
 	device.bus = bus
+	device.dc = gg.NewContextForRGBA(rgba)
 	device.face = face
-	// 👇 initialize properties
+	device.glyphs = make(map[Glyph]image.Image)
+	// 👇 initialize inherited properties
 	device.bgColor = bgColor
 	device.color = color
 	device.cols = cols
@@ -85,12 +95,21 @@ func NewDevice(
 	device.paddedWidth = paddedWidth
 	device.rows = rows
 	device.size = int(device.cols * device.rows)
-	// 👇 prepare rendering context
-	device.dc = gg.NewContextForRGBA(rgba)
-	// 👇 initialize buffer
-	device.InitializeBuffer()
-	// 👇 initialize glyph cache
-	device.glyphs = make(map[Glyph]image.Image)
+	// 👇 initial device status
+	device.addr = 0
+	device.alarm = false
+	device.attrs = make([]*Attributes, device.size)
+	device.blinker = make(chan struct{})
+	device.blinks = make(map[int]struct{}, 10)
+	device.buffer = make([]uint8, device.size)
+	device.cursorAt = 0
+	device.erase = false
+	device.error = false
+	device.locked = true
+	device.message = ""
+	device.numeric = false
+	device.protected = false
+	device.waiting = false
 	return device
 }
 
@@ -115,15 +134,21 @@ func (device *Device) Close() {
 	}
 }
 
-func (device *Device) InitializeBuffer() {
+func (device *Device) EraseBuffer() {
 	device.addr = 0
 	device.attrs = make([]*Attributes, device.size)
 	device.blinker = make(chan struct{})
-	// 👇 capacity is just a WAG, but blinking isn't common
-	device.blinks = make(map[int]struct{}, 10)
+	device.blinks = make(map[int]struct{})
 	device.buffer = make([]uint8, device.size)
 	device.cursorAt = 0
 	device.erase = true
+}
+
+func (device *Device) HandleKeystroke(code string, key string, alt bool, ctrl bool, shift bool) {
+	fmt.Printf("HandleKeystroke(code=%s key=%s alt=%t ctrl=%t shift=%t)\n", code, key, alt, ctrl, shift)
+	if device.locked {
+	}
+	device.SignalStatus()
 }
 
 func (device *Device) MakeFramesFromBytes(bytes []uint8) []*OutboundDataStream {
@@ -142,6 +167,96 @@ func (device *Device) MakeFramesFromBytes(bytes []uint8) []*OutboundDataStream {
 		whole.Skip(len(types.LT))
 	}
 	return frames
+}
+
+func (device *Device) ProcessCommands(out *OutboundDataStream) {
+	defer utils.ElapsedTime(time.Now(), "ProcessCommands", utils.ElapsedTimeOpts{})
+	// 👇 dispatch on command
+	switch device.command {
+	case types.CommandLookup["RMA"]:
+	case types.CommandLookup["EAU"]:
+	case types.CommandLookup["EWA"]:
+		device.EraseBuffer()
+		device.ProcessWCC(out)
+		device.ProcessOrdersAndData(out)
+	case types.CommandLookup["W"]:
+		device.ProcessWCC(out)
+		device.ProcessOrdersAndData(out)
+	case types.CommandLookup["RB"]:
+	case types.CommandLookup["WSF"]:
+	case types.CommandLookup["EW"]:
+		device.EraseBuffer()
+		device.ProcessWCC(out)
+		device.ProcessOrdersAndData(out)
+	case types.CommandLookup["RM"]:
+	}
+}
+
+func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
+	defer utils.ElapsedTime(time.Now(), "ProcessOrdersAndData", utils.ElapsedTimeOpts{})
+	var lastAttrs *Attributes = NewAttributes([]uint8{0x00})
+	for out.HasNext() {
+		// 👇 look at each byte to see if it is an order
+		byte, _ := out.Next()
+		// 👇 dispatch on order
+		switch byte {
+		case types.OrderLookup["PT"]:
+		case types.OrderLookup["GE"]:
+		case types.OrderLookup["SBA"]:
+			addr, _ := out.NextSlice(2)
+			device.addr = utils.AddrFromBytes(addr)
+			if device.addr >= device.size {
+				SendMessage(Message{bus: device.bus, eventType: "panic", args: []any{"Data requires a device with a larger screen"}})
+				return
+			}
+		case types.OrderLookup["EUA"]:
+		case types.OrderLookup["IC"]:
+			device.cursorAt = device.addr
+		case types.OrderLookup["SF"]:
+			attrs, _ := out.NextSlice(1)
+			lastAttrs = NewAttributes(attrs)
+			device.PutBuffer(0x00, lastAttrs)
+		case types.OrderLookup["SA"]:
+		case types.OrderLookup["SFE"]:
+			count, _ := out.Next()
+			attrs, _ := out.NextSlice(int(count) * 2)
+			lastAttrs = NewAttributes(attrs)
+			device.PutBuffer(0x00, lastAttrs)
+		case types.OrderLookup["MF"]:
+		case types.OrderLookup["RA"]:
+		// 👇 if it isn't an order, it's data
+		// 🔥 let's not convert the EBCDIC byte to ASCII until we actually need to, as we'll cache glyphs by their EDCDIC value
+		default:
+			if byte == 0x00 || byte >= 0x40 {
+				device.PutBuffer(byte, lastAttrs)
+			}
+		}
+	}
+	// 👇 leave the buffer address at the last cursor position
+	device.addr = device.cursorAt
+}
+
+func (device *Device) ProcessWCC(out *OutboundDataStream) {
+	u8, err := out.Next()
+	if err != nil {
+		SendMessage(Message{bus: device.bus, eventType: "panic", args: []any{fmt.Sprintf("Unable to extract WCC: %s", err.Error())}})
+		return
+	}
+	wcc := NewWCC(u8)
+	fmt.Println(wcc.ToString())
+	// 👇 honor WCC instructions
+	if wcc.DoAlarm() {
+		device.locked = false
+	}
+	if wcc.DoUnlock() {
+		device.locked = false
+	}
+	if wcc.DoReset() {
+		// TODO implement DoReset
+	}
+	if wcc.DoResetMDT() {
+		// TODO implement DoReset
+	}
 }
 
 func (device *Device) PutBuffer(byte uint8, attrs *Attributes) {
@@ -181,18 +296,8 @@ func (device *Device) ReceiveFromApp(bytes []uint8) {
 		}
 		device.command = cmd
 		fmt.Printf("COMMAND=%s\n", types.Command[device.command])
-		// 👇 for all but WSF, extract WCC
-		if device.command != types.CommandLookup["WSF"] {
-			u8, err := out.Next()
-			if err != nil {
-				SendMessage(Message{bus: device.bus, eventType: "panic", args: []any{fmt.Sprintf("Unable to extract WCC: %s", err.Error())}})
-				return
-			}
-			device.wcc = NewWCC(u8)
-			fmt.Println(device.wcc.ToString())
-		}
 		// 👇 dispatch on command
-		device.WriteCommands(out)
+		device.ProcessCommands(out)
 	}
 	// 👇 now we can render the buffer to the drawing context --
 	device.SignalStatus()
@@ -216,7 +321,7 @@ func (device *Device) RenderBlinkingAddrs(quit <-chan struct{}) {
 				device.changes.Push(addr)
 			}
 			// 🔥 after RenderBuffer is called, the "changes" stack is empty
-			device.RenderBuffer(false, (ix%2) == 0)
+			device.RenderBuffer(true, (ix%2) == 0)
 			time.Sleep(500 * time.Millisecond)
 		}
 	}
@@ -237,6 +342,7 @@ func (device *Device) RenderBuffer(quiet bool, blinkOn bool) {
 		attrs := device.attrs[addr]
 		byte := device.buffer[addr]
 		color := attrs.GetColor(device.color)
+		underscore := attrs.IsUnderscore()
 		visible := byte != 0x00 && !attrs.IsHidden()
 		// 👇 quick exit: if not visible, and we've already cleared the device, we don't have to do anything
 		if !visible && device.erase {
@@ -247,9 +353,10 @@ func (device *Device) RenderBuffer(quiet bool, blinkOn bool) {
 		x, y, w, h, baseline := device.BoundingBox(addr)
 		// 👇 lookup the glyph in the cache
 		glyph := Glyph{
-			byte:    byte,
-			color:   color,
-			reverse: reverse,
+			byte:       byte,
+			color:      color,
+			reverse:    reverse,
+			underscore: underscore,
 		}
 		if img, ok := device.glyphs[glyph]; ok {
 			// 👇 cache hit: just bitblt the glyph
@@ -260,14 +367,18 @@ func (device *Device) RenderBuffer(quiet bool, blinkOn bool) {
 			temp := gg.NewContextForRGBA(rgba)
 			temp.SetFontFace(device.face)
 			// 👇 clear background
-			if reverse {
-				temp.SetHexColor(utils.Ternary(reverse, color, device.bgColor))
-				temp.Clear()
-			}
+			temp.SetHexColor(utils.Ternary(reverse, color, device.bgColor))
+			temp.Clear()
 			// 👇 render the byte
 			temp.SetHexColor(utils.Ternary(reverse, device.bgColor, color))
 			str := string(utils.E2A([]uint8{byte}))
 			temp.DrawString(str, 0, baseline-y)
+			if underscore {
+				temp.SetLineWidth(2)
+				temp.MoveTo(0, h-1)
+				temp.LineTo(w, h-1)
+				temp.Stroke()
+			}
 			// 👇 now cache and bitblt the glyph
 			device.glyphs[glyph] = temp.Image()
 			device.dc.DrawImage(temp.Image(), int(x), int(y))
@@ -277,74 +388,14 @@ func (device *Device) RenderBuffer(quiet bool, blinkOn bool) {
 
 func (device *Device) SignalStatus() {
 	status := map[string]any{
-		"alarm":     false,
+		"alarm":     device.alarm,
 		"cursorAt":  device.cursorAt,
-		"error":     false,
-		"locked":    false,
-		"message":   "",
-		"numeric":   false,
-		"protected": false,
-		"waiting":   false,
+		"error":     device.error,
+		"locked":    device.locked,
+		"message":   device.message,
+		"numeric":   device.numeric,
+		"protected": device.protected,
+		"waiting":   device.waiting,
 	}
 	SendMessage(Message{bus: device.bus, eventType: "status", params: status})
-}
-
-func (device *Device) WriteCommands(out *OutboundDataStream) {
-	defer utils.ElapsedTime(time.Now(), "WriteCommands", utils.ElapsedTimeOpts{})
-	// 👇 dispatch on command
-	switch device.command {
-	case types.CommandLookup["RMA"]:
-	case types.CommandLookup["EAU"]:
-	case types.CommandLookup["EWA"]:
-		device.InitializeBuffer()
-		device.WriteOrdersAndData(out)
-	case types.CommandLookup["W"]:
-	case types.CommandLookup["RB"]:
-	case types.CommandLookup["WSF"]:
-	case types.CommandLookup["EW"]:
-		device.InitializeBuffer()
-		device.WriteOrdersAndData(out)
-	case types.CommandLookup["RM"]:
-	}
-}
-
-func (device *Device) WriteOrdersAndData(out *OutboundDataStream) {
-	var lastAttrs *Attributes = NewAttributes([]uint8{0x00})
-	for out.HasNext() {
-		// 👇 look at each byte to see if it is an order
-		byte, _ := out.Next()
-		// 👇 dispatch on order
-		switch byte {
-		case types.OrderLookup["PT"]:
-		case types.OrderLookup["GE"]:
-		case types.OrderLookup["SBA"]:
-			addr, _ := out.NextSlice(2)
-			device.addr = utils.AddrFromBytes(addr)
-			if device.addr >= device.size {
-				SendMessage(Message{bus: device.bus, eventType: "panic", args: []any{"Data requires a device with a larger screen"}})
-				return
-			}
-		case types.OrderLookup["EUA"]:
-		case types.OrderLookup["IC"]:
-			device.cursorAt = device.addr
-		case types.OrderLookup["SF"]:
-			attrs, _ := out.NextSlice(1)
-			lastAttrs = NewAttributes(attrs)
-			device.PutBuffer(0x00, lastAttrs)
-		case types.OrderLookup["SA"]:
-		case types.OrderLookup["SFE"]:
-			count, _ := out.Next()
-			attrs, _ := out.NextSlice(int(count) * 2)
-			lastAttrs = NewAttributes(attrs)
-			device.PutBuffer(0x00, lastAttrs)
-		case types.OrderLookup["MF"]:
-		case types.OrderLookup["RA"]:
-		// 👇 if it isn't an order, it's data
-		// 🔥 let's not convert the EBCDIC vyte to ASCII until we actually need to, as we'll cache glyphs by their EDCDIC value
-		default:
-			if byte == 0x00 || byte >= 0x40 {
-				device.PutBuffer(byte, lastAttrs)
-			}
-		}
-	}
 }

@@ -97,7 +97,7 @@ func NewGo3270(this js.Value, args []js.Value) any {
 			return nil
 		}),
 		"keystroke": js.FuncOf(func(this js.Value, args []js.Value) any {
-			go3270.Keystroke(args[0].String(), args[1].String(), args[2].Bool(), args[3].Bool(), args[4].Bool())
+			go3270.HandleKeystroke(args[0].String(), args[1].String(), args[2].Bool(), args[3].Bool(), args[4].Bool())
 			return nil
 		}),
 		"receiveFromApp": js.FuncOf(func(this js.Value, args []js.Value) any {
@@ -154,9 +154,9 @@ func (go3270 *Go3270) Close() {
 	go3270.bus.Unsubscribe("go3270", go3270Message)
 }
 
-func (go3270 *Go3270) Keystroke(code string, key string, alt bool, ctrl bool, shift bool) {
-	// 🔥 simulate handling of Keystroke
-	js.Global().Get("console").Call("log", fmt.Sprintf("%%ccode=%s %%ckey=%s %%calt=%t ctrl=%t shift=%t", code, key, alt, ctrl, shift), "color: coral", "color: skyblue", "color: gray")
+func (go3270 *Go3270) HandleKeystroke(code string, key string, alt bool, ctrl bool, shift bool) {
+	// 👇 just forward to device
+	go3270.device.HandleKeystroke(code, key, alt, ctrl, shift)
 }
 
 func (go3270 *Go3270) ReceiveFromApp(u8in js.Value) {

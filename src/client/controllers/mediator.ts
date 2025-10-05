@@ -73,7 +73,7 @@ export class Mediator implements ReactiveController {
   hostConnected(): void {
     // 👇 create an audio element to sound alarm
     this.#alarm = document.createElement('audio');
-    this.#alarm.src = 'assets/ding.mp3';
+    this.#alarm.src = 'assets/beep.wav';
     // 👇 this comes from the Go code, requesting UI action
     window.addEventListener('go3270', this.#go3270Message);
     // 👇 these are pure UI events
