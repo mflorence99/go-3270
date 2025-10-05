@@ -38,7 +38,7 @@ type Device struct {
 	addr     int
 	attrs    []*Attributes
 	blinker  chan struct{}
-	blinks   map[int]bool
+	blinks   map[int]struct{}
 	buffer   []uint8
 	changes  *utils.Stack[int]
 	command  uint8
@@ -104,7 +104,7 @@ func (device *Device) InitializeBuffer() {
 	device.attrs = make([]*Attributes, device.size)
 	device.blinker = make(chan struct{})
 	// 👇 capacity is just a WAG, but blinking isn't common
-	device.blinks = make(map[int]bool, 10)
+	device.blinks = make(map[int]struct{}, 10)
 	device.buffer = make([]uint8, device.size)
 	device.cursorAt = 0
 	device.erase = true
@@ -131,7 +131,7 @@ func (device *Device) MakeFramesFromBytes(bytes []uint8) []*OutboundDataStream {
 func (device *Device) PutBuffer(byte uint8, attrs *Attributes) {
 	device.attrs[device.addr] = attrs
 	if attrs.IsBlink() {
-		device.blinks[device.addr] = true
+		device.blinks[device.addr] = struct{}{}
 	} else {
 		delete(device.blinks, device.addr)
 	}
