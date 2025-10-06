@@ -138,6 +138,9 @@ func (device *Device) Close() {
 func (device *Device) EraseBuffer() {
 	device.addr = 0
 	device.attrs = make([]*Attributes, device.size)
+	for ix := range device.attrs {
+		device.attrs[ix] = NewAttributes([]uint8{0x00})
+	}
 	device.blinker = make(chan struct{})
 	device.blinks = make(map[int]struct{})
 	device.buffer = make([]uint8, device.size)

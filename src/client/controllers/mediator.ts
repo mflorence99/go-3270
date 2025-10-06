@@ -79,7 +79,7 @@ export class Mediator implements ReactiveController {
     // 👇 these are pure UI events
     window.addEventListener('beforeunload', this.#disconnect);
     window.addEventListener('disconnect', this.#disconnect);
-    window.addEventListener('keyup', this.#keystroke);
+    window.addEventListener('keydown', this.#keystroke);
   }
 
   hostDisconnected(): void {
@@ -87,7 +87,7 @@ export class Mediator implements ReactiveController {
     window.addEventListener('go3270', this.#go3270Message);
     window.removeEventListener('beforeunload', this.#disconnect);
     window.removeEventListener('disconnect', this.#disconnect);
-    window.removeEventListener('keyup', this.#keystroke);
+    window.removeEventListener('keydown', this.#keystroke);
   }
 
   keystroke(evt: KeyboardEvent): void {
