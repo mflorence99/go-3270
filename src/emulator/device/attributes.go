@@ -6,7 +6,7 @@ import (
 
 type Attributes struct {
 	blink      bool
-	color      uint8
+	color      byte
 	hidden     bool
 	highlight  bool
 	modified   bool
@@ -16,10 +16,10 @@ type Attributes struct {
 	underscore bool
 }
 
-func NewAttributes(bytes []uint8) *Attributes {
+func NewAttributes(bytes []byte) *Attributes {
 	// 👇 quick exit for one-byte attribute
 	if len(bytes) == 1 {
-		return NewAttributes([]uint8{types.TypeCodeLookup["BASIC"], bytes[0]})
+		return NewAttributes([]byte{types.TypeCodeLookup["BASIC"], bytes[0]})
 	}
 	// 👇 now pretend we have an extended attribute and analze bytes in pairs
 	attrs := new(Attributes)

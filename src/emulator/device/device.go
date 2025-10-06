@@ -43,9 +43,9 @@ type Device struct {
 	attrs     []*Attributes
 	blinker   chan struct{}
 	blinks    map[int]struct{}
-	buffer    []uint8
+	buffer    []byte
 	changes   *utils.Stack[int]
-	command   uint8
+	command   byte
 	cursorAt  int
 	erase     bool
 	error     bool
@@ -60,7 +60,7 @@ type Device struct {
 }
 
 type Glyph struct {
-	byte       uint8
+	byte       byte
 	color      string
 	reverse    bool
 	underscore bool
@@ -102,7 +102,7 @@ func NewDevice(
 	device.attrs = make([]*Attributes, device.size)
 	device.blinker = make(chan struct{})
 	device.blinks = make(map[int]struct{}, 10)
-	device.buffer = make([]uint8, device.size)
+	device.buffer = make([]byte, device.size)
 	device.cursorAt = 0
 	device.erase = false
 	device.error = false
@@ -140,11 +140,11 @@ func (device *Device) EraseBuffer() {
 	device.attrs = make([]*Attributes, device.size)
 	// 👇 initialize with ptotected fields
 	for ix := range device.attrs {
-		device.attrs[ix] = NewAttributes([]uint8{0b00100000})
+		device.attrs[ix] = NewAttributes([]byte{0b00100000})
 	}
 	device.blinker = make(chan struct{})
 	device.blinks = make(map[int]struct{})
-	device.buffer = make([]uint8, device.size)
+	device.buffer = make([]byte, device.size)
 	device.cursorAt = 0
 	device.erase = true
 }
@@ -176,7 +176,7 @@ func (device *Device) HandleKeystroke(code string, key string, alt bool, ctrl bo
 	device.SignalStatus()
 }
 
-func (device *Device) MakeFramesFromBytes(bytes []uint8) []*OutboundDataStream {
+func (device *Device) MakeFramesFromBytes(bytes []byte) []*OutboundDataStream {
 	// 👇 we know there's going to be one frame, and more isn't common
 	frames := make([]*OutboundDataStream, 0)
 	whole := NewOutboundDataStream(&bytes)
@@ -253,7 +253,7 @@ func (device *Device) ProcessCommands(out *OutboundDataStream) {
 
 func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 	defer utils.ElapsedTime(time.Now(), "ProcessOrdersAndData")
-	var lastAttrs *Attributes = NewAttributes([]uint8{0x00})
+	var lastAttrs *Attributes = NewAttributes([]byte{0x00})
 	for out.HasNext() {
 		// 👇 look at each byte to see if it is an order
 		byte, _ := out.Next()
@@ -296,12 +296,12 @@ func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 }
 
 func (device *Device) ProcessWCC(out *OutboundDataStream) {
-	u8, err := out.Next()
+	byte, err := out.Next()
 	if err != nil {
 		SendMessage(Message{bus: device.bus, eventType: "panic", args: []any{fmt.Sprintf("Unable to extract WCC: %s", err.Error())}})
 		return
 	}
-	wcc := NewWCC(u8)
+	wcc := NewWCC(byte)
 	fmt.Println(wcc.ToString())
 	// 👇 honor WCC instructions
 	if wcc.DoAlarm() {
@@ -318,7 +318,7 @@ func (device *Device) ProcessWCC(out *OutboundDataStream) {
 	}
 }
 
-func (device *Device) PutBuffer(byte uint8, attrs *Attributes) {
+func (device *Device) PutBuffer(byte byte, attrs *Attributes) {
 	device.attrs[device.addr] = attrs
 	if attrs.IsBlink() {
 		device.blinks[device.addr] = struct{}{}
@@ -334,7 +334,7 @@ func (device *Device) PutBuffer(byte uint8, attrs *Attributes) {
 	}
 }
 
-func (device *Device) ReceiveFromApp(bytes []uint8) {
+func (device *Device) ReceiveFromApp(bytes []byte) {
 	// 👇 reset any binking
 	if device.blinker != nil {
 		close(device.blinker)
@@ -403,10 +403,10 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 	for !device.changes.IsEmpty() {
 		addr := device.changes.Pop()
 		attrs := device.attrs[addr]
-		byte := device.buffer[addr]
+		cell := device.buffer[addr]
 		color := attrs.GetColor(device.color)
 		underscore := attrs.IsUnderscore()
-		visible := byte != 0x00 && !attrs.IsHidden()
+		visible := cell != 0x00 && !attrs.IsHidden()
 		// 👇 quick exit: if not visible, and we've already cleared the device, we don't have to do anything
 		if !visible && device.erase {
 			break
@@ -417,7 +417,7 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 		x, y, w, h, baseline := device.BoundingBox(addr)
 		// 👇 lookup the glyph in the cache
 		glyph := Glyph{
-			byte:       byte,
+			byte:       cell,
 			color:      color,
 			reverse:    reverse,
 			underscore: underscore,
@@ -435,7 +435,7 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 			temp.Clear()
 			// 👇 render the byte
 			temp.SetHexColor(utils.Ternary(reverse, device.bgColor, color))
-			str := string(utils.E2A([]uint8{byte}))
+			str := string(utils.E2A([]byte{cell}))
 			temp.DrawString(str, 0, baseline-y)
 			if underscore {
 				temp.SetLineWidth(2)

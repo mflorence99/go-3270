@@ -6,7 +6,7 @@ package utils
 
 // 🔥 by skipping the first 64 entries and starting on line 64, it's easy to read the EBCDIC character as the line # and the constant as its ASCII equivalent
 
-var EBCDIC = []uint8{
+var EBCDIC = []byte{
 	// start on line 64 to make reconciliation easier
 	// start on line 64 to make reconciliation easier
 	// start on line 64 to make reconciliation easier
@@ -255,10 +255,10 @@ var EBCDIC = []uint8{
 	' ',
 }
 
-var ASCII = [256]uint8{}
+var ASCII = [256]byte{}
 
-func A2E(a []uint8) []uint8 {
-	e := make([]uint8, len(a))
+func A2E(a []byte) []byte {
+	e := make([]byte, len(a))
 	for ix := 0; ix < len(a); ix++ {
 		if a[ix] == ' ' {
 			e[ix] = 0x40
@@ -269,8 +269,8 @@ func A2E(a []uint8) []uint8 {
 	return e
 }
 
-func E2A(e []uint8) []uint8 {
-	a := make([]uint8, len(e))
+func E2A(e []byte) []byte {
+	a := make([]byte, len(e))
 	for ix := 0; ix < len(e); ix++ {
 		if e[ix] >= 64 {
 			a[ix] = EBCDIC[e[ix]-64]
@@ -283,7 +283,7 @@ func E2A(e []uint8) []uint8 {
 
 // 🟦 3270 buffer address conversions
 
-var six2e = []uint8{
+var six2e = []byte{
 	0x40, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7,
 	0xC8, 0xC9, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F,
 	0x50, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7,
@@ -294,7 +294,7 @@ var six2e = []uint8{
 	0xF8, 0xF9, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F,
 }
 
-func AddrFromBytes(bytes []uint8) int {
+func AddrFromBytes(bytes []byte) int {
 	addr := int(bytes[0])
 	addr &= 0b00111111
 	addr = addr << 6
@@ -302,8 +302,8 @@ func AddrFromBytes(bytes []uint8) int {
 	return addr
 }
 
-func AddrToBytes(addr int) []uint8 {
-	bytes := make([]uint8, 2)
+func AddrToBytes(addr int) []byte {
+	bytes := make([]byte, 2)
 	bytes[0] = six2e[(addr>>6)&0b00111111]
 	bytes[1] = six2e[addr&0b00111111]
 	return bytes
@@ -314,6 +314,6 @@ func AddrToBytes(addr int) []uint8 {
 func init() {
 	// 👇 the EBCDIC table starts at 0x40 because of the difficulty of eyeballing 64 0x00's
 	for ix := 0; ix < len(EBCDIC); ix++ {
-		ASCII[EBCDIC[ix]] = uint8(ix + 0x40)
+		ASCII[EBCDIC[ix]] = byte(ix + 0x40)
 	}
 }

@@ -14,25 +14,25 @@ func TestConversion_Init(t *testing.T) {
 }
 
 func TestConversion_A2E(t *testing.T) {
-	a := []uint8{'H', 'E', 'L', 'L', 'O', ' '}
-	e := []uint8{200, 197, 211, 211, 214, 64}
+	a := []byte{'H', 'E', 'L', 'L', 'O', ' '}
+	e := []byte{200, 197, 211, 211, 214, 64}
 	assert.True(t, slices.Equal(e, utils.A2E(a)))
 }
 
 func TestConversion_E2A(t *testing.T) {
-	a := []uint8{'G', 'O', 'O', 'D', 'B', 'Y', 'E', ' '}
-	e := []uint8{199, 214, 214, 196, 194, 232, 197, 64}
+	a := []byte{'G', 'O', 'O', 'D', 'B', 'Y', 'E', ' '}
+	e := []byte{199, 214, 214, 196, 194, 232, 197, 64}
 	assert.True(t, slices.Equal(a, utils.E2A(e)))
 }
 
 func TestConversion_AddrFromBytes(t *testing.T) {
 	addr := 1
-	bytes := []uint8{0x40, 0xC1}
+	bytes := []byte{0x40, 0xC1}
 	assert.True(t, addr == utils.AddrFromBytes(bytes))
 }
 
 func TestConversion_AddrToBytes(t *testing.T) {
 	addr := 79
-	bytes := []uint8{0xC1, 0x4F}
+	bytes := []byte{0xC1, 0x4F}
 	assert.True(t, slices.Equal(bytes, utils.AddrToBytes(addr)))
 }

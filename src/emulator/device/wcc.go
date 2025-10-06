@@ -9,7 +9,7 @@ type WCC struct {
 	unlock   bool
 }
 
-func NewWCC(byte uint8) *WCC {
+func NewWCC(byte byte) *WCC {
 	wcc := new(WCC)
 	wcc.alarm = (byte & 0b00000100) != 0
 	wcc.reset = (byte & 0b01000000) != 0
@@ -34,8 +34,8 @@ func (wcc *WCC) DoUnlock() bool {
 	return wcc.unlock
 }
 
-func (wcc *WCC) ToByte() uint8 {
-	var byte uint8 = 0
+func (wcc *WCC) ToByte() byte {
+	var byte byte = 0
 	if wcc.alarm {
 		byte |= 0b00000100
 	}

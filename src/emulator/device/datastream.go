@@ -9,11 +9,11 @@ import (
 //    "Outbound" data flows from the application to the 3270 ie this code
 
 type OutboundDataStream struct {
-	bytes *[]uint8
+	bytes *[]byte
 	ix    int
 }
 
-func NewOutboundDataStream(bytes *[]uint8) *OutboundDataStream {
+func NewOutboundDataStream(bytes *[]byte) *OutboundDataStream {
 	stream := new(OutboundDataStream)
 	stream.bytes = bytes
 	stream.ix = 0
@@ -28,7 +28,7 @@ func (out *OutboundDataStream) HasNext() bool {
 	return out.ix < len(*out.bytes)
 }
 
-func (out *OutboundDataStream) Next() (uint8, error) {
+func (out *OutboundDataStream) Next() (byte, error) {
 	return out.nextImpl(false)
 }
 
@@ -44,23 +44,23 @@ func (out *OutboundDataStream) Next16() (uint16, error) {
 	return (uint16(hi) * 256) + uint16(lo), nil
 }
 
-func (out *OutboundDataStream) NextSlice(count int) ([]uint8, error) {
+func (out *OutboundDataStream) NextSlice(count int) ([]byte, error) {
 	return out.nextSliceImpl(count, false)
 }
 
-func (out *OutboundDataStream) NextSliceUntil(matches []uint8) ([]uint8, error) {
+func (out *OutboundDataStream) NextSliceUntil(matches []byte) ([]byte, error) {
 	return out.nextSliceUntilImpl(matches, false)
 }
 
-func (out *OutboundDataStream) Peek() (uint8, error) {
+func (out *OutboundDataStream) Peek() (byte, error) {
 	return out.nextImpl(true)
 }
 
-func (out *OutboundDataStream) PeekSlice(count int) ([]uint8, error) {
+func (out *OutboundDataStream) PeekSlice(count int) ([]byte, error) {
 	return out.nextSliceImpl(count, true)
 }
 
-func (out *OutboundDataStream) PeekSliceUntil(matches []uint8) ([]uint8, error) {
+func (out *OutboundDataStream) PeekSliceUntil(matches []byte) ([]byte, error) {
 	return out.nextSliceUntilImpl(matches, true)
 }
 
@@ -70,19 +70,19 @@ func (out *OutboundDataStream) Skip(count int) {
 
 // 👇 Helpers
 
-func (out *OutboundDataStream) nextImpl(peek bool) (uint8, error) {
+func (out *OutboundDataStream) nextImpl(peek bool) (byte, error) {
 	if out.HasNext() {
-		u8 := (*out.bytes)[out.ix]
+		byte := (*out.bytes)[out.ix]
 		if !peek {
 			out.ix += 1
 		}
-		return u8, nil
+		return byte, nil
 	} else {
 		return 0, errors.New("insufficient bytes in stream")
 	}
 }
 
-func (out *OutboundDataStream) nextSliceImpl(count int, peek bool) ([]uint8, error) {
+func (out *OutboundDataStream) nextSliceImpl(count int, peek bool) ([]byte, error) {
 	if out.HasEnough(count) {
 		end := out.ix + count
 		slice := (*out.bytes)[out.ix:end]
@@ -95,7 +95,7 @@ func (out *OutboundDataStream) nextSliceImpl(count int, peek bool) ([]uint8, err
 	}
 }
 
-func (out *OutboundDataStream) nextSliceUntilImpl(matches []uint8, peek bool) ([]uint8, error) {
+func (out *OutboundDataStream) nextSliceUntilImpl(matches []byte, peek bool) ([]byte, error) {
 	count := len(matches)
 	var ix = 0
 	for ix = out.ix; ix+count-1 < len(*out.bytes); ix++ {
@@ -117,27 +117,27 @@ func (out *OutboundDataStream) nextSliceUntilImpl(matches []uint8, peek bool) ([
 //    "Inbound" data flows from the 3270 ie this code to the application
 
 type InboundDataStream struct {
-	bytes []uint8
+	bytes []byte
 }
 
 func NewInboundDataStream() *InboundDataStream {
 	in := new(InboundDataStream)
-	in.bytes = []uint8{}
+	in.bytes = []byte{}
 	return in
 }
 
-func (in *InboundDataStream) Put(u8 uint8) []uint8 {
-	in.bytes = append(in.bytes, u8)
+func (in *InboundDataStream) Put(byte byte) []byte {
+	in.bytes = append(in.bytes, byte)
 	return in.bytes
 }
 
-func (in *InboundDataStream) Put16(u16 uint16) []uint8 {
-	in.bytes = append(in.bytes, uint8(u16>>8))
-	in.bytes = append(in.bytes, uint8(u16&0x00ff))
+func (in *InboundDataStream) Put16(u16 uint16) []byte {
+	in.bytes = append(in.bytes, byte(u16>>8))
+	in.bytes = append(in.bytes, byte(u16&0x00ff))
 	return in.bytes
 }
 
-func (in *InboundDataStream) PutSlice(slice []uint8) []uint8 {
+func (in *InboundDataStream) PutSlice(slice []byte) []byte {
 	in.bytes = append(in.bytes, slice...)
 	return in.bytes
 }

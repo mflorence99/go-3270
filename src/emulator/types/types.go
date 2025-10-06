@@ -2,7 +2,7 @@ package types
 
 // 🟦 AID
 
-var AID = map[uint8]string{
+var AID = map[byte]string{
 	0x88: "DEFAULT",
 	0x6D: "CLEAR",
 	0x7D: "ENTER",
@@ -35,12 +35,12 @@ var AID = map[uint8]string{
 	0x4C: "PF24",
 }
 
-var AIDLookup = make(map[string]uint8)
+var AIDLookup = make(map[string]byte)
 
 // 🟦 CLUT
 
 // 👁️ https://bitsavers.trailing-edge.com/pdf/ibm/3278/GA33-3056-0_3270_Information_Display_System_Color_and_Programmed_Symbols_3278_3279_3287_Sep1979.pdf?utm_source=chatgpt.com
-var CLUT = map[uint8][]string{
+var CLUT = map[byte][]string{
 	0xF0: {"#111138", "#505050"},
 	0xF1: {"#0078FF", "#3366CC"},
 	0xF2: {"#D40000", "#E06666"},
@@ -53,7 +53,7 @@ var CLUT = map[uint8][]string{
 
 // 🟦 Command
 
-var Command = map[uint8]string{
+var Command = map[byte]string{
 	0x6E: "RMA",
 	0x6F: "EAU",
 	0x7E: "EWA",
@@ -64,25 +64,25 @@ var Command = map[uint8]string{
 	0xF6: "RM",
 }
 
-var CommandLookup = make(map[string]uint8)
+var CommandLookup = make(map[string]byte)
 
 // 🟦 Highlight (attribute)
 
-var Highlight = map[uint8]string{
+var Highlight = map[byte]string{
 	0xF1: "BLINK",
 	0xF2: "REVERSE",
 	0xF4: "UNDERSCORE",
 }
 
-var HighlightLookup = make(map[string]uint8)
+var HighlightLookup = make(map[string]byte)
 
 // 🟦 LT (delineates outbound stream)
 
-var LT = []uint8{0xFF, 0xEF}
+var LT = []byte{0xFF, 0xEF}
 
 // 🟦 Op
 
-var Op = map[uint8]string{
+var Op = map[byte]string{
 	0x02: "Q",
 	0x03: "QL",
 	0x6E: "RMA",
@@ -91,11 +91,11 @@ var Op = map[uint8]string{
 	0xFF: "UNKNOWN",
 }
 
-var OpLookup = make(map[string]uint8)
+var OpLookup = make(map[string]byte)
 
 // 🟦 Order
 
-var Order = map[uint8]string{
+var Order = map[byte]string{
 	0x05: "PT",
 	0x08: "GE",
 	0x11: "SBA",
@@ -108,23 +108,23 @@ var Order = map[uint8]string{
 	0x3C: "RA",
 }
 
-var OrderLookup = make(map[string]uint8)
+var OrderLookup = make(map[string]byte)
 
 // 🟦 TypeCode (attribute)
 
-var TypeCode = map[uint8]string{
+var TypeCode = map[byte]string{
 	0xC0: "BASIC",
 	0x41: "HIGHLIGHT",
 	0x42: "COLOR",
 }
 
-var TypeCodeLookup = make(map[string]uint8)
+var TypeCodeLookup = make(map[string]byte)
 
 // 🟧 Global Initialization (runs before main)
 
 func init() {
-	origs := []map[uint8]string{AID, Command, Highlight, Op, Order, TypeCode}
-	reverseds := []map[string]uint8{AIDLookup, CommandLookup, HighlightLookup, OpLookup, OrderLookup, TypeCodeLookup}
+	origs := []map[byte]string{AID, Command, Highlight, Op, Order, TypeCode}
+	reverseds := []map[string]byte{AIDLookup, CommandLookup, HighlightLookup, OpLookup, OrderLookup, TypeCodeLookup}
 	for ix := 0; ix < len(origs); ix++ {
 		orig := origs[ix]
 		reversed := reverseds[ix]

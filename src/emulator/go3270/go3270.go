@@ -17,7 +17,7 @@ import (
 // 🔥 Hack alert! we must use extension {js, wasm} and we can't use symlinks, so this file is a copy of the font renamed
 
 //go:embed 3270Font.wasm
-var go3270Font []uint8
+var go3270Font []byte
 
 // 🟧 Bridge between Typescript UI and Go-powered emulator
 
@@ -30,7 +30,7 @@ type Go3270 struct {
 	device *device.Device
 
 	// 👇 manage frame rendering
-	lastImage     []uint8
+	lastImage     []byte
 	lastTimestamp float64
 	renderContext js.Func
 	reqID         js.Value
@@ -122,16 +122,16 @@ func (go3270 *Go3270) startRenderContextLoop(canvas js.Value, rgba *image.RGBA, 
 		if timestamp-go3270.lastTimestamp >= (1000 / maxFPS) {
 			if go3270.lastImage == nil || !slices.Equal(go3270.lastImage, rgba.Pix) {
 				// 🔥 I copied this from go-canvas where the author was worried about 3 separate copies -- I haven't figured how to reduce it to 2 even when using Uint8ClampedArray -- but it only takes ~1ms anyway
-				u8 := js.Global().Get("Uint8ClampedArray").New(len(rgba.Pix))
-				js.CopyBytesToJS(u8, rgba.Pix)
+				pixels := js.Global().Get("Uint8ClampedArray").New(len(rgba.Pix))
+				js.CopyBytesToJS(pixels, rgba.Pix)
 				canvasHeight := canvas.Get("offsetHeight")
 				canvasWidth := canvas.Get("offsetWidth")
 				ctx := canvas.Call("getContext", "2d")
-				pixels := ctx.Call("createImageData", canvasWidth, canvasHeight)
-				pixels.Get("data").Call("set", u8)
-				ctx.Call("putImageData", pixels, 0, 0)
+				img := ctx.Call("createImageData", canvasWidth, canvasHeight)
+				img.Get("data").Call("set", pixels)
+				ctx.Call("putImageData", img, 0, 0)
 				// 👇 set up for next time
-				go3270.lastImage = make([]uint8, len(rgba.Pix))
+				go3270.lastImage = make([]byte, len(rgba.Pix))
 				copy(go3270.lastImage, rgba.Pix)
 				go3270.lastTimestamp = timestamp
 			}
@@ -160,14 +160,14 @@ func (go3270 *Go3270) HandleKeystroke(code string, key string, alt bool, ctrl bo
 }
 
 func (go3270 *Go3270) ReceiveFromApp(u8in js.Value) {
-	bytes := make([]uint8, u8in.Get("length").Int())
+	bytes := make([]byte, u8in.Get("length").Int())
 	js.CopyBytesToGo(bytes, u8in)
 	go3270.device.ReceiveFromApp(bytes)
 }
 
 // 🟦 Messages from go test-able code sent to the UI for action
 
-func go3270Message(eventType string, bytes []uint8, params map[string]any, args []any) {
+func go3270Message(eventType string, bytes []byte, params map[string]any, args []any) {
 	// 👇 params and args may be nil
 	if params == nil {
 		params = map[string]any{}
@@ -176,11 +176,11 @@ func go3270Message(eventType string, bytes []uint8, params map[string]any, args 
 		params["args"] = args
 	}
 	// 👇 bytes may be nil, but if not convert to JS
-	var u8 js.Value
+	var jsBytes js.Value
 	if bytes != nil {
-		u8 = js.Global().Get("Uint8ClampedArray").New(len(bytes))
-		js.CopyBytesToJS(u8, bytes)
-		params["bytes"] = u8
+		jsBytes = js.Global().Get("Uint8ClampedArray").New(len(bytes))
+		js.CopyBytesToJS(jsBytes, bytes)
+		params["bytes"] = jsBytes
 	}
 	// 👇 dispatch event to JS
 	params["eventType"] = eventType

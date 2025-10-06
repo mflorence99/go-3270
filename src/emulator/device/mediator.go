@@ -11,7 +11,7 @@ import (
 type Message struct {
 	args      []any
 	bus       EventBus.Bus
-	bytes     []uint8
+	bytes     []byte
 	eventType string
 	params    map[string]any
 }
