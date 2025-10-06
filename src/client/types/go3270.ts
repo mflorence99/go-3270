@@ -1,5 +1,6 @@
 export type Go3270 = {
   close: () => void;
+  focussed: (focussed: boolean) => void;
   keystroke: (
     code: string,
     key: string,

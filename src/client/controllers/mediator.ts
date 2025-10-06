@@ -17,7 +17,9 @@ export class Mediator implements ReactiveController {
   #alarm!: HTMLAudioElement;
 
   // 👇 make sure "this" is right
+  #blur = this.focussed(false);
   #disconnect = this.disconnect.bind(this);
+  #focus = this.focussed(true);
   #go3270Message = this.go3270Message.bind(this);
   #keystroke = this.keystroke.bind(this);
 
@@ -28,6 +30,14 @@ export class Mediator implements ReactiveController {
   disconnect(): void {
     this.host.connector.disconnect();
     this.host.emulator.disconnect();
+  }
+
+  focussed(focussed: boolean): (evt: Event) => void {
+    return () => {
+      if (this.host.pageNum === Pages.emulator) {
+        this.host.emulator.focussed(focussed);
+      }
+    };
   }
 
   async go3270Message(evt: Event): Promise<void> {
@@ -78,7 +88,9 @@ export class Mediator implements ReactiveController {
     window.addEventListener('go3270', this.#go3270Message);
     // 👇 these are pure UI events
     window.addEventListener('beforeunload', this.#disconnect);
+    window.addEventListener('blur', this.#blur);
     window.addEventListener('disconnect', this.#disconnect);
+    window.addEventListener('focus', this.#focus);
     window.addEventListener('keydown', this.#keystroke);
   }
 
@@ -86,8 +98,10 @@ export class Mediator implements ReactiveController {
     this.#alarm.remove();
     window.addEventListener('go3270', this.#go3270Message);
     window.removeEventListener('beforeunload', this.#disconnect);
+    window.removeEventListener('blur', this.#blur);
     window.removeEventListener('disconnect', this.#disconnect);
     window.removeEventListener('keydown', this.#keystroke);
+    window.removeEventListener('focus', this.#focus);
   }
 
   keystroke(evt: KeyboardEvent): void {

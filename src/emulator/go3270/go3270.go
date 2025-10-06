@@ -3,6 +3,7 @@ package go3270
 import (
 	_ "embed"
 	"emulator/device"
+	"emulator/utils"
 	"fmt"
 	"image"
 	"math"
@@ -96,8 +97,12 @@ func NewGo3270(this js.Value, args []js.Value) any {
 			go3270.Close()
 			return nil
 		}),
+		"focussed": js.FuncOf(func(this js.Value, args []js.Value) any {
+			go3270.Focussed(args[0].Bool())
+			return nil
+		}),
 		"keystroke": js.FuncOf(func(this js.Value, args []js.Value) any {
-			go3270.HandleKeystroke(args[0].String(), args[1].String(), args[2].Bool(), args[3].Bool(), args[4].Bool())
+			go3270.Keystroke(args[0].String(), args[1].String(), args[2].Bool(), args[3].Bool(), args[4].Bool())
 			return nil
 		}),
 		"receiveFromApp": js.FuncOf(func(this js.Value, args []js.Value) any {
@@ -105,7 +110,7 @@ func NewGo3270(this js.Value, args []js.Value) any {
 			return nil
 		}),
 	}
-	// 🟦 Go WASM functions invoked by go test-able code
+	// 👇 Go WASM functions invoked by go test-able code
 	go3270.bus.Subscribe("go3270", go3270Message)
 	// 👇 start the requestAnimationFrame to render "gg" context changes
 	go3270.startRenderContextLoop(canvas, rgba, maxFPS)
@@ -154,9 +159,14 @@ func (go3270 *Go3270) Close() {
 	go3270.bus.Unsubscribe("go3270", go3270Message)
 }
 
-func (go3270 *Go3270) HandleKeystroke(code string, key string, alt bool, ctrl bool, shift bool) {
+func (go3270 *Go3270) Focussed(focussed bool) {
+	js.Global().Get("console").Call("log", utils.Ternary(focussed, "%cGo3270 has focus", "%cGo3270 loses focus"), "color: olivedrab")
+	go3270.device.Focussed(focussed)
+}
+
+func (go3270 *Go3270) Keystroke(code string, key string, alt bool, ctrl bool, shift bool) {
 	// 👇 just forward to device
-	go3270.device.HandleKeystroke(code, key, alt, ctrl, shift)
+	go3270.device.Keystroke(code, key, alt, ctrl, shift)
 }
 
 func (go3270 *Go3270) ReceiveFromApp(u8in js.Value) {

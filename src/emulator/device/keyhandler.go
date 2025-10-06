@@ -6,10 +6,21 @@ import (
 	"strings"
 )
 
-// 🟧 Handle keystrokes as fordwaed by UI
+// 🟧 Handle keystrokes as forwartded by UI
 
-func (device *Device) HandleKeystroke(code string, key string, alt bool, ctrl bool, shift bool) {
-	fmt.Printf("HandleKeystroke(code=%s key=%s alt=%t ctrl=%t shift=%t)\n", code, key, alt, ctrl, shift)
+func (device *Device) Focussed(focussed bool) {
+	device.changes = utils.NewStack[int](1)
+	device.changes.Push(device.cursorAt)
+	device.error = !focussed
+	device.focussed = focussed
+	device.message = utils.Ternary(focussed, "", "LOCKED")
+	device.SignalStatus()
+	device.RenderBuffer(RenderBufferOpts{blinkOn: focussed, quiet: true})
+}
+
+func (device *Device) Keystroke(code string, key string, alt bool, ctrl bool, shift bool) {
+	fmt.Printf("Keystroke(code=%s key=%s alt=%t ctrl=%t shift=%t)\n", code, key, alt, ctrl, shift)
+	device.changes = utils.NewStack[int](0)
 	// 👇 pre-analyze the key semantics
 	attrs := device.attrs[device.addr]
 	isData := len(key) == 1
@@ -20,7 +31,7 @@ func (device *Device) HandleKeystroke(code string, key string, alt bool, ctrl bo
 		device.alarm = true
 		// 👇 we can move the cursor anywhere we want to
 	} else if strings.HasPrefix(code, "Arrow") {
-		device.MoveCursor(code)
+		device.KeystrokeToMoveCursor(code)
 	} else if isData {
 		u8 := utils.A2E([]byte(key))[0]
 		device.UpdateByteAtCursor(u8)
@@ -31,9 +42,8 @@ func (device *Device) HandleKeystroke(code string, key string, alt bool, ctrl bo
 	device.RenderBuffer(RenderBufferOpts{blinkOn: true, quiet: true})
 }
 
-func (device *Device) MoveCursor(code string) {
+func (device *Device) KeystrokeToMoveCursor(code string) {
 	// 👇 reset changes stack
-	device.changes = utils.NewStack[int](2)
 	device.changes.Push(device.cursorAt)
 	var cursorTo int
 	switch code {

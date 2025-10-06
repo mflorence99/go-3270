@@ -44,6 +44,7 @@ type Device struct {
 	cursorAt  int
 	erase     bool
 	error     bool
+	focussed  bool
 	locked    bool
 	message   string
 	numeric   bool

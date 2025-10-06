@@ -66,7 +66,7 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 	// 👇 if requested, dump the buffer contents
 	if !opts.quiet {
 		params := map[string]any{
-			"color":  "coral",
+			"color":  "cyan",
 			"ebcdic": true,
 			"title":  "RenderBuffer",
 		}
@@ -85,7 +85,8 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 			break
 		}
 		// 🔥 != here is the Go idiom for XOR
-		blinkMe := (attrs.IsBlink() || (addr == device.cursorAt)) && opts.blinkOn
+		showCursor := (addr == device.cursorAt) && device.focussed
+		blinkMe := (attrs.IsBlink() || showCursor) && opts.blinkOn
 		reverse := attrs.IsReverse() != blinkMe
 		x, y, w, h, baseline := device.BoundingBox(addr)
 		// 👇 lookup the glyph in the cache

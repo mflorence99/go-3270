@@ -7,6 +7,7 @@ func (device *Device) ResetStatus() {
 	device.cursorAt = 0
 	device.erase = false
 	device.error = false
+	device.focussed = true
 	device.locked = true
 	device.message = ""
 	device.numeric = false
