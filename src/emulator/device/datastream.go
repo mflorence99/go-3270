@@ -1,8 +1,8 @@
 package device
 
 import (
+	"bytes"
 	"errors"
-	"slices"
 )
 
 // 🟧 Model outbound 3270 data as a stream
@@ -91,26 +91,23 @@ func (out *OutboundDataStream) nextSliceImpl(count int, peek bool) ([]byte, erro
 		}
 		return slice, nil
 	} else {
-		return nil, errors.New("insufficient bytes in stream")
+		rem := (*out.u8s)[out.ix:]
+		return rem, errors.New("insufficient bytes in stream")
 	}
 }
 
 func (out *OutboundDataStream) nextSliceUntilImpl(matches []byte, peek bool) ([]byte, error) {
-	count := len(matches)
-	var ix = 0
-	for ix = out.ix; ix+count-1 < len(*out.u8s); ix++ {
-		matched := (*out.u8s)[ix : ix+count]
-		if slices.Equal(matched, matches) {
-			slice := (*out.u8s)[out.ix:ix]
-			if !peek {
-				out.ix = ix
-			}
-			return slice, nil
+	rem := (*out.u8s)[out.ix:]
+	ix := bytes.Index(rem, matches)
+	if ix == -1 {
+		return rem, errors.New("no matches found in stream")
+	} else {
+		slice := rem[0:ix]
+		if !peek {
+			out.ix += ix
 		}
+		return slice, nil
 	}
-	// 👇 if no match, return slice to end
-	slice := (*out.u8s)[out.ix:len(*out.u8s)]
-	return slice, errors.New("no matches found in stream")
 }
 
 // 🟧 Model inbound 3270 data as a stream

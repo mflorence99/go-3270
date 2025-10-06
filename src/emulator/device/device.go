@@ -1,6 +1,7 @@
 package device
 
 import (
+	"bytes"
 	"emulator/types"
 	"emulator/utils"
 	"fmt"
@@ -137,14 +138,14 @@ func (device *Device) Close() {
 
 func (device *Device) EraseBuffer() {
 	device.addr = 0
-	device.attrs = make([]*Attributes, device.size)
+	clear(device.attrs)
 	// 👇 initialize with ptotected fields
 	for ix := range device.attrs {
 		device.attrs[ix] = NewAttributes([]byte{0b00100000})
 	}
 	device.blinker = make(chan struct{})
-	device.blinks = make(map[int]struct{})
-	device.buffer = make([]byte, device.size)
+	clear(device.blinks)
+	clear(device.buffer)
 	device.cursorAt = 0
 	device.erase = true
 }
@@ -177,19 +178,13 @@ func (device *Device) HandleKeystroke(code string, key string, alt bool, ctrl bo
 }
 
 func (device *Device) MakeFramesFromBytes(u8s []byte) []*OutboundDataStream {
-	// 👇 we know there's going to be one frame, and more isn't common
+	slices := bytes.SplitAfter(u8s, types.LT)
 	frames := make([]*OutboundDataStream, 0)
-	whole := NewOutboundDataStream(&u8s)
-	for {
-		slice, err := whole.NextSliceUntil(types.LT)
-		if len(slice) > 0 {
-			frame := NewOutboundDataStream(&slice)
+	for ix := range slices {
+		if len(slices[ix]) > 0 {
+			frame := NewOutboundDataStream(&slices[ix])
 			frames = append(frames, frame)
 		}
-		if err != nil {
-			break
-		}
-		whole.Skip(len(types.LT))
 	}
 	return frames
 }

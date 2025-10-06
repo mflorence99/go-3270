@@ -62,7 +62,7 @@ func TestOutboundDataStream_NextSlice(t *testing.T) {
 	assert.True(t, slices.Equal(slice, []byte{0x02, 0x03, 0x04, 0x05}))
 	assert.True(t, err == nil)
 	slice, err = out.NextSlice(4)
-	assert.True(t, slice == nil)
+	assert.True(t, len(slice) == 0)
 	assert.True(t, err != nil)
 }
 
@@ -108,7 +108,7 @@ func TestOutboundDataStream_PeekSlice(t *testing.T) {
 	assert.True(t, slices.Equal(slice, []byte{0x00, 0x01}))
 	assert.True(t, err == nil)
 	slice, err = out.PeekSlice(7)
-	assert.True(t, slice == nil)
+	assert.True(t, slices.Equal(slice, []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05}))
 	assert.True(t, err != nil)
 }
 
