@@ -294,19 +294,19 @@ var six2e = []byte{
 	0xF8, 0xF9, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F,
 }
 
-func AddrFromBytes(bytes []byte) int {
-	addr := int(bytes[0])
+func AddrFromBytes(u8s []byte) int {
+	addr := int(u8s[0])
 	addr &= 0b00111111
 	addr = addr << 6
-	addr += int(bytes[1] & 0b00111111)
+	addr += int(u8s[1] & 0b00111111)
 	return addr
 }
 
 func AddrToBytes(addr int) []byte {
-	bytes := make([]byte, 2)
-	bytes[0] = six2e[(addr>>6)&0b00111111]
-	bytes[1] = six2e[addr&0b00111111]
-	return bytes
+	u8s := make([]byte, 2)
+	u8s[0] = six2e[(addr>>6)&0b00111111]
+	u8s[1] = six2e[addr&0b00111111]
+	return u8s
 }
 
 // 🟧 Global Initialization (runs before main)

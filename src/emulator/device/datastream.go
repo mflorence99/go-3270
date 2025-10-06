@@ -9,23 +9,23 @@ import (
 //    "Outbound" data flows from the application to the 3270 ie this code
 
 type OutboundDataStream struct {
-	bytes *[]byte
-	ix    int
+	u8s *[]byte
+	ix  int
 }
 
-func NewOutboundDataStream(bytes *[]byte) *OutboundDataStream {
+func NewOutboundDataStream(u8s *[]byte) *OutboundDataStream {
 	stream := new(OutboundDataStream)
-	stream.bytes = bytes
+	stream.u8s = u8s
 	stream.ix = 0
 	return stream
 }
 
 func (out *OutboundDataStream) HasEnough(count int) bool {
-	return out.ix+count-1 < len(*out.bytes)
+	return out.ix+count-1 < len(*out.u8s)
 }
 
 func (out *OutboundDataStream) HasNext() bool {
-	return out.ix < len(*out.bytes)
+	return out.ix < len(*out.u8s)
 }
 
 func (out *OutboundDataStream) Next() (byte, error) {
@@ -72,11 +72,11 @@ func (out *OutboundDataStream) Skip(count int) {
 
 func (out *OutboundDataStream) nextImpl(peek bool) (byte, error) {
 	if out.HasNext() {
-		byte := (*out.bytes)[out.ix]
+		u8 := (*out.u8s)[out.ix]
 		if !peek {
 			out.ix += 1
 		}
-		return byte, nil
+		return u8, nil
 	} else {
 		return 0, errors.New("insufficient bytes in stream")
 	}
@@ -85,7 +85,7 @@ func (out *OutboundDataStream) nextImpl(peek bool) (byte, error) {
 func (out *OutboundDataStream) nextSliceImpl(count int, peek bool) ([]byte, error) {
 	if out.HasEnough(count) {
 		end := out.ix + count
-		slice := (*out.bytes)[out.ix:end]
+		slice := (*out.u8s)[out.ix:end]
 		if !peek {
 			out.ix = end
 		}
@@ -98,10 +98,10 @@ func (out *OutboundDataStream) nextSliceImpl(count int, peek bool) ([]byte, erro
 func (out *OutboundDataStream) nextSliceUntilImpl(matches []byte, peek bool) ([]byte, error) {
 	count := len(matches)
 	var ix = 0
-	for ix = out.ix; ix+count-1 < len(*out.bytes); ix++ {
-		matched := (*out.bytes)[ix : ix+count]
+	for ix = out.ix; ix+count-1 < len(*out.u8s); ix++ {
+		matched := (*out.u8s)[ix : ix+count]
 		if slices.Equal(matched, matches) {
-			slice := (*out.bytes)[out.ix:ix]
+			slice := (*out.u8s)[out.ix:ix]
 			if !peek {
 				out.ix = ix
 			}
@@ -109,7 +109,7 @@ func (out *OutboundDataStream) nextSliceUntilImpl(matches []byte, peek bool) ([]
 		}
 	}
 	// 👇 if no match, return slice to end
-	slice := (*out.bytes)[out.ix:len(*out.bytes)]
+	slice := (*out.u8s)[out.ix:len(*out.u8s)]
 	return slice, errors.New("no matches found in stream")
 }
 
@@ -117,27 +117,27 @@ func (out *OutboundDataStream) nextSliceUntilImpl(matches []byte, peek bool) ([]
 //    "Inbound" data flows from the 3270 ie this code to the application
 
 type InboundDataStream struct {
-	bytes []byte
+	u8s []byte
 }
 
 func NewInboundDataStream() *InboundDataStream {
 	in := new(InboundDataStream)
-	in.bytes = []byte{}
+	in.u8s = []byte{}
 	return in
 }
 
-func (in *InboundDataStream) Put(byte byte) []byte {
-	in.bytes = append(in.bytes, byte)
-	return in.bytes
+func (in *InboundDataStream) Put(u8 byte) []byte {
+	in.u8s = append(in.u8s, u8)
+	return in.u8s
 }
 
 func (in *InboundDataStream) Put16(u16 uint16) []byte {
-	in.bytes = append(in.bytes, byte(u16>>8))
-	in.bytes = append(in.bytes, byte(u16&0x00ff))
-	return in.bytes
+	in.u8s = append(in.u8s, byte(u16>>8))
+	in.u8s = append(in.u8s, byte(u16&0x00ff))
+	return in.u8s
 }
 
 func (in *InboundDataStream) PutSlice(slice []byte) []byte {
-	in.bytes = append(in.bytes, slice...)
-	return in.bytes
+	in.u8s = append(in.u8s, slice...)
+	return in.u8s
 }

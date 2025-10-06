@@ -9,12 +9,12 @@ type WCC struct {
 	unlock   bool
 }
 
-func NewWCC(byte byte) *WCC {
+func NewWCC(u8 byte) *WCC {
 	wcc := new(WCC)
-	wcc.alarm = (byte & 0b00000100) != 0
-	wcc.reset = (byte & 0b01000000) != 0
-	wcc.resetMDT = (byte & 0b00000001) != 0
-	wcc.unlock = (byte & 0b00000010) != 0
+	wcc.alarm = (u8 & 0b00000100) != 0
+	wcc.reset = (u8 & 0b01000000) != 0
+	wcc.resetMDT = (u8 & 0b00000001) != 0
+	wcc.unlock = (u8 & 0b00000010) != 0
 	return wcc
 }
 
@@ -35,20 +35,20 @@ func (wcc *WCC) DoUnlock() bool {
 }
 
 func (wcc *WCC) ToByte() byte {
-	var byte byte = 0
+	var u8 byte = 0
 	if wcc.alarm {
-		byte |= 0b00000100
+		u8 |= 0b00000100
 	}
 	if wcc.reset {
-		byte |= 0b01000000
+		u8 |= 0b01000000
 	}
 	if wcc.resetMDT {
-		byte |= 0b00000001
+		u8 |= 0b00000001
 	}
 	if wcc.unlock {
-		byte |= 0b00000010
+		u8 |= 0b00000010
 	}
-	return byte
+	return u8
 }
 
 func (wcc *WCC) ToString() string {

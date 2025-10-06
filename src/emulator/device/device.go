@@ -60,7 +60,7 @@ type Device struct {
 }
 
 type Glyph struct {
-	byte       byte
+	u8         byte
 	color      string
 	reverse    bool
 	underscore bool
@@ -176,10 +176,10 @@ func (device *Device) HandleKeystroke(code string, key string, alt bool, ctrl bo
 	device.SignalStatus()
 }
 
-func (device *Device) MakeFramesFromBytes(bytes []byte) []*OutboundDataStream {
+func (device *Device) MakeFramesFromBytes(u8s []byte) []*OutboundDataStream {
 	// 👇 we know there's going to be one frame, and more isn't common
 	frames := make([]*OutboundDataStream, 0)
-	whole := NewOutboundDataStream(&bytes)
+	whole := NewOutboundDataStream(&u8s)
 	for {
 		slice, err := whole.NextSliceUntil(types.LT)
 		if len(slice) > 0 {
@@ -255,10 +255,10 @@ func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 	defer utils.ElapsedTime(time.Now(), "ProcessOrdersAndData")
 	var lastAttrs *Attributes = NewAttributes([]byte{0x00})
 	for out.HasNext() {
-		// 👇 look at each byte to see if it is an order
-		byte, _ := out.Next()
+		// 👇 look at each u8 to see if it is an order
+		u8, _ := out.Next()
 		// 👇 dispatch on order
-		switch byte {
+		switch u8 {
 		case types.OrderLookup["PT"]:
 		case types.OrderLookup["GE"]:
 		case types.OrderLookup["SBA"]:
@@ -286,8 +286,8 @@ func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 		// 👇 if it isn't an order, it's data
 		// 🔥 let's not convert the EBCDIC byte to ASCII until we actually need to, as we'll cache glyphs by their EDCDIC value
 		default:
-			if byte == 0x00 || byte >= 0x40 {
-				device.PutBuffer(byte, lastAttrs)
+			if u8 == 0x00 || u8 >= 0x40 {
+				device.PutBuffer(u8, lastAttrs)
 			}
 		}
 	}
@@ -318,14 +318,14 @@ func (device *Device) ProcessWCC(out *OutboundDataStream) {
 	}
 }
 
-func (device *Device) PutBuffer(byte byte, attrs *Attributes) {
+func (device *Device) PutBuffer(u8 byte, attrs *Attributes) {
 	device.attrs[device.addr] = attrs
 	if attrs.IsBlink() {
 		device.blinks[device.addr] = struct{}{}
 	} else {
 		delete(device.blinks, device.addr)
 	}
-	device.buffer[device.addr] = byte
+	device.buffer[device.addr] = u8
 	device.changes.Push(device.addr)
 	device.addr += 1
 	// 👇 note wrap around
@@ -334,7 +334,7 @@ func (device *Device) PutBuffer(byte byte, attrs *Attributes) {
 	}
 }
 
-func (device *Device) ReceiveFromApp(bytes []byte) {
+func (device *Device) ReceiveFromApp(u8s []byte) {
 	// 👇 reset any binking
 	if device.blinker != nil {
 		close(device.blinker)
@@ -343,7 +343,7 @@ func (device *Device) ReceiveFromApp(bytes []byte) {
 	// 👇 reset changes stack
 	device.changes = utils.NewStack[int](device.size)
 	// 👇 data can be split into multiple frames
-	frames := device.MakeFramesFromBytes(bytes)
+	frames := device.MakeFramesFromBytes(u8s)
 	for ix := range frames {
 		fmt.Printf("ReceiveFromApp(frame #%d)\n", ix)
 		// 👇 extract command
@@ -417,7 +417,7 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 		x, y, w, h, baseline := device.BoundingBox(addr)
 		// 👇 lookup the glyph in the cache
 		glyph := Glyph{
-			byte:       cell,
+			u8:         cell,
 			color:      color,
 			reverse:    reverse,
 			underscore: underscore,

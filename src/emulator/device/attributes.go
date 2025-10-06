@@ -16,15 +16,15 @@ type Attributes struct {
 	underscore bool
 }
 
-func NewAttributes(bytes []byte) *Attributes {
+func NewAttributes(u8s []byte) *Attributes {
 	// 👇 quick exit for one-byte attribute
-	if len(bytes) == 1 {
-		return NewAttributes([]byte{types.TypeCodeLookup["BASIC"], bytes[0]})
+	if len(u8s) == 1 {
+		return NewAttributes([]byte{types.TypeCodeLookup["BASIC"], u8s[0]})
 	}
 	// 👇 now pretend we have an extended attribute and analze bytes in pairs
 	attrs := new(Attributes)
-	for ix := 0; ix < len(bytes)-1; ix += 2 {
-		chunk := bytes[ix : ix+2]
+	for ix := 0; ix < len(u8s)-1; ix += 2 {
+		chunk := u8s[ix : ix+2]
 		switch chunk[0] {
 		case types.TypeCodeLookup["BASIC"]:
 			attrs.hidden = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) != 0)

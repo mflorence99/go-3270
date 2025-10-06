@@ -27,12 +27,12 @@ func TestConversion_E2A(t *testing.T) {
 
 func TestConversion_AddrFromBytes(t *testing.T) {
 	addr := 1
-	bytes := []byte{0x40, 0xC1}
-	assert.True(t, addr == utils.AddrFromBytes(bytes))
+	u8s := []byte{0x40, 0xC1}
+	assert.True(t, addr == utils.AddrFromBytes(u8s))
 }
 
 func TestConversion_AddrToBytes(t *testing.T) {
 	addr := 79
-	bytes := []byte{0xC1, 0x4F}
-	assert.True(t, slices.Equal(bytes, utils.AddrToBytes(addr)))
+	u8s := []byte{0xC1, 0x4F}
+	assert.True(t, slices.Equal(u8s, utils.AddrToBytes(addr)))
 }

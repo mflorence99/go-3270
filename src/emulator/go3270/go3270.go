@@ -160,14 +160,14 @@ func (go3270 *Go3270) HandleKeystroke(code string, key string, alt bool, ctrl bo
 }
 
 func (go3270 *Go3270) ReceiveFromApp(u8in js.Value) {
-	bytes := make([]byte, u8in.Get("length").Int())
-	js.CopyBytesToGo(bytes, u8in)
-	go3270.device.ReceiveFromApp(bytes)
+	u8s := make([]byte, u8in.Get("length").Int())
+	js.CopyBytesToGo(u8s, u8in)
+	go3270.device.ReceiveFromApp(u8s)
 }
 
 // 🟦 Messages from go test-able code sent to the UI for action
 
-func go3270Message(eventType string, bytes []byte, params map[string]any, args []any) {
+func go3270Message(eventType string, u8s []byte, params map[string]any, args []any) {
 	// 👇 params and args may be nil
 	if params == nil {
 		params = map[string]any{}
@@ -177,9 +177,9 @@ func go3270Message(eventType string, bytes []byte, params map[string]any, args [
 	}
 	// 👇 bytes may be nil, but if not convert to JS
 	var jsBytes js.Value
-	if bytes != nil {
-		jsBytes = js.Global().Get("Uint8ClampedArray").New(len(bytes))
-		js.CopyBytesToJS(jsBytes, bytes)
+	if u8s != nil {
+		jsBytes = js.Global().Get("Uint8ClampedArray").New(len(u8s))
+		js.CopyBytesToJS(jsBytes, u8s)
 		params["bytes"] = jsBytes
 	}
 	// 👇 dispatch event to JS

@@ -11,11 +11,11 @@ import (
 type Message struct {
 	args      []any
 	bus       EventBus.Bus
-	bytes     []byte
+	u8s       []byte
 	eventType string
 	params    map[string]any
 }
 
 func SendMessage(msg Message) {
-	msg.bus.Publish("go3270", msg.eventType, msg.bytes, msg.params, msg.args)
+	msg.bus.Publish("go3270", msg.eventType, msg.u8s, msg.params, msg.args)
 }
