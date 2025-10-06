@@ -138,8 +138,9 @@ func (device *Device) Close() {
 func (device *Device) EraseBuffer() {
 	device.addr = 0
 	device.attrs = make([]*Attributes, device.size)
+	// 👇 initialize with ptotected fields
 	for ix := range device.attrs {
-		device.attrs[ix] = NewAttributes([]uint8{0x00})
+		device.attrs[ix] = NewAttributes([]uint8{0b00100000})
 	}
 	device.blinker = make(chan struct{})
 	device.blinks = make(map[int]struct{})
@@ -151,7 +152,8 @@ func (device *Device) EraseBuffer() {
 func (device *Device) HandleKeystroke(code string, key string, alt bool, ctrl bool, shift bool) {
 	fmt.Printf("HandleKeystroke(code=%s key=%s alt=%t ctrl=%t shift=%t)\n", code, key, alt, ctrl, shift)
 	// 👇 pre-analyze the key semantics
-	attrs := device.attrs[device.addr]
+	var attrs *Attributes
+	attrs = device.attrs[device.addr]
 	isData := len(key) == 1
 	keyInProtected := isData && attrs.IsProtected()
 	alphaInNumeric := isData && !strings.Contains("0123456789.", key) && attrs.IsNumeric()
@@ -164,7 +166,13 @@ func (device *Device) HandleKeystroke(code string, key string, alt bool, ctrl bo
 	} else if strings.HasPrefix(code, "Arrow") {
 		device.MoveCursor(code)
 	}
+	// 👇 post-analyze the key semantics
+	attrs = device.attrs[device.addr]
+	cursorInNumeric := attrs.IsNumeric()
+	cursorInProtected := attrs.IsProtected()
 	// 👇 broadcast status
+	device.numeric = cursorInNumeric
+	device.protected = cursorInProtected
 	device.SignalStatus()
 }
 
@@ -217,11 +225,11 @@ func (device *Device) MoveCursor(code string) {
 	device.cursorAt = cursorTo
 	device.addr = device.cursorAt
 	device.changes.Push(device.cursorAt)
-	device.RenderBuffer(false, true)
+	device.RenderBuffer(RenderBufferOpts{blinkOn: true})
 }
 
 func (device *Device) ProcessCommands(out *OutboundDataStream) {
-	defer utils.ElapsedTime(time.Now(), "ProcessCommands", utils.ElapsedTimeOpts{})
+	defer utils.ElapsedTime(time.Now(), "ProcessCommands")
 	// 👇 dispatch on command
 	switch device.command {
 	case types.CommandLookup["RMA"]:
@@ -244,7 +252,7 @@ func (device *Device) ProcessCommands(out *OutboundDataStream) {
 }
 
 func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
-	defer utils.ElapsedTime(time.Now(), "ProcessOrdersAndData", utils.ElapsedTimeOpts{})
+	defer utils.ElapsedTime(time.Now(), "ProcessOrdersAndData")
 	var lastAttrs *Attributes = NewAttributes([]uint8{0x00})
 	for out.HasNext() {
 		// 👇 look at each byte to see if it is an order
@@ -354,7 +362,7 @@ func (device *Device) ReceiveFromApp(bytes []uint8) {
 	device.SignalStatus()
 	// 👇 now we can render the buffer to the drawing context
 	// 🔥 after RenderBuffer is called, the "changes" stack is empty
-	device.RenderBuffer(false, true)
+	device.RenderBuffer(RenderBufferOpts{blinkOn: true})
 	// 👇 start any blinking
 	device.blinker = make(chan struct{})
 	go device.RenderBlinkingAddrs(device.blinker)
@@ -371,14 +379,19 @@ func (device *Device) RenderBlinkingAddrs(quit <-chan struct{}) {
 				device.changes.Push(addr)
 			}
 			// 🔥 after RenderBuffer is called, the "changes" stack is empty
-			device.RenderBuffer(true, (ix%2) == 0)
+			device.RenderBuffer(RenderBufferOpts{blinkOn: (ix % 2) == 0, quiet: true})
 			time.Sleep(500 * time.Millisecond)
 		}
 	}
 }
 
-func (device *Device) RenderBuffer(quiet bool, blinkOn bool) {
-	defer utils.ElapsedTime(time.Now(), "RenderBuffer", utils.ElapsedTimeOpts{Quiet: quiet})
+type RenderBufferOpts struct {
+	quiet   bool
+	blinkOn bool
+}
+
+func (device *Device) RenderBuffer(opts RenderBufferOpts) {
+	defer utils.ElapsedTime(time.Now(), "RenderBuffer", opts.quiet)
 	// 👇 for example, EW command
 	if device.erase {
 		device.dc.SetHexColor(device.bgColor)
@@ -399,7 +412,8 @@ func (device *Device) RenderBuffer(quiet bool, blinkOn bool) {
 			break
 		}
 		// 🔥 != here is the Go idiom for XOR
-		reverse := attrs.IsReverse() != ((attrs.IsBlink() || (addr == device.cursorAt)) && blinkOn)
+		blinkMe := (attrs.IsBlink() || (addr == device.cursorAt)) && opts.blinkOn
+		reverse := attrs.IsReverse() != blinkMe
 		x, y, w, h, baseline := device.BoundingBox(addr)
 		// 👇 lookup the glyph in the cache
 		glyph := Glyph{

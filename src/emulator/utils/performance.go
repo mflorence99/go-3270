@@ -5,14 +5,10 @@ import (
 	"time"
 )
 
-type ElapsedTimeOpts struct {
-	Quiet bool
-}
-
 // 👇 defer ElapsedTime(time.Now(), "...") at function start
-func ElapsedTime(start time.Time, name string, opts ElapsedTimeOpts) {
+func ElapsedTime(start time.Time, name string, quiet ...bool) {
 	elapsed := time.Since(start)
-	if !opts.Quiet {
+	if len(quiet) == 0 || !quiet[0] {
 		fmt.Printf("ElapsedTime(%s): %s\n", name, elapsed)
 	}
 }
