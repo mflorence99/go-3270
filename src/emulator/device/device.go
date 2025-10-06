@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"math"
+	"strings"
 	"time"
 
 	"github.com/asaskevich/EventBus"
@@ -146,8 +147,21 @@ func (device *Device) EraseBuffer() {
 
 func (device *Device) HandleKeystroke(code string, key string, alt bool, ctrl bool, shift bool) {
 	fmt.Printf("HandleKeystroke(code=%s key=%s alt=%t ctrl=%t shift=%t)\n", code, key, alt, ctrl, shift)
-	if device.locked {
+	// 👇 pre-analyze the key semantics
+	attrs := device.attrs[device.addr]
+	isData := len(key) == 1
+	keyInProtected := isData && attrs.IsProtected()
+	alphaInNumeric := isData && !strings.Contains("0123456789.", key) && attrs.IsNumeric()
+	// 👇 we may be trying to go where no man is supposed to go!
+	if device.locked || keyInProtected || alphaInNumeric {
+		device.alarm = true
+		device.error = true
+		device.message = "LOCKED"
+		// 👇 we can move the cursor anywhere we want to
+	} else if strings.HasPrefix(code, "Arrow") {
+		device.MoveCursor(code)
 	}
+	// 👇 broadcast status
 	device.SignalStatus()
 }
 
@@ -167,6 +181,40 @@ func (device *Device) MakeFramesFromBytes(bytes []uint8) []*OutboundDataStream {
 		whole.Skip(len(types.LT))
 	}
 	return frames
+}
+
+// TODO 🔥 experimental
+func (device *Device) MoveCursor(code string) {
+	// 👇 reset changes stack
+	device.changes = utils.NewStack[int](2)
+	device.changes.Push(device.cursorAt)
+	var cursorTo int
+	switch code {
+	case "ArrowDown":
+		cursorTo = device.cursorAt + device.cols
+		if cursorTo >= device.size {
+			cursorTo = device.cursorAt % device.cols
+		}
+	case "ArrowLeft":
+		cursorTo = device.cursorAt - 1
+		if cursorTo < 0 {
+			cursorTo = device.size - 1
+		}
+	case "ArrowRight":
+		cursorTo = device.cursorAt + 1
+		if cursorTo >= device.size {
+			cursorTo = 0
+		}
+	case "ArrowUp":
+		cursorTo = device.cursorAt - device.cols
+		if cursorTo < 0 {
+			cursorTo = (device.cursorAt % device.cols) + device.size - device.cols
+		}
+	}
+	device.cursorAt = cursorTo
+	device.addr = device.cursorAt
+	device.changes.Push(device.cursorAt)
+	device.RenderBuffer(false, true)
 }
 
 func (device *Device) ProcessCommands(out *OutboundDataStream) {
@@ -299,15 +347,14 @@ func (device *Device) ReceiveFromApp(bytes []uint8) {
 		// 👇 dispatch on command
 		device.ProcessCommands(out)
 	}
-	// 👇 now we can render the buffer to the drawing context --
+	// 👇 broadcast status
 	device.SignalStatus()
+	// 👇 now we can render the buffer to the drawing context
 	// 🔥 after RenderBuffer is called, the "changes" stack is empty
 	device.RenderBuffer(false, true)
 	// 👇 start any blinking
-	if device.cursorAt >= 0 || len(device.blinks) > 0 {
-		device.blinker = make(chan struct{})
-		go device.RenderBlinkingAddrs(device.blinker)
-	}
+	device.blinker = make(chan struct{})
+	go device.RenderBlinkingAddrs(device.blinker)
 }
 
 func (device *Device) RenderBlinkingAddrs(quit <-chan struct{}) {
