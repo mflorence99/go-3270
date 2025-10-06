@@ -63,6 +63,15 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 	}
 	// 🔥 don't do this until we're done because we need the flag
 	defer func() { device.erase = false }()
+	// 👇 if requested, dump the buffer contents
+	if !opts.quiet {
+		params := map[string]any{
+			"color":  "coral",
+			"ebcdic": true,
+			"title":  "RenderBuffer",
+		}
+		device.SendMessage(Message{eventType: "dumpBytes", params: params, u8s: device.buffer})
+	}
 	// 👇 iterate over all changed cells
 	for !device.changes.IsEmpty() {
 		addr := device.changes.Pop()

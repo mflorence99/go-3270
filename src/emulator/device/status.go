@@ -25,7 +25,8 @@ func (device *Device) SignalStatus() {
 		"protected": device.protected,
 		"waiting":   device.waiting,
 	}
-	SendMessage(Message{bus: device.bus, eventType: "status", params: status})
+	device.SendMessage(Message{eventType: "status", params: status})
+	device.alarm = false
 }
 
 func (device *Device) StatusForAttributes(attrs *Attributes) {

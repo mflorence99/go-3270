@@ -16,20 +16,21 @@ func (device *Device) HandleKeystroke(code string, key string, alt bool, ctrl bo
 	keyInProtected := isData && attrs.IsProtected()
 	alphaInNumeric := isData && !strings.Contains("0123456789.", key) && attrs.IsNumeric()
 	// 👇 we may be trying to go where no man is supposed to go!
-	if device.locked || keyInProtected || alphaInNumeric {
+	if isData && (keyInProtected || alphaInNumeric) {
 		device.alarm = true
-		device.error = true
-		device.message = "LOCKED"
 		// 👇 we can move the cursor anywhere we want to
 	} else if strings.HasPrefix(code, "Arrow") {
 		device.MoveCursor(code)
+	} else if isData {
+		u8 := utils.A2E([]byte(key))[0]
+		device.UpdateByteAtCursor(u8)
 	}
 	// 👇 post-analyze the key semantics
 	device.StatusForAttributes(device.attrs[device.addr])
 	device.SignalStatus()
+	device.RenderBuffer(RenderBufferOpts{blinkOn: true, quiet: true})
 }
 
-// TODO 🔥 experimental
 func (device *Device) MoveCursor(code string) {
 	// 👇 reset changes stack
 	device.changes = utils.NewStack[int](2)
@@ -60,5 +61,4 @@ func (device *Device) MoveCursor(code string) {
 	device.cursorAt = cursorTo
 	device.addr = device.cursorAt
 	device.changes.Push(device.cursorAt)
-	device.RenderBuffer(RenderBufferOpts{blinkOn: true})
 }

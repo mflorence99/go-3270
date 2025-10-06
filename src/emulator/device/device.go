@@ -68,16 +68,6 @@ func NewDevice(
 	paddedHeight float64,
 	paddedWidth float64) *Device {
 	device := new(Device)
-	// 👇 initialize underlying data structures
-	device.addr = 0
-	device.attrs = make([]*Attributes, device.size)
-	device.blinker = make(chan struct{})
-	device.blinks = make(map[int]struct{}, 10)
-	device.buffer = make([]byte, device.size)
-	device.bus = bus
-	device.dc = gg.NewContextForRGBA(rgba)
-	device.face = face
-	device.glyphs = make(map[Glyph]image.Image)
 	// 👇 initialize inherited properties
 	device.bgColor = bgColor
 	device.color = color
@@ -89,6 +79,16 @@ func NewDevice(
 	device.paddedWidth = paddedWidth
 	device.rows = rows
 	device.size = int(device.cols * device.rows)
+	// 👇 initialize underlying data structures
+	device.addr = 0
+	device.attrs = make([]*Attributes, device.size)
+	device.blinker = make(chan struct{})
+	device.blinks = make(map[int]struct{}, 10)
+	device.buffer = make([]byte, device.size)
+	device.bus = bus
+	device.dc = gg.NewContextForRGBA(rgba)
+	device.face = face
+	device.glyphs = make(map[Glyph]image.Image)
 	// 👇 reset device status
 	device.ResetStatus()
 	return device
@@ -96,7 +96,7 @@ func NewDevice(
 
 func (device *Device) Close() {
 	// 🔥 sorry I had to do this the hard way, here I wanted the colors
-	SendMessage(Message{bus: device.bus, eventType: "log", args: []any{"%cDevice closing", "color: pink"}})
+	device.SendMessage(Message{eventType: "log", args: []any{"%cDevice closing", "color: pink"}})
 	if device.blinker != nil {
 		close(device.blinker)
 		device.blinker = nil

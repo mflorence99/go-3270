@@ -25,7 +25,7 @@ func (device *Device) EraseBuffer() {
 }
 
 func (device *Device) MakeFramesFromBytes(u8s []byte) []*OutboundDataStream {
-	slices := bytes.SplitAfter(u8s, types.LT)
+	slices := bytes.Split(u8s, types.LT)
 	frames := make([]*OutboundDataStream, 0)
 	for ix := range slices {
 		if len(slices[ix]) > 0 {
@@ -73,7 +73,7 @@ func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 			addr, _ := out.NextSlice(2)
 			device.addr = utils.AddrFromBytes(addr)
 			if device.addr >= device.size {
-				SendMessage(Message{bus: device.bus, eventType: "panic", args: []any{"Data requires a device with a larger screen"}})
+				device.SendMessage(Message{eventType: "panic", args: []any{"Data requires a device with a larger screen"}})
 				return
 			}
 		case types.OrderLookup["EUA"]:
@@ -82,20 +82,20 @@ func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 		case types.OrderLookup["SF"]:
 			attrs, _ := out.NextSlice(1)
 			lastAttrs = NewAttributes(attrs)
-			device.PutBuffer(0x00, lastAttrs)
+			device.PutByteIntoBuffer(0x00, lastAttrs)
 		case types.OrderLookup["SA"]:
 		case types.OrderLookup["SFE"]:
 			count, _ := out.Next()
 			attrs, _ := out.NextSlice(int(count) * 2)
 			lastAttrs = NewAttributes(attrs)
-			device.PutBuffer(0x00, lastAttrs)
+			device.PutByteIntoBuffer(0x00, lastAttrs)
 		case types.OrderLookup["MF"]:
 		case types.OrderLookup["RA"]:
 		// 👇 if it isn't an order, it's data
 		// 🔥 let's not convert the EBCDIC byte to ASCII until we actually need to, as we'll cache glyphs by their EDCDIC value
 		default:
 			if u8 == 0x00 || u8 >= 0x40 {
-				device.PutBuffer(u8, lastAttrs)
+				device.PutByteIntoBuffer(u8, lastAttrs)
 			}
 		}
 	}
@@ -106,7 +106,7 @@ func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 func (device *Device) ProcessWCC(out *OutboundDataStream) {
 	byte, err := out.Next()
 	if err != nil {
-		SendMessage(Message{bus: device.bus, eventType: "panic", args: []any{fmt.Sprintf("Unable to extract WCC: %s", err.Error())}})
+		device.SendMessage(Message{eventType: "panic", args: []any{fmt.Sprintf("Unable to extract WCC: %s", err.Error())}})
 		return
 	}
 	wcc := NewWCC(byte)
@@ -126,7 +126,7 @@ func (device *Device) ProcessWCC(out *OutboundDataStream) {
 	}
 }
 
-func (device *Device) PutBuffer(u8 byte, attrs *Attributes) {
+func (device *Device) PutByteIntoBuffer(u8 byte, attrs *Attributes) {
 	device.attrs[device.addr] = attrs
 	if attrs.IsBlink() {
 		device.blinks[device.addr] = struct{}{}
@@ -158,7 +158,7 @@ func (device *Device) ReceiveFromApp(u8s []byte) {
 		out := frames[ix]
 		cmd, err := out.Next()
 		if err != nil {
-			SendMessage(Message{bus: device.bus, eventType: "panic", args: []any{fmt.Sprintf("Unable to extract write command: %s", err.Error())}})
+			device.SendMessage(Message{eventType: "panic", args: []any{fmt.Sprintf("Unable to extract write command: %s", err.Error())}})
 			return
 		}
 		device.command = cmd
@@ -174,4 +174,16 @@ func (device *Device) ReceiveFromApp(u8s []byte) {
 	// 👇 start any blinking
 	device.blinker = make(chan struct{})
 	go device.RenderBlinkingAddrs(device.blinker)
+}
+
+func (device *Device) UpdateByteAtCursor(u8 byte) {
+	device.addr = device.cursorAt
+	device.buffer[device.addr] = u8
+	device.changes.Push(device.addr)
+	device.addr += 1
+	// 👇 note wrap around
+	if device.addr == device.size {
+		device.addr = 0
+	}
+	device.cursorAt = device.addr
 }
