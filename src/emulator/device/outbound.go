@@ -15,7 +15,7 @@ func (device *Device) EraseBuffer() {
 	clear(device.attrs)
 	// 👇 initialize with ptotected fields
 	for ix := range device.attrs {
-		device.attrs[ix] = NewAttributes([]byte{0b00100000})
+		device.attrs[ix] = NewAttribute(0b00100000)
 	}
 	device.blinker = make(chan struct{})
 	clear(device.blinks)
@@ -61,12 +61,12 @@ func (device *Device) ProcessCommands(out *OutboundDataStream) {
 
 func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 	defer utils.ElapsedTime(time.Now(), "ProcessOrdersAndData")
-	var lastAttrs *Attributes = NewAttributes([]byte{0x00})
+	var lastAttrs *Attributes = NewAttribute(0b00000000)
 	for out.HasNext() {
-		// 👇 look at each u8 to see if it is an order
-		u8, _ := out.Next()
+		// 👇 look at each order to see if it is an order
+		order, _ := out.Next()
 		// 👇 dispatch on order
-		switch u8 {
+		switch order {
 		case types.OrderLookup["PT"]:
 		case types.OrderLookup["GE"]:
 		case types.OrderLookup["SBA"]:
@@ -82,20 +82,20 @@ func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 		case types.OrderLookup["SF"]:
 			attrs, _ := out.NextSlice(1)
 			lastAttrs = NewAttributes(attrs)
-			device.PutByteIntoBuffer(0x00, lastAttrs)
+			device.PutByteIntoBuffer(order, lastAttrs)
 		case types.OrderLookup["SA"]:
 		case types.OrderLookup["SFE"]:
 			count, _ := out.Next()
 			attrs, _ := out.NextSlice(int(count) * 2)
 			lastAttrs = NewAttributes(attrs)
-			device.PutByteIntoBuffer(0x00, lastAttrs)
+			device.PutByteIntoBuffer(order, lastAttrs)
 		case types.OrderLookup["MF"]:
 		case types.OrderLookup["RA"]:
 		// 👇 if it isn't an order, it's data
 		// 🔥 let's not convert the EBCDIC byte to ASCII until we actually need to, as we'll cache glyphs by their EDCDIC value
 		default:
-			if u8 == 0x00 || u8 >= 0x40 {
-				device.PutByteIntoBuffer(u8, lastAttrs)
+			if order == 0x00 || order >= 0x40 {
+				device.PutByteIntoBuffer(order, lastAttrs)
 			}
 		}
 	}
@@ -174,16 +174,4 @@ func (device *Device) ReceiveFromApp(u8s []byte) {
 	// 👇 start any blinking
 	device.blinker = make(chan struct{})
 	go device.RenderBlinkingAddrs(device.blinker)
-}
-
-func (device *Device) UpdateByteAtCursor(u8 byte) {
-	device.addr = device.cursorAt
-	device.buffer[device.addr] = u8
-	device.changes.Push(device.addr)
-	device.addr += 1
-	// 👇 note wrap around
-	if device.addr == device.size {
-		device.addr = 0
-	}
-	device.cursorAt = device.addr
 }

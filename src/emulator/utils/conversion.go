@@ -283,7 +283,7 @@ func E2A(e []byte) []byte {
 
 // 🟦 3270 buffer address conversions
 
-var six2e = []byte{
+var Six2E = []byte{
 	0x40, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7,
 	0xC8, 0xC9, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F,
 	0x50, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7,
@@ -304,8 +304,8 @@ func AddrFromBytes(u8s []byte) int {
 
 func AddrToBytes(addr int) []byte {
 	u8s := make([]byte, 2)
-	u8s[0] = six2e[(addr>>6)&0b00111111]
-	u8s[1] = six2e[addr&0b00111111]
+	u8s[0] = Six2E[(addr>>6)&0b00111111]
+	u8s[1] = Six2E[addr&0b00111111]
 	return u8s
 }
 

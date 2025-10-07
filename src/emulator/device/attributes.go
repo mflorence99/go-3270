@@ -2,6 +2,7 @@ package device
 
 import (
 	"emulator/types"
+	"emulator/utils"
 )
 
 type Attributes struct {
@@ -16,11 +17,11 @@ type Attributes struct {
 	underscore bool
 }
 
+func NewAttribute(u8 byte) *Attributes {
+	return NewAttributes([]byte{types.TypeCodeLookup["BASIC"], u8})
+}
+
 func NewAttributes(u8s []byte) *Attributes {
-	// 👇 quick exit for one-byte attribute
-	if len(u8s) == 1 {
-		return NewAttributes([]byte{types.TypeCodeLookup["BASIC"], u8s[0]})
-	}
 	// 👇 now pretend we have an extended attribute and analze bytes in pairs
 	attrs := new(Attributes)
 	for ix := 0; ix < len(u8s)-1; ix += 2 {
@@ -89,4 +90,24 @@ func (attrs *Attributes) IsReverse() bool {
 
 func (attrs *Attributes) IsUnderscore() bool {
 	return attrs.underscore
+}
+
+func (attrs *Attributes) ToByte() byte {
+	var u8 byte = 0b00000000
+	if attrs.IsProtected() {
+		u8 &= 0b00100000
+	}
+	if attrs.IsNumeric() {
+		u8 &= 0b00010000
+	}
+	if attrs.IsHighlight() {
+		u8 &= 0b00001000
+	}
+	if attrs.IsHidden() {
+		u8 &= 0b00001100
+	}
+	if attrs.IsModified() {
+		u8 &= 0b00000001
+	}
+	return utils.Six2E[u8]
 }

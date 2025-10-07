@@ -173,7 +173,6 @@ export class Emulator extends SignalWatcher(LitElement) {
               <app-icon
                 icon="clear"
                 style=${styleMap({
-                  color: `${Colors.orange}`,
                   visibility: `${this.state.model.get().status.error ? 'visible' : 'hidden'}`
                 })}>
                 ${this.state.model.get().status.message}

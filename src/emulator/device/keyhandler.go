@@ -1,12 +1,29 @@
 package device
 
 import (
+	"emulator/types"
 	"emulator/utils"
 	"fmt"
 	"strings"
 )
 
 // 🟧 Handle keystrokes as forwartded by UI
+
+func (device *Device) FindFieldStartFromCursor() int {
+	addr := device.cursorAt
+	// 👇 prevent eendless loop if no field
+	for ix := 0; ix < 2; ix++ {
+		if device.buffer[addr] == types.OrderLookup["SF"] ||
+			device.buffer[addr] == types.OrderLookup["SFE"] {
+			return addr
+		}
+		addr -= 1
+		if addr < 0 {
+			addr = device.size - 1
+		}
+	}
+	return -1
+}
 
 func (device *Device) Focussed(focussed bool) {
 	device.changes = utils.NewStack[int](1)
@@ -33,8 +50,7 @@ func (device *Device) Keystroke(code string, key string, alt bool, ctrl bool, sh
 	} else if strings.HasPrefix(code, "Arrow") {
 		device.KeystrokeToMoveCursor(code)
 	} else if isData {
-		u8 := utils.A2E([]byte(key))[0]
-		device.UpdateByteAtCursor(u8)
+		device.KeystrokeToSetByteAtCursor(key)
 	}
 	// 👇 post-analyze the key semantics
 	device.StatusForAttributes(device.attrs[device.addr])
@@ -71,4 +87,17 @@ func (device *Device) KeystrokeToMoveCursor(code string) {
 	device.cursorAt = cursorTo
 	device.addr = device.cursorAt
 	device.changes.Push(device.cursorAt)
+}
+
+func (device *Device) KeystrokeToSetByteAtCursor(key string) {
+	u8 := utils.A2E([]byte(key))[0]
+	device.addr = device.cursorAt
+	device.buffer[device.addr] = u8
+	device.changes.Push(device.addr)
+	device.addr += 1
+	// 👇 note wrap around
+	if device.addr == device.size {
+		device.addr = 0
+	}
+	device.cursorAt = device.addr
 }
