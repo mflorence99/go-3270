@@ -1,10 +1,5 @@
 package device
 
-import (
-	"emulator/types"
-	"emulator/utils"
-)
-
 type Attributes struct {
 	blink      bool
 	color      byte
@@ -18,7 +13,7 @@ type Attributes struct {
 }
 
 func NewAttribute(u8 byte) *Attributes {
-	return NewAttributes([]byte{types.TypeCodeLookup["BASIC"], u8})
+	return NewAttributes([]byte{TypeCodeLookup["BASIC"], u8})
 }
 
 func NewAttributes(u8s []byte) *Attributes {
@@ -27,87 +22,87 @@ func NewAttributes(u8s []byte) *Attributes {
 	for ix := 0; ix < len(u8s)-1; ix += 2 {
 		chunk := u8s[ix : ix+2]
 		switch chunk[0] {
-		case types.TypeCodeLookup["BASIC"]:
+		case TypeCodeLookup["BASIC"]:
 			attrs.hidden = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) != 0)
 			attrs.highlight = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) == 0)
 			attrs.modified = (chunk[1] & 0b00000001) != 0
 			attrs.numeric = (chunk[1] & 0b00010000) != 0
 			attrs.protected = (chunk[1] & 0b00100000) != 0
-		case types.TypeCodeLookup["HIGHLIGHT"]:
+		case TypeCodeLookup["HIGHLIGHT"]:
 			switch chunk[1] {
-			case types.HighlightLookup["BLINK"]:
+			case HighlightLookup["BLINK"]:
 				attrs.blink = true
-			case types.HighlightLookup["REVERSE"]:
+			case HighlightLookup["REVERSE"]:
 				attrs.reverse = true
-			case types.HighlightLookup["UNDERSCORE"]:
+			case HighlightLookup["UNDERSCORE"]:
 				attrs.underscore = true
 			}
-		case types.TypeCodeLookup["COLOR"]:
+		case TypeCodeLookup["COLOR"]:
 			attrs.color = chunk[1]
 		}
 	}
 	return attrs
 }
 
-func (attrs *Attributes) GetColor(dflt string) string {
-	colors := types.CLUT[attrs.color]
+func (attrs *Attributes) Color(dflt string) string {
+	colors := CLUT[attrs.color]
 	if colors == nil {
 		return dflt
-	} else if attrs.IsHighlight() {
+	} else if attrs.Highlight() {
 		return colors[0]
 	} else {
 		return colors[1]
 	}
 }
 
-func (attrs *Attributes) IsBlink() bool {
+func (attrs *Attributes) Blink() bool {
 	return attrs.blink
 }
 
-func (attrs *Attributes) IsHidden() bool {
+func (attrs *Attributes) Hidden() bool {
 	return attrs.hidden
 }
 
-func (attrs *Attributes) IsHighlight() bool {
+func (attrs *Attributes) Highlight() bool {
 	return attrs.highlight
 }
 
-func (attrs *Attributes) IsModified() bool {
+func (attrs *Attributes) Modified() bool {
 	return attrs.modified
 }
 
-func (attrs *Attributes) IsNumeric() bool {
+func (attrs *Attributes) Numeric() bool {
 	return attrs.numeric
 }
 
-func (attrs *Attributes) IsProtected() bool {
+func (attrs *Attributes) Protected() bool {
 	return attrs.protected
 }
 
-func (attrs *Attributes) IsReverse() bool {
+func (attrs *Attributes) Reverse() bool {
 	return attrs.reverse
 }
 
-func (attrs *Attributes) IsUnderscore() bool {
+func (attrs *Attributes) Underscore() bool {
 	return attrs.underscore
 }
 
 func (attrs *Attributes) ToByte() byte {
 	var u8 byte = 0b00000000
-	if attrs.IsProtected() {
+	if attrs.Protected() {
 		u8 &= 0b00100000
 	}
-	if attrs.IsNumeric() {
+	if attrs.Numeric() {
 		u8 &= 0b00010000
 	}
-	if attrs.IsHighlight() {
+	if attrs.Highlight() {
 		u8 &= 0b00001000
 	}
-	if attrs.IsHidden() {
+	if attrs.Hidden() {
 		u8 &= 0b00001100
 	}
-	if attrs.IsModified() {
+	if attrs.Modified() {
 		u8 &= 0b00000001
 	}
-	return utils.Six2E[u8]
+	return Six2E[u8]
 }

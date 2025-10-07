@@ -26,11 +26,11 @@ func (device *Device) SignalStatus() {
 		"protected": device.protected,
 		"waiting":   device.waiting,
 	}
-	device.SendMessage(Message{eventType: "status", params: status})
+	device.SendGo3270Message(Go3270Message{eventType: "status", params: status})
 	device.alarm = false
 }
 
 func (device *Device) StatusForAttributes(attrs *Attributes) {
-	device.numeric = attrs.IsNumeric()
-	device.protected = attrs.IsProtected()
+	device.numeric = attrs.Numeric()
+	device.protected = attrs.Protected()
 }

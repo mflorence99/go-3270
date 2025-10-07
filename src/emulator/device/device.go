@@ -1,7 +1,6 @@
 package device
 
 import (
-	"emulator/utils"
 	"image"
 
 	"github.com/asaskevich/EventBus"
@@ -39,7 +38,7 @@ type Device struct {
 	blinker   chan struct{}
 	blinks    map[int]struct{}
 	buffer    []byte
-	changes   *utils.Stack[int]
+	changes   *Stack[int]
 	command   byte
 	cursorAt  int
 	erase     bool
@@ -96,8 +95,6 @@ func NewDevice(
 }
 
 func (device *Device) Close() {
-	// 🔥 sorry I had to do this the hard way, here I wanted the colors
-	device.SendMessage(Message{eventType: "log", args: []any{"%cDevice closing", "color: pink"}})
 	if device.blinker != nil {
 		close(device.blinker)
 		device.blinker = nil

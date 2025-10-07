@@ -1,4 +1,6 @@
-package utils
+package device
+
+// 🟧 A simple stack
 
 type Stack[T any] struct {
 	data []T

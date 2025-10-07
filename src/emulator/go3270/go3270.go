@@ -3,7 +3,6 @@ package go3270
 import (
 	_ "embed"
 	"emulator/device"
-	"emulator/utils"
 	"fmt"
 	"image"
 	"math"
@@ -160,7 +159,7 @@ func (go3270 *Go3270) Close() {
 }
 
 func (go3270 *Go3270) Focussed(focussed bool) {
-	js.Global().Get("console").Call("log", utils.Ternary(focussed, "%cGo3270 has focus", "%cGo3270 loses focus"), "color: olivedrab")
+	js.Global().Get("console").Call("log", device.Ternary(focussed, "%cGo3270 has focus", "%cGo3270 loses focus"), "color: olivedrab")
 	go3270.device.Focussed(focussed)
 }
 

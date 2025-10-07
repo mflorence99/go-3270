@@ -1,7 +1,6 @@
 package device
 
 import (
-	"emulator/utils"
 	"image"
 	"math"
 	"time"
@@ -55,7 +54,7 @@ func (device *Device) RenderBlinkingAddrs(quit <-chan struct{}) {
 }
 
 func (device *Device) RenderBuffer(opts RenderBufferOpts) {
-	defer utils.ElapsedTime(time.Now(), "RenderBuffer", opts.quiet)
+	defer ElapsedTime(time.Now(), "RenderBuffer", opts.quiet)
 	// 👇 for example, EW command
 	if device.erase {
 		device.dc.SetHexColor(device.bgColor)
@@ -70,24 +69,24 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 			"ebcdic": true,
 			"title":  "RenderBuffer",
 		}
-		device.SendMessage(Message{eventType: "dumpBytes", params: params, u8s: device.buffer})
+		device.SendGo3270Message(Go3270Message{eventType: "dumpBytes", params: params, u8s: device.buffer})
 	}
 	// 👇 iterate over all changed cells
 	for !device.changes.IsEmpty() {
 		addr := device.changes.Pop()
 		attrs := device.attrs[addr]
 		cell := device.buffer[addr]
-		color := attrs.GetColor(device.color)
-		underscore := attrs.IsUnderscore()
-		visible := cell != 0x00 && !attrs.IsHidden()
+		color := attrs.Color(device.color)
+		underscore := attrs.Underscore()
+		visible := cell != 0x00 && !attrs.Hidden()
 		// 👇 quick exit: if not visible, and we've already cleared the device, we don't have to do anything
 		if !visible && device.erase {
 			break
 		}
 		// 🔥 != here is the Go idiom for XOR
 		showCursor := (addr == device.cursorAt) && device.focussed
-		blinkMe := (attrs.IsBlink() || showCursor) && opts.blinkOn
-		reverse := attrs.IsReverse() != blinkMe
+		blinkMe := (attrs.Blink() || showCursor) && opts.blinkOn
+		reverse := attrs.Reverse() != blinkMe
 		x, y, w, h, baseline := device.BoundingBox(addr)
 		// 👇 lookup the glyph in the cache
 		glyph := Glyph{
@@ -105,11 +104,11 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 			temp := gg.NewContextForRGBA(rgba)
 			temp.SetFontFace(device.face)
 			// 👇 clear background
-			temp.SetHexColor(utils.Ternary(reverse, color, device.bgColor))
+			temp.SetHexColor(Ternary(reverse, color, device.bgColor))
 			temp.Clear()
 			// 👇 render the byte
-			temp.SetHexColor(utils.Ternary(reverse, device.bgColor, color))
-			str := string(utils.E2A([]byte{cell}))
+			temp.SetHexColor(Ternary(reverse, device.bgColor, color))
+			str := string(E2A([]byte{cell}))
 			temp.DrawString(str, 0, baseline-y)
 			if underscore {
 				temp.SetLineWidth(2)

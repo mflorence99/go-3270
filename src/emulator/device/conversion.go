@@ -1,4 +1,4 @@
-package utils
+package device
 
 // 🟦 Conversion between EBCDIC and ASCII
 
