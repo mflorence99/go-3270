@@ -1,4 +1,3 @@
-import { Colors } from '$client/state/constants';
 import { Emulators } from '$client/state/constants';
 import { Go3270 } from '$client/types/go3270';
 import { LitElement } from 'lit';

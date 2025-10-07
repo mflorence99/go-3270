@@ -268,7 +268,7 @@ export class Connector extends SignalWatcher(LitElement) {
                     <span
                       class="sample"
                       style=${styleMap({
-                        color: color[1]
+                        color: color[1][0]
                       })}>
                       CUSTOMER NUM: 123456
                     </span>

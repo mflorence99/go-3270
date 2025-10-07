@@ -44,11 +44,16 @@ func NewAttributes(u8s []byte) *Attributes {
 	return attrs
 }
 
-func (attrs *Attributes) Color(dflt string) string {
-	colors := CLUT[attrs.color]
-	if colors == nil {
-		return dflt
-	} else if attrs.Highlight() {
+func NewProtectedAttribute() *Attributes {
+	return NewAttributes([]byte{TypeCodeLookup["BASIC"], 0b00100000})
+}
+
+func (attrs *Attributes) Color(dflt [2]string) string {
+	colors, ok := CLUT[attrs.color]
+	if !ok {
+		colors = dflt
+	}
+	if attrs.Highlight() {
 		return colors[0]
 	} else {
 		return colors[1]
@@ -89,20 +94,50 @@ func (attrs *Attributes) Underscore() bool {
 
 func (attrs *Attributes) ToByte() byte {
 	var u8 byte = 0b00000000
-	if attrs.Protected() {
-		u8 &= 0b00100000
-	}
-	if attrs.Numeric() {
-		u8 &= 0b00010000
+	if attrs.Hidden() {
+		u8 &= 0b00001100
 	}
 	if attrs.Highlight() {
 		u8 &= 0b00001000
 	}
-	if attrs.Hidden() {
-		u8 &= 0b00001100
-	}
 	if attrs.Modified() {
 		u8 &= 0b00000001
 	}
+	if attrs.Numeric() {
+		u8 &= 0b00010000
+	}
+	if attrs.Protected() {
+		u8 &= 0b00100000
+	}
 	return Six2E[u8]
+}
+
+func (attrs *Attributes) ToString() string {
+	str := "ATTR=[ "
+	if attrs.Blink() {
+		str += "BLINK "
+	}
+	if attrs.Hidden() {
+		str += "HIDDEN "
+	}
+	if attrs.Highlight() {
+		str += "HILITE "
+	}
+	if attrs.Modified() {
+		str += "MDT "
+	}
+	if attrs.Numeric() {
+		str += "NUM "
+	}
+	if attrs.Protected() {
+		str += "PROT "
+	}
+	if attrs.Reverse() {
+		str += "REV "
+	}
+	if attrs.Underscore() {
+		str += "USCORE "
+	}
+	str += "]"
+	return str
 }

@@ -2,13 +2,13 @@
 
 // 🔥 it would be nice to get these colors from the CLUT in the Go code, but I think not worth losing the ability to treat them as static resources, and instead dependent on the load of the WASM code
 
-export const defaultColor = '#88DD88';
+export const defaultColor = ['#00AA00', '#88DD88'];
 
-export const Colors: Record<string, string> = {
+export const Colors: Record<string, string[]> = {
   green: defaultColor,
-  blue: '#3366CC',
-  orange: '#FFB266',
-  white: '#B8B8B8'
+  blue: ['#0078FF', '#3366CC'],
+  orange: ['#FF8000', '#FFB266'],
+  white: ['#FFFFFF', '#B8B8B8']
 };
 
 export const defaultDimensions: [number, number] = [80, 24];

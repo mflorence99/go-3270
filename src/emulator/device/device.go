@@ -26,7 +26,7 @@ type Device struct {
 
 	// 👇 properties
 	bgColor      string
-	color        string
+	color        [2]string
 	cols         int
 	fontHeight   float64
 	fontSize     float64
@@ -82,7 +82,7 @@ func NewDevice(
 	rgba *image.RGBA,
 	face font.Face,
 	bgColor string,
-	color string,
+	color [2]string,
 	cols int,
 	rows int,
 	fontHeight float64,
@@ -139,9 +139,10 @@ func (device *Device) Close() {
 func (device *Device) EraseBuffer() {
 	device.addr = 0
 	clear(device.attrs)
-	// 👇 initialize with protected fields
+	// 👇 initialize as one big protected field
+	protected := NewProtectedAttribute()
 	for ix := range device.attrs {
-		device.attrs[ix] = NewAttribute(0b00100000)
+		device.attrs[ix] = protected
 	}
 	device.blinker = make(chan struct{})
 	clear(device.blinks)
@@ -168,15 +169,19 @@ func (device *Device) Keystroke(code string, key string, alt bool, ctrl bool, sh
 	keyInProtected := isData && attrs.Protected()
 	alphaInNumeric := isData && !strings.Contains("0123456789.", key) && attrs.Numeric()
 	switch {
+
 	// 👇 we may be trying to go where no man is supposed to go!
 	case isData && (keyInProtected || alphaInNumeric):
 		device.alarm = true
+
 		// 👇 we can move the cursor anywhere we want to
 	case strings.HasPrefix(code, "Arrow"):
 		device.KeystrokeToMoveCursor(code)
+
 		// 👇 just data
 	case isData:
 		device.KeystrokeToSetByteAtCursor(key)
+
 	}
 	// 👇 post-analyze the key semantics
 	device.StatusForAttributes(device.attrs[device.addr])
@@ -185,7 +190,6 @@ func (device *Device) Keystroke(code string, key string, alt bool, ctrl bool, sh
 }
 
 func (device *Device) KeystrokeToMoveCursor(code string) {
-	// 👇 reset changes stack
 	device.changes.Push(device.cursorAt)
 	var cursorTo int
 	switch code {
@@ -228,41 +232,37 @@ func (device *Device) KeystrokeToSetByteAtCursor(key string) {
 	device.cursorAt = device.addr
 }
 
-func (device *Device) MakeFramesFromBytes(u8s []byte) []*OutboundDataStream {
-	slices := bytes.Split(u8s, LT)
-	frames := make([]*OutboundDataStream, 0)
-	for ix := range slices {
-		if len(slices[ix]) > 0 {
-			frame := NewOutboundDataStream(&slices[ix])
-			frames = append(frames, frame)
-		}
-	}
-	return frames
-}
-
 func (device *Device) ProcessCommands(out *OutboundDataStream) {
 	defer ElapsedTime(time.Now(), "ProcessCommands")
 	// 👇 dispatch on command
 	switch device.command {
 	case CommandLookup["RMA"]:
+
 		device.SendGo3270Message(Go3270Message{EventType: "panic", Args: []any{"🔥 RMA not handled"}})
+
 	case CommandLookup["EAU"]:
 		device.SendGo3270Message(Go3270Message{EventType: "panic", Args: []any{"🔥 EAU not handled"}})
+
 	case CommandLookup["EWA"]:
 		device.EraseBuffer()
 		device.ProcessWCC(out)
 		device.ProcessOrdersAndData(out)
+
 	case CommandLookup["W"]:
 		device.ProcessWCC(out)
 		device.ProcessOrdersAndData(out)
+
 	case CommandLookup["RB"]:
 		device.SendGo3270Message(Go3270Message{EventType: "panic", Args: []any{"🔥 RB not handled"}})
+
 	case CommandLookup["WSF"]:
 		device.SendGo3270Message(Go3270Message{EventType: "panic", Args: []any{"🔥 WSF not handled"}})
+
 	case CommandLookup["EW"]:
 		device.EraseBuffer()
 		device.ProcessWCC(out)
 		device.ProcessOrdersAndData(out)
+
 	case CommandLookup["RM"]:
 		device.SendGo3270Message(Go3270Message{EventType: "panic", Args: []any{"🔥 RM not handled"}})
 	}
@@ -270,16 +270,21 @@ func (device *Device) ProcessCommands(out *OutboundDataStream) {
 
 func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 	defer ElapsedTime(time.Now(), "ProcessOrdersAndData")
-	var lastAttrs *Attributes = NewAttribute(0b00000000)
+	// 👇 any data before a field start will be protected
+	protected := NewProtectedAttribute()
+	var fldAttrs *Attributes = protected
 	for out.HasNext() {
 		// 👇 look at each order to see if it is an order
 		order, _ := out.Next()
 		// 👇 dispatch on order
 		switch order {
+
 		case OrderLookup["PT"]:
-			println("🔥 PT not handled")
+			println("❓ PT not handled")
+
 		case OrderLookup["GE"]:
-			println("🔥 GE not handled")
+			println("❓ GE not handled")
+
 		case OrderLookup["SBA"]:
 			addr, _ := out.NextSlice(2)
 			device.addr = AddrFromBytes(addr)
@@ -287,30 +292,42 @@ func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 				device.SendGo3270Message(Go3270Message{EventType: "panic", Args: []any{"Data requires a device with a larger screen"}})
 				return
 			}
+
 		case OrderLookup["EUA"]:
-			println("🔥 EUA not handled")
+			println("❓ EUA not handled")
+
 		case OrderLookup["IC"]:
 			device.cursorAt = device.addr
+
 		case OrderLookup["SF"]:
-			attrs, _ := out.NextSlice(1)
-			lastAttrs = NewAttributes(attrs)
-			device.PutByteIntoBuffer(OrderLookup["SF"], lastAttrs)
+			attrs, _ := out.Next()
+			fldAttrs = NewAttribute(attrs)
+			// println("🐞 SF at", device.addr, fldAttrs.ToString())
+			// 👇 the start field is itself protected
+			device.PutByteIntoBuffer(OrderLookup["SF"], protected)
+
 		case OrderLookup["SA"]:
-			println("🔥 SA not handled")
+			println("❓ SA not handled")
+
 		case OrderLookup["SFE"]:
 			count, _ := out.Next()
 			attrs, _ := out.NextSlice(int(count) * 2)
-			lastAttrs = NewAttributes(attrs)
-			device.PutByteIntoBuffer(OrderLookup["SF"], lastAttrs)
+			fldAttrs = NewAttributes(attrs)
+			println("🐞 SFE at", device.addr, fldAttrs.ToString())
+			// 👇 the start field is itself protected
+			device.PutByteIntoBuffer(OrderLookup["SF"], protected)
+
 		case OrderLookup["MF"]:
-			println("🔥 MF not handled")
+			println("❓ MF not handled")
+
 		case OrderLookup["RA"]:
-			println("🔥 RA not handled")
+			println("❓ RA not handled")
+
 		// 👇 if it isn't an order, it's data
 		// 🔥 let's not convert the EBCDIC byte to ASCII until we actually need to, as we'll cache glyphs by their EDCDIC value
 		default:
 			if order == 0x00 || order >= 0x40 {
-				device.PutByteIntoBuffer(order, lastAttrs)
+				device.PutByteIntoBuffer(order, fldAttrs)
 			}
 		}
 	}
@@ -334,10 +351,10 @@ func (device *Device) ProcessWCC(out *OutboundDataStream) {
 		device.locked = false
 	}
 	if wcc.Reset() {
-		// TODO implement DoReset
+		println("❓ wcc.Reset() not handled")
 	}
 	if wcc.ResetMDT() {
-		// TODO implement DoReset
+		println("❓ wcc.ResetMDT() not handled")
 	}
 }
 
@@ -366,9 +383,16 @@ func (device *Device) ReceiveFromApp(u8s []byte) {
 	// 👇 reset changes stack
 	device.changes = NewStack[int](device.size)
 	// 👇 data can be split into multiple frames
-	frames := device.MakeFramesFromBytes(u8s)
+	slices := bytes.Split(u8s, FrameLT)
+	frames := make([]*OutboundDataStream, 0)
+	for ix := range slices {
+		if len(slices[ix]) > 0 {
+			frame := NewOutboundDataStream(&slices[ix])
+			frames = append(frames, frame)
+		}
+	}
+	// 👇 extract amd process command from each frame
 	for ix := range frames {
-		// 👇 extract command
 		out := frames[ix]
 		cmd, err := out.Next()
 		if err != nil {
@@ -377,7 +401,6 @@ func (device *Device) ReceiveFromApp(u8s []byte) {
 		}
 		device.command = cmd
 		println("🐞 COMMAND=", Command[device.command])
-		// 👇 dispatch on command
 		device.ProcessCommands(out)
 	}
 	// 👇 broadcast status
@@ -458,7 +481,7 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 			// 👇 cache hit: just bitblt the glyph
 			device.dc.DrawImage(img, int(x), int(y))
 		} else {
-			println("🔥 glyph cache miss", cell)
+			// println("🔥 glyph cache miss", cell)
 			// 👇 cache miss: draw the glyph in a temporary context
 			rgba := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
 			temp := gg.NewContextForRGBA(rgba)

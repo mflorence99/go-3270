@@ -12,11 +12,6 @@ func TestTypes_AID(t *testing.T) {
 	assert.True(t, device.AIDLookup["PF8"] == 0xF8)
 }
 
-func TestTypes_CLUT(t *testing.T) {
-	assert.True(t, device.CLUT[0xF4] != nil)
-	assert.True(t, device.CLUT[0xF8] == nil)
-}
-
 func TestTypes_Command(t *testing.T) {
 	assert.True(t, device.Command[0xF1] == "W")
 	assert.True(t, device.CommandLookup["EW"] == 0xF5)

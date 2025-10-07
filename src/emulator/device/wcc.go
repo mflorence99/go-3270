@@ -53,16 +53,16 @@ func (wcc *WCC) ToByte() byte {
 
 func (wcc *WCC) ToString() string {
 	str := "WCC=[ "
-	if wcc.alarm {
+	if wcc.Alarm() {
 		str += "ALARM "
 	}
-	if wcc.reset {
+	if wcc.Reset() {
 		str += "RESET "
 	}
-	if wcc.resetMDT {
+	if wcc.ResetMDT() {
 		str += "-MDT "
 	}
-	if wcc.unlock {
+	if wcc.Unlock() {
 		str += "UNLOCK "
 	}
 	str += "]"

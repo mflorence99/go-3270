@@ -44,7 +44,7 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	// 👇 properties
 	canvas := args[0]
 	bgColor := args[1].String()
-	color := args[2].String()
+	color := [2]string{args[2].Index(0).String(), args[2].Index(1).String()}
 	fontSize := args[3].Float()
 	cols := args[4].Int()
 	rows := args[5].Int()
@@ -159,7 +159,7 @@ func (go3270 *Go3270) Close() {
 }
 
 func (go3270 *Go3270) Focussed(focussed bool) {
-	js.Global().Get("console").Call("log", device.Ternary(focussed, "%cGo3270 has focus", "%cGo3270 loses focus"), "color: olivedrab")
+	js.Global().Get("console").Call("log", device.Ternary(focussed, "%cGo3270 gains focus", "%cGo3270 loses focus"), "color: olivedrab")
 	// 👇 just forward to device
 	go3270.device.Focussed(focussed)
 }
