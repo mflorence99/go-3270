@@ -71,10 +71,10 @@ type Glyph struct {
 // 👁️ go3270.go subscribes to them on the bus, then uses dispatchEvent to route them to mediator.ts in the UI. All this is necessary so that go test-able code can communicate with the ui without using syscall/js
 
 type Go3270Message struct {
-	args      []any
-	u8s       []byte
-	eventType string
-	params    map[string]any
+	Args      []any
+	EventType string
+	Params    map[string]any
+	U8s       []byte
 }
 
 func NewDevice(
@@ -245,9 +245,9 @@ func (device *Device) ProcessCommands(out *OutboundDataStream) {
 	// 👇 dispatch on command
 	switch device.command {
 	case CommandLookup["RMA"]:
-		device.SendGo3270Message(Go3270Message{eventType: "panic", args: []any{"🔥 RMA not handled"}})
+		device.SendGo3270Message(Go3270Message{EventType: "panic", Args: []any{"🔥 RMA not handled"}})
 	case CommandLookup["EAU"]:
-		device.SendGo3270Message(Go3270Message{eventType: "panic", args: []any{"🔥 EAU not handled"}})
+		device.SendGo3270Message(Go3270Message{EventType: "panic", Args: []any{"🔥 EAU not handled"}})
 	case CommandLookup["EWA"]:
 		device.EraseBuffer()
 		device.ProcessWCC(out)
@@ -256,15 +256,15 @@ func (device *Device) ProcessCommands(out *OutboundDataStream) {
 		device.ProcessWCC(out)
 		device.ProcessOrdersAndData(out)
 	case CommandLookup["RB"]:
-		device.SendGo3270Message(Go3270Message{eventType: "panic", args: []any{"🔥 RB not handled"}})
+		device.SendGo3270Message(Go3270Message{EventType: "panic", Args: []any{"🔥 RB not handled"}})
 	case CommandLookup["WSF"]:
-		device.SendGo3270Message(Go3270Message{eventType: "panic", args: []any{"🔥 WSF not handled"}})
+		device.SendGo3270Message(Go3270Message{EventType: "panic", Args: []any{"🔥 WSF not handled"}})
 	case CommandLookup["EW"]:
 		device.EraseBuffer()
 		device.ProcessWCC(out)
 		device.ProcessOrdersAndData(out)
 	case CommandLookup["RM"]:
-		device.SendGo3270Message(Go3270Message{eventType: "panic", args: []any{"🔥 RM not handled"}})
+		device.SendGo3270Message(Go3270Message{EventType: "panic", Args: []any{"🔥 RM not handled"}})
 	}
 }
 
@@ -284,7 +284,7 @@ func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 			addr, _ := out.NextSlice(2)
 			device.addr = AddrFromBytes(addr)
 			if device.addr >= device.size {
-				device.SendGo3270Message(Go3270Message{eventType: "panic", args: []any{"Data requires a device with a larger screen"}})
+				device.SendGo3270Message(Go3270Message{EventType: "panic", Args: []any{"Data requires a device with a larger screen"}})
 				return
 			}
 		case OrderLookup["EUA"]:
@@ -321,11 +321,11 @@ func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 func (device *Device) ProcessWCC(out *OutboundDataStream) {
 	byte, err := out.Next()
 	if err != nil {
-		device.SendGo3270Message(Go3270Message{eventType: "panic", args: []any{fmt.Sprintf("Unable to extract WCC: %s", err.Error())}})
+		device.SendGo3270Message(Go3270Message{EventType: "panic", Args: []any{fmt.Sprintf("Unable to extract WCC: %s", err.Error())}})
 		return
 	}
 	wcc := NewWCC(byte)
-	println(wcc.ToString())
+	println("🐞", wcc.ToString())
 	// 👇 honor WCC instructions
 	if wcc.Alarm() {
 		device.locked = false
@@ -368,16 +368,15 @@ func (device *Device) ReceiveFromApp(u8s []byte) {
 	// 👇 data can be split into multiple frames
 	frames := device.MakeFramesFromBytes(u8s)
 	for ix := range frames {
-		fmt.Printf("ReceiveFromApp(frame #%d)\n", ix)
 		// 👇 extract command
 		out := frames[ix]
 		cmd, err := out.Next()
 		if err != nil {
-			device.SendGo3270Message(Go3270Message{eventType: "panic", args: []any{fmt.Sprintf("Unable to extract write command: %s", err.Error())}})
+			device.SendGo3270Message(Go3270Message{EventType: "panic", Args: []any{fmt.Sprintf("Unable to extract write command: %s", err.Error())}})
 			return
 		}
 		device.command = cmd
-		println("COMMAND=", Command[device.command])
+		println("🐞 COMMAND=", Command[device.command])
 		// 👇 dispatch on command
 		device.ProcessCommands(out)
 	}
@@ -429,7 +428,7 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 			"ebcdic": true,
 			"title":  "RenderBuffer",
 		}
-		device.SendGo3270Message(Go3270Message{eventType: "dumpBytes", params: params, u8s: device.buffer})
+		device.SendGo3270Message(Go3270Message{EventType: "dumpBytes", Params: params, U8s: device.buffer})
 	}
 	// 👇 iterate over all changed cells
 	for !device.changes.IsEmpty() {
@@ -459,7 +458,7 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 			// 👇 cache hit: just bitblt the glyph
 			device.dc.DrawImage(img, int(x), int(y))
 		} else {
-			println("🔥 cache miss", cell)
+			println("🔥 glyph cache miss", cell)
 			// 👇 cache miss: draw the glyph in a temporary context
 			rgba := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
 			temp := gg.NewContextForRGBA(rgba)
@@ -498,7 +497,7 @@ func (device *Device) ResetStatus() {
 }
 
 func (device *Device) SendGo3270Message(msg Go3270Message) {
-	device.bus.Publish("go3270", msg.eventType, msg.u8s, msg.params, msg.args)
+	device.bus.Publish("go3270", msg)
 }
 
 func (device *Device) SignalStatus() {
@@ -512,7 +511,7 @@ func (device *Device) SignalStatus() {
 		"protected": device.protected,
 		"waiting":   device.waiting,
 	}
-	device.SendGo3270Message(Go3270Message{eventType: "status", params: status})
+	device.SendGo3270Message(Go3270Message{EventType: "status", Params: status})
 	device.alarm = false
 }
 

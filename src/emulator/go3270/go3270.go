@@ -191,29 +191,29 @@ func (go3270 *Go3270) ReceiveFromApp(u8in js.Value) {
 
 // 🟦 Messages from go test-able code sent to the UI for action
 
-func go3270Message(eventType string, u8s []byte, params map[string]any, args []any) {
+func go3270Message(msg device.Go3270Message) {
 	// 👇 params and args may be nil
-	if params == nil {
-		params = map[string]any{}
+	if msg.Params == nil {
+		msg.Params = map[string]any{}
 	}
-	if args != nil && args[0] != nil {
-		params["args"] = args
+	if msg.Args != nil && msg.Args[0] != nil {
+		msg.Params["args"] = msg.Args
 	}
 	// 👇 bytes may be nil, but if not convert to JS
 	var u8out js.Value
-	if u8s != nil {
-		u8out = js.Global().Get("Uint8ClampedArray").New(len(u8s))
-		js.CopyBytesToJS(u8out, u8s)
-		params["bytes"] = u8out
+	if msg.U8s != nil {
+		u8out = js.Global().Get("Uint8ClampedArray").New(len(msg.U8s))
+		js.CopyBytesToJS(u8out, msg.U8s)
+		msg.Params["bytes"] = u8out
 	}
 	// 👇 dispatch event to JS
-	params["eventType"] = eventType
+	msg.Params["eventType"] = msg.EventType
 	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
-		"detail": params,
+		"detail": msg.Params,
 	})
 	js.Global().Get("window").Call("dispatchEvent", event)
 	// 👇 special case: dump what we send
-	if eventType == "sendToApp" {
+	if msg.EventType == "sendToApp" {
 		params := map[string]any{
 			"bytes":     u8out,
 			"color":     "palegreen",
