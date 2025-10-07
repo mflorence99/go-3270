@@ -74,7 +74,7 @@ func (out *OutboundDataStream) nextImpl(peek bool) (byte, error) {
 	if out.HasNext() {
 		u8 := (*out.u8s)[out.ix]
 		if !peek {
-			out.ix += 1
+			out.ix++
 		}
 		return u8, nil
 	} else {

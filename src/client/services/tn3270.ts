@@ -143,14 +143,12 @@ export class Tn3270 {
         this.#socket?.send(negotiator.encode(response));
       }
     } else {
-      dumpBytes(bytes, 'Outbound Application -> 3270', true, 'yellow');
       observer.next(bytes);
     }
   }
 
   // 🔥 this class emulates the device and "inbound" data streams are sent FROM the device TO application code
   sendToApp(bytes: Uint8ClampedArray): void {
-    dumpBytes(bytes, 'Inbound 3270 -> Application', true, 'palegreen');
     this.#socket?.send(bytes);
   }
 }

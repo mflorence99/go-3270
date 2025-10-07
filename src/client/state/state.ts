@@ -8,10 +8,13 @@ import { createContext } from '@lit/context';
 import { defaultColor } from '$client/state/constants';
 import { defaultDimensions } from '$client/state/constants';
 import { effect } from '$client/types/signals';
+import { enablePatches } from 'immer';
 import { produce } from 'immer';
 import { signal } from '@lit-labs/signals';
 
 import StackTrace from 'stacktrace-js';
+
+enablePatches();
 
 // 📘 base state class
 

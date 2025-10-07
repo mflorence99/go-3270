@@ -160,15 +160,30 @@ func (go3270 *Go3270) Close() {
 
 func (go3270 *Go3270) Focussed(focussed bool) {
 	js.Global().Get("console").Call("log", device.Ternary(focussed, "%cGo3270 has focus", "%cGo3270 loses focus"), "color: olivedrab")
+	// 👇 just forward to device
 	go3270.device.Focussed(focussed)
 }
 
 func (go3270 *Go3270) Keystroke(code string, key string, alt bool, ctrl bool, shift bool) {
+	js.Global().Get("console").Call("log", fmt.Sprintf("%%cKeystroke(code=%s key=%s alt=%t ctrl=%t shift=%t)", code, key, alt, ctrl, shift), "color: powderblue")
 	// 👇 just forward to device
 	go3270.device.Keystroke(code, key, alt, ctrl, shift)
 }
 
 func (go3270 *Go3270) ReceiveFromApp(u8in js.Value) {
+	// 🔥 do this the hard way, just so we don't have to re-convert bytes
+	params := map[string]any{
+		"bytes":     u8in,
+		"color":     "yellow",
+		"ebcdic":    true,
+		"eventType": "dumpBytes",
+		"title":     "ReceiveFromApp",
+	}
+	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
+		"detail": params,
+	})
+	js.Global().Get("window").Call("dispatchEvent", event)
+	// 👇 just forward to device
 	u8s := make([]byte, u8in.Get("length").Int())
 	js.CopyBytesToGo(u8s, u8in)
 	go3270.device.ReceiveFromApp(u8s)
@@ -185,11 +200,11 @@ func go3270Message(eventType string, u8s []byte, params map[string]any, args []a
 		params["args"] = args
 	}
 	// 👇 bytes may be nil, but if not convert to JS
-	var jsBytes js.Value
+	var u8out js.Value
 	if u8s != nil {
-		jsBytes = js.Global().Get("Uint8ClampedArray").New(len(u8s))
-		js.CopyBytesToJS(jsBytes, u8s)
-		params["bytes"] = jsBytes
+		u8out = js.Global().Get("Uint8ClampedArray").New(len(u8s))
+		js.CopyBytesToJS(u8out, u8s)
+		params["bytes"] = u8out
 	}
 	// 👇 dispatch event to JS
 	params["eventType"] = eventType
@@ -197,4 +212,18 @@ func go3270Message(eventType string, u8s []byte, params map[string]any, args []a
 		"detail": params,
 	})
 	js.Global().Get("window").Call("dispatchEvent", event)
+	// 👇 special case: dump what we send
+	if eventType == "sendToApp" {
+		params := map[string]any{
+			"bytes":     u8out,
+			"color":     "palegreen",
+			"ebcdic":    true,
+			"eventType": "dumpBytes",
+			"title":     "SendToApp",
+		}
+		event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
+			"detail": params,
+		})
+		js.Global().Get("window").Call("dispatchEvent", event)
+	}
 }

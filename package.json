@@ -41,7 +41,6 @@
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "eslint-plugin-prettier": "^5.5.4",
     "figlet": "^1.9.1",
-    "jsome": "^2.5.0",
     "lit-analyzer": "^2.0.3",
     "postcss": "^8.5.6",
     "postcss-lit": "^1.2.0",

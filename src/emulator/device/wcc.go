@@ -18,19 +18,19 @@ func NewWCC(u8 byte) *WCC {
 	return wcc
 }
 
-func (wcc *WCC) DoAlarm() bool {
+func (wcc *WCC) Alarm() bool {
 	return wcc.alarm
 }
 
-func (wcc *WCC) DoReset() bool {
+func (wcc *WCC) Reset() bool {
 	return wcc.reset
 }
 
-func (wcc *WCC) DoResetMDT() bool {
+func (wcc *WCC) ResetMDT() bool {
 	return wcc.resetMDT
 }
 
-func (wcc *WCC) DoUnlock() bool {
+func (wcc *WCC) Unlock() bool {
 	return wcc.unlock
 }
 
