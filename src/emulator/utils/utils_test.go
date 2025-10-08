@@ -33,3 +33,8 @@ func Test_Invert(t *testing.T) {
 	assert.True(t, reflect.DeepEqual(m2, utils.Invert(m1)))
 	assert.True(t, reflect.DeepEqual(m4, utils.InvertMulti(m3)))
 }
+
+func Test_Ternary(t *testing.T) {
+	assert.True(t, utils.Ternary(true, "a", "b") == "a")
+	assert.True(t, utils.Ternary(false, "a", "b") == "b")
+}

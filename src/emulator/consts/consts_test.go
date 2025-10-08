@@ -43,3 +43,21 @@ func Test_CommandFor(t *testing.T) {
 	assert.True(t, consts.CommandFor(0xF5) == "EW")
 	assert.True(t, consts.CommandFor(0xFF) == "")
 }
+
+func Test_HighlightFor(t *testing.T) {
+	assert.True(t, consts.HighlightFor(0xF1) == "BLINK")
+	assert.True(t, consts.HighlightFor(0xF2) == "REVERSE")
+	assert.True(t, consts.HighlightFor(0xF3) == "")
+}
+
+func Test_OrderFor(t *testing.T) {
+	assert.True(t, consts.OrderFor(0x05) == "PT")
+	assert.True(t, consts.OrderFor(0x29) == "SFE")
+	assert.True(t, consts.OrderFor(0xF3) == "")
+}
+
+func Test_TypecodeFor(t *testing.T) {
+	assert.True(t, consts.TypecodeFor(0xC0) == "BASIC")
+	assert.True(t, consts.TypecodeFor(0x42) == "COLOR")
+	assert.True(t, consts.TypecodeFor(0xF3) == "")
+}

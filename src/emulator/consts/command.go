@@ -4,6 +4,8 @@ var (
 	EAU byte = 0x6F
 	EW  byte = 0xF5
 	EWA byte = 0x7E
+	Q   byte = 0x02
+	QL  byte = 0x03
 	RB  byte = 0xF2
 	RM  byte = 0xF6
 	RMA byte = 0x6E
@@ -11,7 +13,10 @@ var (
 	WSF byte = 0xF3
 )
 
-var commands = map[byte]string{0x6E: "RMA",
+var commands = map[byte]string{
+	0x02: "Q",
+	0x03: "QL",
+	0x6E: "RMA",
 	0x6F: "EAU",
 	0x7E: "EWA",
 	0xF1: "W",

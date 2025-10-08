@@ -464,7 +464,7 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 		x := math.Round(float64(col) * w)
 		y := math.Round(float64(row) * h)
 		// 🔥 we could do better calculating the baseline - this is just a WAG, because an em is drawn with a significantly different height than that returned by MeasureString()
-		baseline := y + h - (device.fontSize / 3)
+		baseline := y + h - (device.fontSize / 2)
 		// 🔥 != here is the Go idiom for XOR
 		color := attrs.Color(device.color)
 		highlight := attrs.Highlight()
