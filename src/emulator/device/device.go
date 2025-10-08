@@ -20,9 +20,10 @@ import (
 // 👁️ http://www.tommysprinkle.com/mvs/P3270/start.htm
 
 type Device struct {
-	bus  EventBus.Bus
-	dc   *gg.Context
-	face font.Face
+	bus         EventBus.Bus
+	dc          *gg.Context
+	boldFace    font.Face
+	regularFace font.Face
 
 	// 👇 properties
 	bgColor      string
@@ -64,6 +65,7 @@ type Device struct {
 type Glyph struct {
 	u8         byte
 	color      string
+	highlight  bool
 	reverse    bool
 	underscore bool
 }
@@ -80,7 +82,8 @@ type Go3270Message struct {
 func NewDevice(
 	bus EventBus.Bus,
 	rgba *image.RGBA,
-	face font.Face,
+	boldFace font.Face,
+	regularFace font.Face,
 	bgColor string,
 	color [2]string,
 	cols int,
@@ -110,7 +113,8 @@ func NewDevice(
 	device.buffer = make([]byte, device.size)
 	device.bus = bus
 	device.dc = gg.NewContextForRGBA(rgba)
-	device.face = face
+	device.boldFace = boldFace
+	device.regularFace = regularFace
 	device.glyphs = make(map[Glyph]image.Image)
 	// 👇 reset device status
 	device.ResetStatus()
@@ -463,6 +467,7 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 		baseline := y + h - (device.fontSize / 3)
 		// 🔥 != here is the Go idiom for XOR
 		color := attrs.Color(device.color)
+		highlight := attrs.Highlight()
 		underscore := attrs.Underscore()
 		showCursor := (addr == device.cursorAt) && device.focussed
 		blinkMe := (attrs.Blink() || showCursor) && opts.blinkOn
@@ -471,6 +476,7 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 		glyph := Glyph{
 			u8:         cell,
 			color:      color,
+			highlight:  highlight,
 			reverse:    reverse,
 			underscore: underscore,
 		}
@@ -482,7 +488,7 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 			// 👇 cache miss: draw the glyph in a temporary context
 			rgba := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
 			temp := gg.NewContextForRGBA(rgba)
-			temp.SetFontFace(device.face)
+			temp.SetFontFace(Ternary(highlight, device.boldFace, device.regularFace))
 			// 👇 clear background
 			temp.SetHexColor(Ternary(reverse, color, device.bgColor))
 			temp.Clear()

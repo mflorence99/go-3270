@@ -11,13 +11,19 @@ import (
 
 	"github.com/asaskevich/EventBus"
 	"github.com/fogleman/gg"
-	"golang.org/x/image/font/opentype"
+	"github.com/golang/freetype/truetype"
 )
 
 // 🔥 Hack alert! we must use extension {js, wasm} and we can't use symlinks, so this file is a copy of the font renamed
 
 //go:embed 3270Font.wasm
 var go3270Font []byte
+
+//go:embed IBMPlexMono-Regular.ttf.wasm
+var regularFontEmbed []byte
+
+//go:embed IBMPlexMono-Bold.ttf.wasm
+var boldFontEmbed []byte
 
 // 🟧 Bridge between Typescript UI and Go-powered emulator
 
@@ -51,20 +57,15 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	dpi := args[6].Float()
 	// 👇 constants
 	maxFPS := 30.0
-	paddedHeight := 1.05
+	paddedHeight := 1.5
 	paddedWidth := 1.1
 	// 👇 load the 3270 font
-	font, err := opentype.Parse(go3270Font)
-	if err != nil {
-		panic(fmt.Sprintf("unable to parse 3270 font: %s", err.Error()))
-	}
-	face, err := opentype.NewFace(font, &opentype.FaceOptions{Size: fontSize, DPI: dpi /* , Hinting: font.HintingFull */})
-	if err != nil {
-		panic(fmt.Sprintf("unable to create 3270 font face: %s", err.Error()))
-	}
-	// 👇 resize canvas to fit font, using temporary context
+	regularFont, _ := truetype.Parse(regularFontEmbed)
+	regularFace := truetype.NewFace(regularFont, &truetype.Options{Size: fontSize, DPI: dpi /* , Hinting: font.HintingFull */})
+	boldFont, _ := truetype.Parse(boldFontEmbed)
+	boldFace := truetype.NewFace(boldFont, &truetype.Options{Size: fontSize, DPI: dpi /* , Hinting: font.HintingFull */})
 	temp := gg.NewContext(100, 100)
-	temp.SetFontFace(face)
+	temp.SetFontFace(boldFace)
 	fontWidth, fontHeight := temp.MeasureString("M")
 	canvasWidth := float64(cols) * math.Round(fontWidth*paddedWidth)
 	canvasHeight := float64(rows) * math.Round(fontHeight*paddedHeight)
@@ -79,7 +80,8 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	go3270.device = device.NewDevice(
 		go3270.bus,
 		rgba,
-		face,
+		boldFace,
+		regularFace,
 		bgColor,
 		color,
 		cols,

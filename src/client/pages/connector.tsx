@@ -281,17 +281,17 @@ export class Connector extends SignalWatcher(LitElement) {
               <md-filled-select name="fontSize">
                 ${repeat(
                   [
+                    '6',
+                    '7',
+                    '8',
+                    '9',
                     '10',
                     '11',
                     '12',
                     '13',
                     '14',
                     '15',
-                    '16',
-                    '17',
-                    '18',
-                    '19',
-                    '20'
+                    '16'
                   ],
                   (fontSize) => fontSize,
                   (fontSize) => html`
