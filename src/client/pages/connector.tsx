@@ -1,7 +1,7 @@
-import { Colors } from '$client/state/constants';
+import { Colors } from '$client/state/consts';
 import { Config } from '$client/state/state';
-import { Dimensions } from '$client/state/constants';
-import { Emulators } from '$client/state/constants';
+import { Dimensions } from '$client/state/consts';
+import { Emulators } from '$client/state/consts';
 import { LitElement } from 'lit';
 import { MdDialog } from '@material/web/dialog/dialog.js';
 import { SignalWatcher } from '@lit-labs/signals';

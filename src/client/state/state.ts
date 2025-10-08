@@ -1,12 +1,12 @@
-import { Colors } from '$client/state/constants';
-import { Dimensions } from '$client/state/constants';
+import { Colors } from '$client/state/consts';
+import { Dimensions } from '$client/state/consts';
 import { Signal } from '@lit-labs/signals';
 
 import { computed } from '$client/types/signals';
 import { config } from '$client/config';
 import { createContext } from '@lit/context';
-import { defaultColor } from '$client/state/constants';
-import { defaultDimensions } from '$client/state/constants';
+import { defaultColor } from '$client/state/consts';
+import { defaultDimensions } from '$client/state/consts';
 import { effect } from '$client/types/signals';
 import { enablePatches } from 'immer';
 import { produce } from 'immer';

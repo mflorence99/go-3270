@@ -1,4 +1,4 @@
-import { Emulators } from '$client/state/constants';
+import { Emulators } from '$client/state/consts';
 import { Go3270 } from '$client/types/go3270';
 import { LitElement } from 'lit';
 import { SignalWatcher } from '@lit-labs/signals';
