@@ -7,36 +7,38 @@ import (
 	"strings"
 )
 
-var INBOUND byte = 0x88
-var CLEAR byte = 0x6D
-var ENTER byte = 0x7D
-var PA1 byte = 0x6C
-var PA2 byte = 0x6E
-var PA3 byte = 0x6B
-var PF1 byte = 0xF1
-var PF2 byte = 0xF2
-var PF3 byte = 0xF3
-var PF4 byte = 0xF4
-var PF5 byte = 0xF5
-var PF6 byte = 0xF6
-var PF7 byte = 0xF7
-var PF8 byte = 0xF8
-var PF9 byte = 0xF9
-var PF10 byte = 0x7A
-var PF11 byte = 0x7B
-var PF12 byte = 0x7C
-var PF13 byte = 0xC1
-var PF14 byte = 0xC2
-var PF15 byte = 0xC3
-var PF16 byte = 0xC4
-var PF17 byte = 0xC5
-var PF18 byte = 0xC6
-var PF19 byte = 0xC7
-var PF20 byte = 0xC8
-var PF21 byte = 0xC9
-var PF22 byte = 0x4A
-var PF23 byte = 0x4B
-var PF24 byte = 0x4C
+var (
+	INBOUND byte = 0x88
+	CLEAR   byte = 0x6D
+	ENTER   byte = 0x7D
+	PA1     byte = 0x6C
+	PA2     byte = 0x6E
+	PA3     byte = 0x6B
+	PF1     byte = 0xF1
+	PF2     byte = 0xF2
+	PF3     byte = 0xF3
+	PF4     byte = 0xF4
+	PF5     byte = 0xF5
+	PF6     byte = 0xF6
+	PF7     byte = 0xF7
+	PF8     byte = 0xF8
+	PF9     byte = 0xF9
+	PF10    byte = 0x7A
+	PF11    byte = 0x7B
+	PF12    byte = 0x7C
+	PF13    byte = 0xC1
+	PF14    byte = 0xC2
+	PF15    byte = 0xC3
+	PF16    byte = 0xC4
+	PF17    byte = 0xC5
+	PF18    byte = 0xC6
+	PF19    byte = 0xC7
+	PF20    byte = 0xC8
+	PF21    byte = 0xC9
+	PF22    byte = 0x4A
+	PF23    byte = 0x4B
+	PF24    byte = 0x4C
+)
 
 var aids = map[byte]string{
 	0x88: "INBOUND",
@@ -78,12 +80,13 @@ func AIDFor(aid byte) string {
 }
 
 func AIDOf(key string, alt, ctrl, shift bool) byte {
+	code := strings.ToUpper(key)
 	re := regexp.MustCompile(`F([0-9]+)`)
-	matches := re.FindStringSubmatch(key)
+	matches := re.FindStringSubmatch(code)
 	switch {
-	case key == "Enter":
+	case code == "ENTER":
 		return ENTER
-	case key == "Escape":
+	case code == "ESCAPE":
 		return CLEAR
 	case !alt && !ctrl && !shift && len(matches) == 2:
 		num, _ := strconv.Atoi(matches[1])

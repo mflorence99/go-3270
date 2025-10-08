@@ -23,6 +23,7 @@ func Test_AIDFOf(t *testing.T) {
 	assert.True(t, consts.AIDOf("F1", true, false, false) == consts.PA1)
 	assert.True(t, consts.AIDOf("F3", true, false, false) == consts.PA3)
 	assert.True(t, consts.AIDOf("F4", true, false, false) == 0)
+	assert.True(t, consts.AIDOf("Backspace", true, false, false) == 0)
 }
 
 func Test_PAx(t *testing.T) {
