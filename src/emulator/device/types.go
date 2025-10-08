@@ -48,7 +48,7 @@ var CLUT = map[byte][2]string{
 	0xF4: {"#00AA00", "#88DD88"},
 	0xF5: {"#00C8AA", "#99E8DD"},
 	0xF6: {"#FF8000", "#FFB266"},
-	0xF7: {"#FFFFFF", "#B8B8B8"},
+	0xF7: {"#888888", "#FFFFFF"},
 }
 
 // 🟦 Command

@@ -8,7 +8,7 @@ export const Colors: Record<string, string[]> = {
   green: defaultColor,
   blue: ['#0078FF', '#3366CC'],
   orange: ['#FF8000', '#FFB266'],
-  white: ['#FFFFFF', '#B8B8B8']
+  white: ['#888888', '#FFFFFF']
 };
 
 export const defaultDimensions: [number, number] = [80, 24];

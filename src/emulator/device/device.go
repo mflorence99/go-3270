@@ -117,18 +117,6 @@ func NewDevice(
 	return device
 }
 
-func (device *Device) BoundingBox(addr int) (float64, float64, float64, float64, float64) {
-	col := addr % device.cols
-	row := int(addr / device.cols)
-	w := math.Round(device.fontWidth * device.paddedWidth)
-	h := math.Round(device.fontHeight * device.paddedHeight)
-	x := math.Round(float64(col) * w)
-	y := math.Round(float64(row) * h)
-	// 🔥 we could do better calculating the baseline - this is just a WAG, because an em is drawn with a significantly different height than that returned by MeasureString()
-	baseline := y + h - (device.fontSize / 3)
-	return x, y, w, h, baseline
-}
-
 func (device *Device) Close() {
 	if device.blinker != nil {
 		close(device.blinker)
@@ -174,11 +162,17 @@ func (device *Device) Keystroke(code string, key string, alt bool, ctrl bool, sh
 	case isData && (keyInProtected || alphaInNumeric):
 		device.alarm = true
 
-		// 👇 we can move the cursor anywhere we want to
+	// 👇 we can move the cursor anywhere we want to
 	case strings.HasPrefix(code, "Arrow"):
 		device.KeystrokeToMoveCursor(code)
 
-		// 👇 just data
+	// 👇 backspace moves the cursor left AND enters a space
+	case code == "Backspace":
+		device.KeystrokeToMoveCursor("ArrowLeft")
+		device.Keystroke("Space", " ", alt, ctrl, shift)
+		device.KeystrokeToMoveCursor("ArrowLeft")
+
+	// 👇 just data
 	case isData:
 		device.KeystrokeToSetByteAtCursor(key)
 
@@ -224,11 +218,7 @@ func (device *Device) KeystrokeToSetByteAtCursor(key string) {
 	device.addr = device.cursorAt
 	device.buffer[device.addr] = u8
 	device.changes.Push(device.addr)
-	device.addr++
-	// 👇 note wrap around
-	if device.addr == device.size {
-		device.addr = 0
-	}
+	device.incrAddr(1)
 	device.cursorAt = device.addr
 }
 
@@ -274,7 +264,7 @@ func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 	protected := NewProtectedAttribute()
 	var fldAttrs *Attributes = protected
 	for out.HasNext() {
-		// 👇 look at each order to see if it is an order
+		// 👇 look at each byte to see if it is an order
 		order, _ := out.Next()
 		// 👇 dispatch on order
 		switch order {
@@ -302,7 +292,9 @@ func (device *Device) ProcessOrdersAndData(out *OutboundDataStream) {
 		case OrderLookup["SF"]:
 			attrs, _ := out.Next()
 			fldAttrs = NewAttribute(attrs)
-			// println("🐞 SF at", device.addr, fldAttrs.ToString())
+			if !fldAttrs.Protected() {
+				println("🐞 SF at", device.addr, fldAttrs.ToString())
+			}
 			// 👇 the start field is itself protected
 			device.PutByteIntoBuffer(OrderLookup["SF"], protected)
 
@@ -367,11 +359,7 @@ func (device *Device) PutByteIntoBuffer(u8 byte, attrs *Attributes) {
 	}
 	device.buffer[device.addr] = u8
 	device.changes.Push(device.addr)
-	device.addr++
-	// 👇 note wrap around
-	if device.addr == device.size {
-		device.addr = 0
-	}
+	device.incrAddr(1)
 }
 
 func (device *Device) ReceiveFromApp(u8s []byte) {
@@ -437,13 +425,13 @@ type RenderBufferOpts struct {
 
 func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 	defer ElapsedTime(time.Now(), "RenderBuffer", opts.quiet)
-	// 👇 for example, EW command
+	// 👇 clear the screen, for exampleon an EW command
 	if device.erase {
 		device.dc.SetHexColor(device.bgColor)
 		device.dc.Clear()
+		// 🔥 don't do this until we're done because we need the flag
+		defer func() { device.erase = false }()
 	}
-	// 🔥 don't do this until we're done because we need the flag
-	defer func() { device.erase = false }()
 	// 👇 if requested, dump the buffer contents
 	if !opts.quiet {
 		params := map[string]any{
@@ -453,23 +441,32 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 		}
 		device.SendGo3270Message(Go3270Message{EventType: "dumpBytes", Params: params, U8s: device.buffer})
 	}
+	// 👇 pre-figure the bounding box
+	w := math.Round(device.fontWidth * device.paddedWidth)
+	h := math.Round(device.fontHeight * device.paddedHeight)
 	// 👇 iterate over all changed cells
 	for !device.changes.IsEmpty() {
 		addr := device.changes.Pop()
 		attrs := device.attrs[addr]
 		cell := device.buffer[addr]
-		color := attrs.Color(device.color)
-		underscore := attrs.Underscore()
 		visible := cell != 0x00 && !attrs.Hidden()
 		// 👇 quick exit: if not visible, and we've already cleared the device, we don't have to do anything
 		if !visible && device.erase {
 			break
 		}
+		// 👇 figure the bounding box
+		col := addr % device.cols
+		row := int(addr / device.cols)
+		x := math.Round(float64(col) * w)
+		y := math.Round(float64(row) * h)
+		// 🔥 we could do better calculating the baseline - this is just a WAG, because an em is drawn with a significantly different height than that returned by MeasureString()
+		baseline := y + h - (device.fontSize / 3)
 		// 🔥 != here is the Go idiom for XOR
+		color := attrs.Color(device.color)
+		underscore := attrs.Underscore()
 		showCursor := (addr == device.cursorAt) && device.focussed
 		blinkMe := (attrs.Blink() || showCursor) && opts.blinkOn
 		reverse := attrs.Reverse() != blinkMe
-		x, y, w, h, baseline := device.BoundingBox(addr)
 		// 👇 lookup the glyph in the cache
 		glyph := Glyph{
 			u8:         cell,
@@ -541,4 +538,20 @@ func (device *Device) SignalStatus() {
 func (device *Device) StatusForAttributes(attrs *Attributes) {
 	device.numeric = attrs.Numeric()
 	device.protected = attrs.Protected()
+}
+
+// 🟦 Helpers
+
+func (device *Device) decrAddr(count int) {
+	device.addr -= count
+	if device.addr < 0 {
+		device.addr = device.size - count
+	}
+}
+
+func (device *Device) incrAddr(count int) {
+	device.addr += count
+	if device.addr >= device.size {
+		device.addr = device.addr - device.size
+	}
 }

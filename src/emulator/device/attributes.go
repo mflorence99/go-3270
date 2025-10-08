@@ -54,9 +54,9 @@ func (attrs *Attributes) Color(dflt [2]string) string {
 		colors = dflt
 	}
 	if attrs.Highlight() {
-		return colors[0]
-	} else {
 		return colors[1]
+	} else {
+		return colors[0]
 	}
 }
 
