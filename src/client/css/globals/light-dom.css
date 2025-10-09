@@ -15,8 +15,15 @@
 @font-face {
   font-family: Terminal;
   font-style: normal;
-  font-weight: 500;
-  src: url('$client/fonts/3270Medium.ttf') format('truetype');
+  font-weight: normal;
+  src: url('$client/fonts/IBMPlexMono-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: Terminal;
+  font-style: normal;
+  font-weight: bold;
+  src: url('$client/fonts/IBMPlexMono-Bold.ttf') format('truetype');
 }
 
 @font-face {

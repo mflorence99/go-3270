@@ -38,6 +38,12 @@ func Test_PFx(t *testing.T) {
 	assert.False(t, consts.PFx(0x88))
 }
 
+func Test_ColorFor(t *testing.T) {
+	assert.True(t, consts.ColorFor(0xF2) == "RED")
+	assert.True(t, consts.ColorFor(0xF7) == "WHITE")
+	assert.True(t, consts.ColorFor(0xFF) == "")
+}
+
 func Test_CommandFor(t *testing.T) {
 	assert.True(t, consts.CommandFor(0x6F) == "EAU")
 	assert.True(t, consts.CommandFor(0xF5) == "EW")

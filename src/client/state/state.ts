@@ -1,12 +1,10 @@
-import { Colors } from '$client/state/consts';
 import { Dimensions } from '$client/state/consts';
+import { Emulators } from '$client/state/consts';
 import { Signal } from '@lit-labs/signals';
 
 import { computed } from '$client/types/signals';
 import { config } from '$client/config';
 import { createContext } from '@lit/context';
-import { defaultColor } from '$client/state/consts';
-import { defaultDimensions } from '$client/state/consts';
 import { effect } from '$client/types/signals';
 import { enablePatches } from 'immer';
 import { produce } from 'immer';
@@ -85,6 +83,8 @@ abstract class Base<T> {
 
 // 📘 the entire state of the app
 
+export type CLUT = Record<string, string[]>;
+
 export type Config = {
   color: string;
   emulator: string;
@@ -105,15 +105,26 @@ export type Status = {
 };
 
 export type StateModel = {
+  clut: CLUT;
   config: Config;
   status: Status;
 };
 
 const defaultState: StateModel = {
+  clut: {
+    black: ['#111138', '#505050'],
+    blue: ['#0078FF', '#3366CC'],
+    red: ['#D40000', '#E06666'],
+    pink: ['#FF69B4', '#FFB3DA'],
+    green: ['#00AA00', '#88DD88'],
+    turquoise: ['#00C8AA', '#99E8DD'],
+    yellow: ['#FF8000', '#FFB266'],
+    white: ['#888888', '#FFFFFF']
+  },
   config: {
     color: 'green',
     emulator: '2',
-    fontSize: '14',
+    fontSize: '8',
     host: 'localhost',
     port: '3270'
   },
@@ -133,24 +144,30 @@ export class State extends Base<StateModel> {
   // 👇 just an example of a computed property
   asJSON = computed(() => JSON.stringify(this.model.get()));
 
-  color = computed(
-    () => Colors[this.model.get().config.color] ?? defaultColor
-  );
+  color = computed((): string[] => {
+    const clut = this.model.get().clut;
+    // @ts-ignore 🔥 we know this is always valid
+    return clut[this.model.get().config.color];
+  });
 
-  dims = computed(
-    () =>
-      Dimensions[this.model.get().config.emulator] ?? defaultDimensions
-  );
-
-  // 🔥 must come after dims
-  // eslint-disable-next-line
   cursorAt = computed(() => {
     const cursorAt = this.model.get().status.cursorAt;
     if (cursorAt >= 0) {
       const dims = this.dims.get();
+      // @ts-ignore 🔥 we know this is always valid
       return `${String(Math.trunc(cursorAt / dims[0]) + 1).padStart(3, '0')}/${String((cursorAt % dims[0]) + 1).padStart(3, '0')}`;
     } else return '';
   });
+
+  dims = computed(
+    // @ts-ignore 🔥 we know this is always valid
+    (): [number, number] => Dimensions[this.model.get().config.emulator]
+  );
+
+  emulator = computed(
+    // @ts-ignore 🔥 we know this is always valid
+    (): string => Emulators[this.model.get().config.emulator]
+  );
 
   constructor(key: string) {
     super(defaultState, key, true);
@@ -163,7 +180,7 @@ export class State extends Base<StateModel> {
   updateConfig(config: Config): void {
     this.mutate(
       (state) =>
-        void ((state.config = config),
+        void ((state.config = { ...state.config, ...config }),
         (state.status = defaultState.status))
     );
   }

@@ -1,4 +1,3 @@
-import { Colors } from '$client/state/consts';
 import { Config } from '$client/state/state';
 import { Dimensions } from '$client/state/consts';
 import { Emulators } from '$client/state/consts';
@@ -79,6 +78,7 @@ export class Connector extends SignalWatcher(LitElement) {
               display: flex;
               flex-direction: column;
               gap: 0.5rem;
+              justify-content: space-between;
 
               .instructions {
                 font-weight: bold;
@@ -87,12 +87,6 @@ export class Connector extends SignalWatcher(LitElement) {
 
             .color .sample {
               font-family: Terminal;
-              font-size: larger;
-            }
-
-            .connection {
-              align-items: center;
-              justify-content: space-between;
             }
 
             .connection .host {
@@ -103,6 +97,13 @@ export class Connector extends SignalWatcher(LitElement) {
 
             .emulation .dims {
               font-size: smaller;
+            }
+
+            .label {
+              align-items: center;
+              display: flex;
+              flex-direction: row;
+              gap: 0.25rem;
             }
           }
         }
@@ -184,6 +185,10 @@ export class Connector extends SignalWatcher(LitElement) {
     this.#tn3270?.close();
   }
 
+  palette(): void {
+    this.dispatchEvent(new CustomEvent('palette'));
+  }
+
   panic(message: string): void {
     this.message = message;
     this.dialog.show();
@@ -217,16 +222,6 @@ export class Connector extends SignalWatcher(LitElement) {
                   value=${this.state.model.get().config
                     .port}></md-filled-text-field>
               </div>
-
-              <md-filled-button ?disabled=${this.connecting}>
-                ${this.connecting ? 'Connnecting...' : 'Connect'}
-                <app-icon
-                  icon="hourglass_full"
-                  style=${styleMap({
-                    display: this.connecting ? 'block' : 'none'
-                  })}
-                  slot="icon"></app-icon>
-              </md-filled-button>
             </article>
 
             <article class="emulation">
@@ -236,7 +231,7 @@ export class Connector extends SignalWatcher(LitElement) {
                 Object.entries(Emulators),
                 (emulator) => emulator[0],
                 (emulator) => html`
-                  <label>
+                  <label class="label">
                     <md-radio
                       ?checked=${this.state.model.get().config
                         .emulator === emulator[0]}
@@ -250,60 +245,56 @@ export class Connector extends SignalWatcher(LitElement) {
                   </label>
                 `
               )}
+
+              <br />
+
+              <md-filled-button
+                ?disabled=${this.connecting}
+                style="align-self: center">
+                ${this.connecting ? 'Connnecting...' : 'Connect'}
+                <app-icon
+                  icon="hourglass_full"
+                  style=${styleMap({
+                    display: this.connecting ? 'block' : 'none'
+                  })}
+                  slot="icon"></app-icon>
+              </md-filled-button>
             </article>
 
             <article class="color">
               <p class="instructions">Select Default 3270 Color</p>
 
               ${repeat(
-                Object.entries(Colors),
-                (color) => color[0],
+                ['green', 'blue', 'yellow', 'white'],
+                (color) => color,
                 (color) => html`
-                  <label>
+                  <label class="label">
                     <md-radio
                       ?checked=${this.state.model.get().config.color ===
-                      color[0]}
+                      color}
                       name="color"
-                      value=${color[0]}></md-radio>
+                      value=${color}></md-radio>
                     <span
                       class="sample"
                       style=${styleMap({
-                        color: color[1][0]
+                        // @ts-ignore 🔥 we know this is always valid
+                        color: this.state.model.get().clut[color][0]
                       })}>
-                      CUSTOMER NUM: 123456
+                      CUSTOMER NUM:
+                      <b>123456</b>
                     </span>
                   </label>
                 `
               )}
 
-              <p class="instructions">Select Font Size</p>
+              <br />
 
-              <md-filled-select name="fontSize">
-                ${repeat(
-                  [
-                    '6',
-                    '7',
-                    '8',
-                    '9',
-                    '10',
-                    '11',
-                    '12',
-                    '13',
-                    '14',
-                    '15',
-                    '16'
-                  ],
-                  (fontSize) => fontSize,
-                  (fontSize) => html`
-                    <md-select-option
-                      ?selected=${this.state.model.get().config
-                        .fontSize === fontSize}
-                      value=${fontSize}>
-                      <div slot="headline">${fontSize}px</div>
-                    </md-select-option>
-                  `
-                )}
-              </md-filled-select>
+              <md-outlined-button
+                @click=${this.palette}
+                style="align-self: center"
+                type="button">
+                Customize
+              </md-outlined-button>
             </article>
           </form>
         </section>

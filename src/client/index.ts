@@ -1,5 +1,6 @@
 export * from '$client/pages/connector';
 export * from '$client/pages/emulator';
+export * from '$client/pages/palette';
 export * from '$client/pages/root';
 
 export * from '$client/components/icon';

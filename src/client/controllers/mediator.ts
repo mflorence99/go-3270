@@ -6,7 +6,8 @@ import { dumpBytes } from '$lib/dump';
 
 export const Pages = {
   connector: 0,
-  emulator: 1
+  emulator: 1,
+  palette: 2
 };
 
 // 📘 Mediate between Go code and the UI

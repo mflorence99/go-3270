@@ -32,7 +32,8 @@ export class Root extends SignalWatcher(LitElement) {
     globals,
     css`
       .connector,
-      .emulator {
+      .emulator,
+      .palette {
         display: block;
         height: 100vh;
         opacity: 0;
@@ -62,6 +63,7 @@ export class Root extends SignalWatcher(LitElement) {
       <app-connector
         @connected=${(): any => (this.pageNum = Pages.emulator)}
         @disconnected=${(): any => (this.pageNum = Pages.connector)}
+        @palette=${(): any => (this.pageNum = Pages.palette)}
         @receiveFromApp=${(evt: CustomEvent): any =>
           this.emulator.receiveFromApp(evt.detail.bytes)}
         class="connector"
@@ -78,6 +80,15 @@ export class Root extends SignalWatcher(LitElement) {
           opacity: this.pageNum === Pages.emulator ? 1 : 0,
           zIndex: this.pageNum === Pages.emulator ? 1 : -1
         })}></app-emulator>
+
+      <app-palette
+        @done=${(): any => (this.pageNum = Pages.connector)}
+        class="palette"
+        data-page-num="${Pages.palette}"
+        style=${styleMap({
+          opacity: this.pageNum === Pages.palette ? 1 : 0,
+          zIndex: this.pageNum === Pages.palette ? 1 : -1
+        })}></app-palette>
     `;
   }
 }

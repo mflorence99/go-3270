@@ -158,7 +158,7 @@ export class Emulator extends SignalWatcher(LitElement) {
             })}>
             <article class="left">
               <app-icon icon="computer">
-                ${Emulators[this.state.model.get().config.emulator]}
+                ${Emulators[this.state.emulator.get()]}
               </app-icon>
 
               <app-icon
@@ -219,7 +219,8 @@ export class Emulator extends SignalWatcher(LitElement) {
       const color = this.state.color.get();
       const dims = this.state.dims.get();
       const dpi = this.dpi.offsetWidth * window.devicePixelRatio;
-      const fontSize = Number(this.state.model.get().config.fontSize);
+      const fontSize =
+        Number(this.state.model.get().config.fontSize) + 2;
       // 👇 construct a new device with its new attributes
       this.#go3270 = window.NewGo3270?.(
         this.terminal,
