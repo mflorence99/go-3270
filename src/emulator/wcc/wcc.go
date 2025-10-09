@@ -1,7 +1,5 @@
 package wcc
 
-// 🟧 Model 3270 WCC
-
 type WCC struct {
 	alarm    bool
 	reset    bool
