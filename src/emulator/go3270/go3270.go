@@ -16,9 +16,6 @@ import (
 
 // 🔥 Hack alert! we must use extension {js, wasm} and we can't use symlinks, so this file is a copy of the font renamed
 
-//go:embed 3270Font.wasm
-var go3270Font []byte
-
 //go:embed IBMPlexMono-Regular.ttf.wasm
 var regularFontEmbed []byte
 
@@ -43,7 +40,7 @@ type Go3270 struct {
 }
 
 // 🔥 main.go places this function name on the DOM's global window object
-func NewGo3270(this js.Value, args []js.Value) any {
+func New(this js.Value, args []js.Value) any {
 	go3270 := new(Go3270)
 	// 👇 get the bus ready right away
 	go3270.bus = EventBus.New()
@@ -51,10 +48,18 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	canvas := args[0]
 	bgColor := args[1].String()
 	color := [2]string{args[2].Index(0).String(), args[2].Index(1).String()}
-	fontSize := args[3].Float()
-	cols := args[4].Int()
-	rows := args[5].Int()
-	dpi := args[6].Float()
+	// clut := map[byte][2]string{}
+	obj := args[3]
+	keys := js.Global().Get("Object").Call("keys", obj)
+	for i := 0; i < keys.Length(); i++ {
+		k := keys.Index(i).String()
+		v := [2]string{obj.Get(k).Index(0).String(), obj.Get(k).Index(1).String()}
+		fmt.Printf("🎨 %s = %v\n", k, v)
+	}
+	fontSize := args[4].Float()
+	cols := args[5].Int()
+	rows := args[6].Int()
+	dpi := args[7].Float()
 	// 👇 constants
 	maxFPS := 30.0
 	paddedHeight := 1.5

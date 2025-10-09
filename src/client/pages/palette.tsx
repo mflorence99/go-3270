@@ -9,6 +9,7 @@ import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { globals } from '$client/css/globals/shadow-dom';
 import { html } from 'lit';
+import { query } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { stateContext } from '$client/state/state';
 
@@ -47,7 +48,6 @@ export class Palette extends SignalWatcher(LitElement) {
           flex-direction: row;
           gap: 2rem;
 
-          .preview,
           .settings {
             display: flex;
             flex-direction: column;
@@ -61,6 +61,18 @@ export class Palette extends SignalWatcher(LitElement) {
               justify-content: center;
             }
 
+            .clut {
+              input[type='color'] {
+                height: 2rem;
+                width: 5rem;
+              }
+              td {
+                font-weight: bold;
+                padding: 0.25rem;
+                text-transform: capitalize;
+              }
+            }
+
             .controls {
               display: flex;
               flex-direction: column;
@@ -70,12 +82,19 @@ export class Palette extends SignalWatcher(LitElement) {
             .instructions {
               font-weight: bold;
             }
+
+            .preview {
+              background: coral;
+              height: 400px;
+              width: 400px;
+            }
           }
         }
       }
     `
   ];
 
+  @query('.clut') clut!: HTMLElement;
   @consume({ context: stateContext }) state!: State;
 
   config(evt: Event): void {
@@ -85,6 +104,17 @@ export class Palette extends SignalWatcher(LitElement) {
       const formData = new FormData(form);
       const config = Object.fromEntries(formData.entries()) as Config;
       this.state.updateConfig(config);
+      // 👇 now extract all the colors from the clut
+      const inputs: HTMLInputElement[] = Array.from(
+        this.clut.querySelectorAll('input[type=color]')
+      );
+      const clut = inputs.reduce((acc, input) => {
+        const color = input.getAttribute('data-color') as string;
+        const ix = Number(input.getAttribute('data-color-ix'));
+        acc[color]![ix] = input.value;
+        return acc;
+      }, structuredClone(this.state.model.get().clut));
+      this.state.updateCLUT(clut);
     }
   }
 
@@ -99,8 +129,53 @@ export class Palette extends SignalWatcher(LitElement) {
         <form @submit=${this.config} name="config">
           <section class="palette">
             <article class="settings">
-              <div
-                style="background: pink; width: 400px; height:400px"></div>
+              <table class="clut">
+                <thead>
+                  <tr>
+                    <td></td>
+                    <td>Normal</td>
+                    <td>Highlight</td>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  ${repeat(
+                    [
+                      'blue',
+                      'red',
+                      'pink',
+                      'green',
+                      'turquoise',
+                      'yellow',
+                      'white'
+                    ],
+                    (color) => color,
+                    (color) => html`
+                      <tr>
+                        <td>${color}</td>
+                        <td>
+                          <input
+                            data-color=${color}
+                            data-color-index="0"
+                            type="color"
+                            value=${this.state.model.get().clut[
+                              color
+                            ]![0]!} />
+                        </td>
+                        <td>
+                          <input
+                            data-color=${color}
+                            data-color-ix="1"
+                            type="color"
+                            value=${this.state.model.get().clut[
+                              color
+                            ]![1]!} />
+                        </td>
+                      </tr>
+                    `
+                  )}
+                </tbody>
+              </table>
 
               <div class="controls">
                 <p class="instructions">Select Font Size</p>
@@ -122,9 +197,8 @@ export class Palette extends SignalWatcher(LitElement) {
               </div>
             </article>
 
-            <article class="preview">
-              <div
-                style="background: coral; width: 400px; height:400px"></div>
+            <article class="settings">
+              <div class="preview"></div>
 
               <div class="buttons">
                 <md-filled-button>Save</md-filled-button>

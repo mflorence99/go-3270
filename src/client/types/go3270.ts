@@ -1,3 +1,5 @@
+import { CLUT } from '$client/state/state';
+
 export type Go3270 = {
   close: () => void;
   focussed: (focussed: boolean) => void;
@@ -18,6 +20,7 @@ declare global {
       canvas: HTMLCanvasElement,
       bgColor: string,
       color: string[],
+      clut: CLUT,
       fontSize: number,
       cols: number,
       rows: number,

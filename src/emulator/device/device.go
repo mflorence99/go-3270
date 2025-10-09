@@ -548,12 +548,12 @@ func (device *Device) StatusForAttributes(attrs *Attributes) {
 
 // 🟦 Helpers
 
-func (device *Device) decrAddr(count int) {
-	device.addr -= count
-	if device.addr < 0 {
-		device.addr = device.size - count
-	}
-}
+// func (device *Device) decrAddr(count int) {
+// 	device.addr -= count
+// 	if device.addr < 0 {
+// 		device.addr = device.size - count
+// 	}
+// }
 
 func (device *Device) incrAddr(count int) {
 	device.addr += count

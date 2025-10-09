@@ -217,6 +217,7 @@ export class Emulator extends SignalWatcher(LitElement) {
       const bgColor =
         '#111318'; /* 👈 it'd be super nice not to hardcode */
       const color = this.state.color.get();
+      const clut = this.state.model.get().clut;
       const dims = this.state.dims.get();
       const dpi = this.dpi.offsetWidth * window.devicePixelRatio;
       const fontSize =
@@ -226,6 +227,7 @@ export class Emulator extends SignalWatcher(LitElement) {
         this.terminal,
         bgColor,
         color,
+        clut,
         fontSize,
         dims[0],
         dims[1],

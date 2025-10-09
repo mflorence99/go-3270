@@ -48,11 +48,12 @@ func NewProtectedAttribute() *Attributes {
 	return NewAttributes([]byte{TypeCodeLookup["BASIC"], 0b00100000})
 }
 
+// TODO use CLUT from UI
 func (attrs *Attributes) Color(dflt [2]string) string {
-	colors, ok := CLUT[attrs.color]
-	if !ok {
-		colors = dflt
-	}
+	// colors, ok := CLUT[attrs.color]
+	// if !ok {
+	colors := dflt
+	// }
 	if attrs.Highlight() {
 		return colors[1]
 	} else {

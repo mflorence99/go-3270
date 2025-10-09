@@ -83,7 +83,7 @@ abstract class Base<T> {
 
 // 📘 the entire state of the app
 
-export type CLUT = Record<string, string[]>;
+export type CLUT = Record<string, [string, string]>;
 
 export type Config = {
   color: string;
@@ -177,7 +177,12 @@ export class State extends Base<StateModel> {
     this.mutate((state) => void (state.status = defaultState.status));
   }
 
-  updateConfig(config: Config): void {
+  // 🔥 note all or nothinmg for CLUT!
+  updateCLUT(clut: CLUT): void {
+    this.mutate((state) => void (state.clut = clut));
+  }
+
+  updateConfig(config: Partial<Config>): void {
     this.mutate(
       (state) =>
         void ((state.config = { ...state.config, ...config }),
