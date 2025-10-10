@@ -1,4 +1,3 @@
-import { Emulators } from '$client/state/consts';
 import { Go3270 } from '$client/types/go3270';
 import { LitElement } from 'lit';
 import { SignalWatcher } from '@lit-labs/signals';
@@ -158,7 +157,7 @@ export class Emulator extends SignalWatcher(LitElement) {
             })}>
             <article class="left">
               <app-icon icon="computer">
-                ${Emulators[this.state.emulator.get()]}
+                ${this.state.emulator.get()}
               </app-icon>
 
               <app-icon

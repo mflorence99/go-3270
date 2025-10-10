@@ -83,23 +83,23 @@ func (attrs *Attributes) Underscore() bool {
 }
 
 func (attrs *Attributes) Byte() byte {
-	var ch byte = 0b00000000
+	var char byte = 0b00000000
 	if attrs.Hidden() {
-		ch |= 0b00001100
+		char |= 0b00001100
 	}
 	if attrs.Highlight() {
-		ch |= 0b00001000
+		char |= 0b00001000
 	}
 	if attrs.Modified() {
-		ch |= 0b00000001
+		char |= 0b00000001
 	}
 	if attrs.Numeric() {
-		ch |= 0b00010000
+		char |= 0b00010000
 	}
 	if attrs.Protected() {
-		ch |= 0b00100000
+		char |= 0b00100000
 	}
-	return ch
+	return char
 }
 
 func (attrs *Attributes) String() string {

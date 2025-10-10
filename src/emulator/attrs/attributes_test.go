@@ -35,8 +35,8 @@ func Test_NewExtended(t *testing.T) {
 
 func Test_Byte(t *testing.T) {
 	attrs := attrs.New(attribute)
-	ch := attrs.Byte()
-	assert.True(t, ch == 0b00111001)
+	byte := attrs.Byte()
+	assert.True(t, byte == 0b00111001)
 }
 
 func Test_String(t *testing.T) {

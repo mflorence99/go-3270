@@ -1,7 +1,5 @@
 package stack
 
-// 🟧 A simple stack
-
 type Stack[T any] struct {
 	data []T
 }

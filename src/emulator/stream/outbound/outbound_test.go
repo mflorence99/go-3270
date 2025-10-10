@@ -21,12 +21,12 @@ func Test_HasEnough(t *testing.T) {
 func Test_Next(t *testing.T) {
 	out := outbound.New(&stream)
 	for ix := 0; ix <= len(stream); ix++ {
-		ch, ok := out.Next()
+		char, ok := out.Next()
 		if ix < len(stream) {
-			assert.True(t, ch <= 6)
+			assert.True(t, char <= 6)
 			assert.True(t, ok)
 		} else {
-			assert.True(t, ch == 0)
+			assert.True(t, char == 0)
 			assert.True(t, !ok)
 		}
 	}
@@ -52,8 +52,8 @@ func Test_NextSlice(t *testing.T) {
 	out := outbound.New(&stream)
 	_, ok := out.Next()
 	assert.True(t, ok)
-	ch, ok := out.Next()
-	assert.True(t, ch == 0x01)
+	char, ok := out.Next()
+	assert.True(t, char == 0x01)
 	assert.True(t, ok)
 	slice, ok := out.NextSlice(4)
 	assert.True(t, slices.Equal(slice, []byte{0x02, 0x03, 0x04, 0x05}))
@@ -79,13 +79,13 @@ func Test_NextSliceUntil(t *testing.T) {
 
 func Test_Peek(t *testing.T) {
 	out := outbound.New(&stream)
-	ch, ok := out.Peek()
-	assert.True(t, ch == 0x00)
+	char, _ := out.Peek()
+	assert.True(t, char == 0x00)
 	slice, ok := out.NextSlice(6)
 	assert.True(t, slices.Equal(slice, []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05}))
 	assert.True(t, ok)
-	ch, ok = out.Peek()
-	assert.True(t, ch == 0)
+	char, ok = out.Peek()
+	assert.True(t, char == 0)
 	assert.True(t, !ok)
 }
 

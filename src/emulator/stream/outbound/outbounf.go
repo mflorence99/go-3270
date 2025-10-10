@@ -70,11 +70,11 @@ func (out *Outbound) Skip(count int) {
 
 func (out *Outbound) nextImpl(peek bool) (byte, bool) {
 	if out.HasNext() {
-		ch := (*out.bytes)[out.ix]
+		byte := (*out.bytes)[out.ix]
 		if !peek {
 			out.ix++
 		}
-		return ch, true
+		return byte, true
 	} else {
 		return 0, false
 	}
