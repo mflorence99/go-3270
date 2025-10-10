@@ -5,15 +5,15 @@ import (
 )
 
 type Attributes struct {
-	blink      bool
-	color      byte
-	hidden     bool
-	highlight  bool
-	modified   bool
-	numeric    bool
-	protected  bool
-	reverse    bool
-	underscore bool
+	Blink      bool
+	Color      byte
+	Hidden     bool
+	Highlight  bool
+	Modified   bool
+	Numeric    bool
+	Protected  bool
+	Reverse    bool
+	Underscore bool
 }
 
 func New(bytes []byte) *Attributes {
@@ -29,74 +29,42 @@ func New(bytes []byte) *Attributes {
 		highlight := consts.Highlight(chunk[1])
 		switch typecode {
 		case consts.BASIC:
-			attrs.hidden = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) != 0)
-			attrs.highlight = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) == 0)
-			attrs.modified = (chunk[1] & 0b00000001) != 0
-			attrs.numeric = (chunk[1] & 0b00010000) != 0
-			attrs.protected = (chunk[1] & 0b00100000) != 0
+			attrs.Hidden = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) != 0)
+			attrs.Highlight = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) == 0)
+			attrs.Modified = (chunk[1] & 0b00000001) != 0
+			attrs.Numeric = (chunk[1] & 0b00010000) != 0
+			attrs.Protected = (chunk[1] & 0b00100000) != 0
 		case consts.HIGHLIGHT:
 			switch highlight {
 			case consts.BLINK:
-				attrs.blink = true
+				attrs.Blink = true
 			case consts.REVERSE:
-				attrs.reverse = true
+				attrs.Reverse = true
 			case consts.UNDERSCORE:
-				attrs.underscore = true
+				attrs.Underscore = true
 			}
 		case consts.COLOR:
-			attrs.color = chunk[1]
+			attrs.Color = chunk[1]
 		}
 	}
 	return attrs
 }
 
-func (attrs *Attributes) Blink() bool {
-	return attrs.blink
-}
-
-func (attrs *Attributes) Hidden() bool {
-	return attrs.hidden
-}
-
-func (attrs *Attributes) Highlight() bool {
-	return attrs.highlight
-}
-
-func (attrs *Attributes) Modified() bool {
-	return attrs.modified
-}
-
-func (attrs *Attributes) Numeric() bool {
-	return attrs.numeric
-}
-
-func (attrs *Attributes) Protected() bool {
-	return attrs.protected
-}
-
-func (attrs *Attributes) Reverse() bool {
-	return attrs.reverse
-}
-
-func (attrs *Attributes) Underscore() bool {
-	return attrs.underscore
-}
-
 func (attrs *Attributes) Byte() byte {
 	var char byte = 0b00000000
-	if attrs.Hidden() {
+	if attrs.Hidden {
 		char |= 0b00001100
 	}
-	if attrs.Highlight() {
+	if attrs.Highlight {
 		char |= 0b00001000
 	}
-	if attrs.Modified() {
+	if attrs.Modified {
 		char |= 0b00000001
 	}
-	if attrs.Numeric() {
+	if attrs.Numeric {
 		char |= 0b00010000
 	}
-	if attrs.Protected() {
+	if attrs.Protected {
 		char |= 0b00100000
 	}
 	return char
@@ -104,28 +72,28 @@ func (attrs *Attributes) Byte() byte {
 
 func (attrs *Attributes) String() string {
 	str := "ATTR=[ "
-	if attrs.Blink() {
+	if attrs.Blink {
 		str += "BLINK "
 	}
-	if attrs.Hidden() {
+	if attrs.Hidden {
 		str += "HIDDEN "
 	}
-	if attrs.Highlight() {
+	if attrs.Highlight {
 		str += "HILITE "
 	}
-	if attrs.Modified() {
+	if attrs.Modified {
 		str += "MDT "
 	}
-	if attrs.Numeric() {
+	if attrs.Numeric {
 		str += "NUM "
 	}
-	if attrs.Protected() {
+	if attrs.Protected {
 		str += "PROT "
 	}
-	if attrs.Reverse() {
+	if attrs.Reverse {
 		str += "REV "
 	}
-	if attrs.Underscore() {
+	if attrs.Underscore {
 		str += "USCORE "
 	}
 	str += "]"

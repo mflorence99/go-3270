@@ -9,13 +9,13 @@ import (
 
 func TestWCC_New(t *testing.T) {
 	var char = wcc.New(0b00000100)
-	assert.True(t, char.Alarm())
+	assert.True(t, char.Alarm)
 	char = wcc.New(0b01000000)
-	assert.True(t, char.Reset())
+	assert.True(t, char.Reset)
 	char = wcc.New(0b00000001)
-	assert.True(t, char.ResetMDT())
+	assert.True(t, char.ResetMDT)
 	char = wcc.New(0b00000010)
-	assert.True(t, char.Unlock())
+	assert.True(t, char.Unlock)
 }
 
 func TestWCC_Byte(t *testing.T) {
