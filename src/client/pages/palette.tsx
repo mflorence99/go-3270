@@ -12,6 +12,7 @@ import { html } from 'lit';
 import { query } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { stateContext } from '$client/state/state';
+import { styleMap } from 'lit/directives/style-map.js';
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -84,9 +85,13 @@ export class Palette extends SignalWatcher(LitElement) {
             }
 
             .preview {
-              background: coral;
-              height: 400px;
-              width: 400px;
+              border: 1px solid var(--md-sys-color-on-surface);
+              font-family: Terminal;
+              letter-spacing: 0.125ch;
+              padding: 1rem;
+              td {
+                padding: 0;
+              }
             }
           }
         }
@@ -123,6 +128,16 @@ export class Palette extends SignalWatcher(LitElement) {
   }
 
   override render(): TemplateResult {
+    const clut = this.state.model.get().clut;
+    const colors = [
+      'blue',
+      'red',
+      'pink',
+      'green',
+      'turquoise',
+      'yellow',
+      'white'
+    ];
     return html`
       <main class="stretcher">
         <header class="header">Customize 3270 Appearance</header>
@@ -140,15 +155,7 @@ export class Palette extends SignalWatcher(LitElement) {
 
                 <tbody>
                   ${repeat(
-                    [
-                      'blue',
-                      'red',
-                      'pink',
-                      'green',
-                      'turquoise',
-                      'yellow',
-                      'white'
-                    ],
+                    colors,
                     (color) => color,
                     (color) => html`
                       <tr>
@@ -158,18 +165,14 @@ export class Palette extends SignalWatcher(LitElement) {
                             data-color=${color}
                             data-color-index="0"
                             type="color"
-                            value=${this.state.model.get().clut[
-                              color
-                            ]![0]!} />
+                            value=${clut[color]![0]} />
                         </td>
                         <td>
                           <input
                             data-color=${color}
                             data-color-ix="1"
                             type="color"
-                            value=${this.state.model.get().clut[
-                              color
-                            ]![1]!} />
+                            value=${clut[color]![1]} />
                         </td>
                       </tr>
                     `
@@ -182,7 +185,19 @@ export class Palette extends SignalWatcher(LitElement) {
 
                 <md-filled-select name="fontSize">
                   ${repeat(
-                    ['6', '7', '8', '9', '10', '11', '12', '13', '14'],
+                    [
+                      '10',
+                      '11',
+                      '12',
+                      '13',
+                      '14',
+                      '15',
+                      '16',
+                      '17',
+                      '18',
+                      '19',
+                      '20'
+                    ],
                     (fontSize) => fontSize,
                     (fontSize) => html`
                       <md-select-option
@@ -198,7 +213,52 @@ export class Palette extends SignalWatcher(LitElement) {
             </article>
 
             <article class="settings">
-              <div class="preview"></div>
+              <table
+                class="preview"
+                style=${styleMap({
+                  'font-size': `${this.state.model.get().config.fontSize}px`
+                })}>
+                ${repeat(
+                  colors,
+                  (color) => color,
+                  (color) => html`
+                    <tr
+                      style=${styleMap({
+                        color: `${clut[color]![0]}`
+                      })}>
+                      <td>Employee ID :&nbsp;</td>
+                      <td style="color: white">04921</td>
+                      <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                      <td>Status :&nbsp;</td>
+                      <td
+                        style=${styleMap({
+                          'background-color': `${clut[color]![1]}`,
+                          'color': 'black'
+                        })}>
+                        <b>ACTIVE</b>
+                      </td>
+                    </tr>
+                    <tr
+                      style=${styleMap({
+                        color: `${clut[color]![0]}`
+                      })}>
+                      <td
+                        style=${styleMap({
+                          color: `${clut[color]![1]}`
+                        })}>
+                        <b>Last Name&nbsp;&nbsp;&nbsp;:&nbsp;</b>
+                      </td>
+                      <td
+                        colspan="3"
+                        style=${styleMap({
+                          color: `${clut[color]![1]}`
+                        })}>
+                        Smith
+                      </td>
+                    </tr>
+                  `
+                )}
+              </table>
 
               <div class="buttons">
                 <md-filled-button>Save</md-filled-button>

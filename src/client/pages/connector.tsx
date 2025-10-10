@@ -87,6 +87,7 @@ export class Connector extends SignalWatcher(LitElement) {
 
             .color .sample {
               font-family: Terminal;
+              letter-spacing: 0.125ch;
             }
 
             .connection .host {

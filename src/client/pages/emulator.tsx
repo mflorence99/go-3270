@@ -220,8 +220,10 @@ export class Emulator extends SignalWatcher(LitElement) {
       const clut = this.state.model.get().clut;
       const dims = this.state.dims.get();
       const dpi = this.dpi.offsetWidth * window.devicePixelRatio;
-      const fontSize =
-        Number(this.state.model.get().config.fontSize) + 2;
+      const fontSize = Math.round(
+        // TODO 🔥 Go "gg" seems to interpret font size differently
+        Number(this.state.model.get().config.fontSize) * 0.725
+      );
       // 👇 construct a new device with its new attributes
       this.#go3270 = window.NewGo3270?.(
         this.terminal,
