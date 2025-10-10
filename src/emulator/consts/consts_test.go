@@ -2,6 +2,7 @@ package consts_test
 
 import (
 	"emulator/consts"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,15 +28,15 @@ func Test_AIDFOf(t *testing.T) {
 }
 
 func Test_PAx(t *testing.T) {
-	assert.True(t, consts.PAx(0x6C))
-	assert.False(t, consts.PAx(0x00))
-	assert.False(t, consts.PAx(0x88))
+	assert.True(t, consts.AID(0x6C).PAx())
+	assert.False(t, consts.AID(0x00).PAx())
+	assert.False(t, consts.AID(0x88).PAx())
 }
 
 func Test_PFx(t *testing.T) {
-	assert.True(t, consts.PFx(0x4C))
-	assert.True(t, consts.PFx(0xC5))
-	assert.False(t, consts.PFx(0x88))
+	assert.True(t, consts.AID(0x4C).PFx())
+	assert.True(t, consts.AID(0xC5).PFx())
+	assert.False(t, consts.AID(0x88).PFx())
 }
 
 func Test_ColorFor(t *testing.T) {
@@ -66,4 +67,13 @@ func Test_TypecodeFor(t *testing.T) {
 	assert.True(t, consts.TypecodeFor(0xC0) == "BASIC")
 	assert.True(t, consts.TypecodeFor(0x42) == "COLOR")
 	assert.True(t, consts.TypecodeFor(0xF3) == "")
+}
+
+func Test_Strings(t *testing.T) {
+	assert.True(t, fmt.Sprintf("AID=%s", consts.AID(0x88)) == "AID=INBOUND")
+	assert.True(t, fmt.Sprintf("Color=%s", consts.Color(0xF6)) == "Color=YELLOW")
+	assert.True(t, fmt.Sprintf("Command=%s", consts.Command(0x6F)) == "Command=EAU")
+	assert.True(t, fmt.Sprintf("Highlight=%s", consts.Highlight(0xF4)) == "Highlight=UNDERSCORE")
+	assert.True(t, fmt.Sprintf("Order=%s", consts.Order(0x29)) == "Order=SFE")
+	assert.True(t, fmt.Sprintf("Typecode=%s", consts.Typecode(0x41)) == "Typecode=HIGHLIGHT")
 }

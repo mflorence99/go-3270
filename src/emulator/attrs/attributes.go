@@ -19,13 +19,15 @@ type Attributes struct {
 func New(bytes []byte) *Attributes {
 	// 👇 treat a single-byte attribute as BASIC
 	if len(bytes) == 1 {
-		bytes = []byte{consts.BASIC, bytes[0]}
+		bytes = []byte{byte(consts.BASIC), bytes[0]}
 	}
 	// 👇 now just look at extended attributes in pairs
 	attrs := new(Attributes)
 	for ix := 0; ix < len(bytes)-1; ix += 2 {
 		chunk := bytes[ix : ix+2]
-		switch chunk[0] {
+		typecode := consts.Typecode(chunk[0])
+		highlight := consts.Highlight(chunk[1])
+		switch typecode {
 		case consts.BASIC:
 			attrs.hidden = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) != 0)
 			attrs.highlight = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) == 0)
@@ -33,7 +35,7 @@ func New(bytes []byte) *Attributes {
 			attrs.numeric = (chunk[1] & 0b00010000) != 0
 			attrs.protected = (chunk[1] & 0b00100000) != 0
 		case consts.HIGHLIGHT:
-			switch chunk[1] {
+			switch highlight {
 			case consts.BLINK:
 				attrs.blink = true
 			case consts.REVERSE:

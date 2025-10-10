@@ -7,40 +7,42 @@ import (
 	"strings"
 )
 
-var (
-	INBOUND byte = 0x88
-	CLEAR   byte = 0x6D
-	ENTER   byte = 0x7D
-	PA1     byte = 0x6C
-	PA2     byte = 0x6E
-	PA3     byte = 0x6B
-	PF1     byte = 0xF1
-	PF2     byte = 0xF2
-	PF3     byte = 0xF3
-	PF4     byte = 0xF4
-	PF5     byte = 0xF5
-	PF6     byte = 0xF6
-	PF7     byte = 0xF7
-	PF8     byte = 0xF8
-	PF9     byte = 0xF9
-	PF10    byte = 0x7A
-	PF11    byte = 0x7B
-	PF12    byte = 0x7C
-	PF13    byte = 0xC1
-	PF14    byte = 0xC2
-	PF15    byte = 0xC3
-	PF16    byte = 0xC4
-	PF17    byte = 0xC5
-	PF18    byte = 0xC6
-	PF19    byte = 0xC7
-	PF20    byte = 0xC8
-	PF21    byte = 0xC9
-	PF22    byte = 0x4A
-	PF23    byte = 0x4B
-	PF24    byte = 0x4C
+type AID byte
+
+const (
+	INBOUND AID = 0x88
+	CLEAR   AID = 0x6D
+	ENTER   AID = 0x7D
+	PA1     AID = 0x6C
+	PA2     AID = 0x6E
+	PA3     AID = 0x6B
+	PF1     AID = 0xF1
+	PF2     AID = 0xF2
+	PF3     AID = 0xF3
+	PF4     AID = 0xF4
+	PF5     AID = 0xF5
+	PF6     AID = 0xF6
+	PF7     AID = 0xF7
+	PF8     AID = 0xF8
+	PF9     AID = 0xF9
+	PF10    AID = 0x7A
+	PF11    AID = 0x7B
+	PF12    AID = 0x7C
+	PF13    AID = 0xC1
+	PF14    AID = 0xC2
+	PF15    AID = 0xC3
+	PF16    AID = 0xC4
+	PF17    AID = 0xC5
+	PF18    AID = 0xC6
+	PF19    AID = 0xC7
+	PF20    AID = 0xC8
+	PF21    AID = 0xC9
+	PF22    AID = 0x4A
+	PF23    AID = 0x4B
+	PF24    AID = 0x4C
 )
 
-var aids = map[byte]string{
+var aids = map[AID]string{
 	0x88: "INBOUND",
 	0x6D: "CLEAR",
 	0x7D: "ENTER",
@@ -73,13 +75,13 @@ var aids = map[byte]string{
 	0x4C: "PF24",
 }
 
-var aidsLookup = make(map[string]byte)
+var aidsLookup = make(map[string]AID)
 
-func AIDFor(aid byte) string {
+func AIDFor(aid AID) string {
 	return aids[aid]
 }
 
-func AIDOf(key string, alt, ctrl, shift bool) byte {
+func AIDOf(key string, alt, ctrl, shift bool) AID {
 	code := strings.ToUpper(key)
 	re := regexp.MustCompile(`F([0-9]+)`)
 	matches := re.FindStringSubmatch(code)
@@ -100,14 +102,18 @@ func AIDOf(key string, alt, ctrl, shift bool) byte {
 	return 0
 }
 
-func PAx(aid byte) bool {
+func (aid AID) PAx() bool {
 	str, ok := aids[aid]
 	return ok && strings.HasPrefix(str, "PA")
 }
 
-func PFx(aid byte) bool {
+func (aid AID) PFx() bool {
 	str, ok := aids[aid]
 	return ok && strings.HasPrefix(str, "PF")
+}
+
+func (aid AID) String() string {
+	return AIDFor(aid)
 }
 
 func init() {

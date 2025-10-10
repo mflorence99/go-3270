@@ -1,19 +1,21 @@
 package consts
 
-var (
-	EUA byte = 0x12
-	GE  byte = 0x08
-	IC  byte = 0x13
-	MF  byte = 0x2C
-	PT  byte = 0x05
-	RA  byte = 0x3C
-	SA  byte = 0x28
-	SBA byte = 0x11
-	SF  byte = 0x1D
-	SFE byte = 0x29
+type Order byte
+
+const (
+	EUA Order = 0x12
+	GE  Order = 0x08
+	IC  Order = 0x13
+	MF  Order = 0x2C
+	PT  Order = 0x05
+	RA  Order = 0x3C
+	SA  Order = 0x28
+	SBA Order = 0x11
+	SF  Order = 0x1D
+	SFE Order = 0x29
 )
 
-var orders = map[byte]string{
+var orders = map[Order]string{
 	0x05: "PT",
 	0x08: "GE",
 	0x11: "SBA",
@@ -26,6 +28,10 @@ var orders = map[byte]string{
 	0x3C: "RA",
 }
 
-func OrderFor(order byte) string {
+func OrderFor(order Order) string {
 	return orders[order]
+}
+
+func (order Order) String() string {
+	return OrderFor(order)
 }

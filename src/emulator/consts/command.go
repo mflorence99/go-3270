@@ -1,19 +1,21 @@
 package consts
 
-var (
-	EAU byte = 0x6F
-	EW  byte = 0xF5
-	EWA byte = 0x7E
-	Q   byte = 0x02
-	QL  byte = 0x03
-	RB  byte = 0xF2
-	RM  byte = 0xF6
-	RMA byte = 0x6E
-	W   byte = 0xF1
-	WSF byte = 0xF3
+type Command byte
+
+const (
+	EAU Command = 0x6F
+	EW  Command = 0xF5
+	EWA Command = 0x7E
+	Q   Command = 0x02
+	QL  Command = 0x03
+	RB  Command = 0xF2
+	RM  Command = 0xF6
+	RMA Command = 0x6E
+	W   Command = 0xF1
+	WSF Command = 0xF3
 )
 
-var commands = map[byte]string{
+var commands = map[Command]string{
 	0x02: "Q",
 	0x03: "QL",
 	0x6E: "RMA",
@@ -26,6 +28,10 @@ var commands = map[byte]string{
 	0xF6: "RM",
 }
 
-func CommandFor(command byte) string {
+func CommandFor(command Command) string {
 	return commands[command]
+}
+
+func (command Command) String() string {
+	return CommandFor(command)
 }

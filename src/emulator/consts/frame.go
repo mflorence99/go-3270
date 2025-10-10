@@ -1,5 +1,5 @@
 package consts
 
 var (
-	LT = []byte{0xFF, 0xEF}
+	LT = [2]byte{0xFF, 0xEF}
 )
