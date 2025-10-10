@@ -12,15 +12,15 @@ type Glyph struct {
 	Underscore bool
 }
 
-func (glyph *Glyph) String() string {
-	str := fmt.Sprintf("GLYPH=[ 0x%02x %s ", glyph.Char, glyph.Color)
-	if glyph.Highlight {
+func (g *Glyph) String() string {
+	str := fmt.Sprintf("GLYPH=[ 0x%02x %s ", g.Char, g.Color)
+	if g.Highlight {
 		str += "HILITE "
 	}
-	if glyph.Reverse {
+	if g.Reverse {
 		str += "REV "
 	}
-	if glyph.Underscore {
+	if g.Underscore {
 		str += "USCORE "
 	}
 	str += "]"

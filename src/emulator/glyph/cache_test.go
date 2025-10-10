@@ -9,7 +9,7 @@ import (
 )
 
 func Test_GetSet(t *testing.T) {
-	cache := new(glyph.Cache)
+	c := new(glyph.Cache)
 	glyph := glyph.Glyph{
 		Char:       0x00,
 		Color:      "#999999",
@@ -18,11 +18,11 @@ func Test_GetSet(t *testing.T) {
 		Underscore: true,
 	}
 	rgba := image.NewRGBA(image.Rect(0, 0, 100, 100))
-	img, ok := cache.Get(glyph)
+	img, ok := c.Get(glyph)
 	assert.True(t, img == nil)
 	assert.False(t, ok)
-	cache.Set(glyph, rgba)
-	img, ok = cache.Get(glyph)
+	c.Set(glyph, rgba)
+	img, ok = c.Get(glyph)
 	assert.True(t, img != nil)
 	assert.True(t, ok)
 }

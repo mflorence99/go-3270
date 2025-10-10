@@ -26,10 +26,10 @@ var colors = map[Color]string{
 	0xF7: "WHITE",
 }
 
-func ColorFor(color Color) string {
-	return colors[color]
+func ColorFor(c Color) string {
+	return colors[c]
 }
 
-func (color Color) String() string {
-	return ColorFor(color)
+func (c Color) String() string {
+	return ColorFor(c)
 }

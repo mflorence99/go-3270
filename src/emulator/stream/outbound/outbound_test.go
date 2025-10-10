@@ -34,17 +34,17 @@ func Test_Next(t *testing.T) {
 
 func Test_Next16(t *testing.T) {
 	out := outbound.New(&stream)
-	u16, ok := out.Next16()
-	assert.True(t, u16 == 0x01)
+	chars, ok := out.Next16()
+	assert.True(t, chars == 0x01)
 	assert.True(t, ok)
-	u16, ok = out.Next16()
-	assert.True(t, u16 == 0x0203)
+	chars, ok = out.Next16()
+	assert.True(t, chars == 0x0203)
 	assert.True(t, ok)
-	u16, ok = out.Next16()
-	assert.True(t, u16 == 0x0405)
+	chars, ok = out.Next16()
+	assert.True(t, chars == 0x0405)
 	assert.True(t, ok)
-	u16, ok = out.Next16()
-	assert.True(t, u16 == 0)
+	chars, ok = out.Next16()
+	assert.True(t, chars == 0)
 	assert.True(t, !ok)
 }
 

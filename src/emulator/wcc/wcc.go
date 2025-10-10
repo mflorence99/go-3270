@@ -8,43 +8,43 @@ type WCC struct {
 }
 
 func New(char byte) *WCC {
-	wcc := new(WCC)
-	wcc.Alarm = (char & 0b00000100) != 0
-	wcc.Reset = (char & 0b01000000) != 0
-	wcc.ResetMDT = (char & 0b00000001) != 0
-	wcc.Unlock = (char & 0b00000010) != 0
-	return wcc
+	w := new(WCC)
+	w.Alarm = (char & 0b00000100) != 0
+	w.Reset = (char & 0b01000000) != 0
+	w.ResetMDT = (char & 0b00000001) != 0
+	w.Unlock = (char & 0b00000010) != 0
+	return w
 }
 
-func (wcc *WCC) Byte() byte {
+func (w *WCC) Byte() byte {
 	var u8 byte = 0
-	if wcc.Alarm {
+	if w.Alarm {
 		u8 |= 0b00000100
 	}
-	if wcc.Reset {
+	if w.Reset {
 		u8 |= 0b01000000
 	}
-	if wcc.ResetMDT {
+	if w.ResetMDT {
 		u8 |= 0b00000001
 	}
-	if wcc.Unlock {
+	if w.Unlock {
 		u8 |= 0b00000010
 	}
 	return u8
 }
 
-func (wcc *WCC) String() string {
+func (w *WCC) String() string {
 	str := "WCC=[ "
-	if wcc.Alarm {
+	if w.Alarm {
 		str += "ALARM "
 	}
-	if wcc.Reset {
+	if w.Reset {
 		str += "RESET "
 	}
-	if wcc.ResetMDT {
+	if w.ResetMDT {
 		str += "-MDT "
 	}
-	if wcc.Unlock {
+	if w.Unlock {
 		str += "UNLOCK "
 	}
 	str += "]"

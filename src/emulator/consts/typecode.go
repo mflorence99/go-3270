@@ -14,10 +14,10 @@ var typecodes = map[Typecode]string{
 	0x42: "COLOR",
 }
 
-func TypecodeFor(typecode Typecode) string {
-	return typecodes[typecode]
+func TypecodeFor(t Typecode) string {
+	return typecodes[t]
 }
 
-func (typecode Typecode) String() string {
-	return TypecodeFor(typecode)
+func (t Typecode) String() string {
+	return TypecodeFor(t)
 }

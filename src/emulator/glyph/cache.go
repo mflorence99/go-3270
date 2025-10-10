@@ -8,17 +8,17 @@ type Cache struct {
 	cache map[Glyph]image.Image
 }
 
-func (cache *Cache) Get(glyph Glyph) (image.Image, bool) {
-	if cache.cache == nil {
+func (c *Cache) Get(glyph Glyph) (image.Image, bool) {
+	if c.cache == nil {
 		return nil, false
 	}
-	img, ok := cache.cache[glyph]
+	img, ok := c.cache[glyph]
 	return img, ok
 }
 
-func (cache *Cache) Set(glyph Glyph, img image.Image) {
-	if cache.cache == nil {
-		cache.cache = make(map[Glyph]image.Image)
+func (c *Cache) Set(glyph Glyph, img image.Image) {
+	if c.cache == nil {
+		c.cache = make(map[Glyph]image.Image)
 	}
-	cache.cache[glyph] = img
+	c.cache[glyph] = img
 }

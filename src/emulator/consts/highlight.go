@@ -14,10 +14,10 @@ var highlights = map[Highlight]string{
 	0xF4: "UNDERSCORE",
 }
 
-func HighlightFor(highlight Highlight) string {
-	return highlights[highlight]
+func HighlightFor(h Highlight) string {
+	return highlights[h]
 }
 
-func (highlight Highlight) String() string {
-	return HighlightFor(highlight)
+func (h Highlight) String() string {
+	return HighlightFor(h)
 }

@@ -22,78 +22,78 @@ func New(bytes []byte) *Attributes {
 		bytes = []byte{byte(consts.BASIC), bytes[0]}
 	}
 	// 👇 now just look at extended attributes in pairs
-	attrs := new(Attributes)
+	a := new(Attributes)
 	for ix := 0; ix < len(bytes)-1; ix += 2 {
 		chunk := bytes[ix : ix+2]
 		typecode := consts.Typecode(chunk[0])
 		highlight := consts.Highlight(chunk[1])
 		switch typecode {
 		case consts.BASIC:
-			attrs.Hidden = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) != 0)
-			attrs.Highlight = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) == 0)
-			attrs.Modified = (chunk[1] & 0b00000001) != 0
-			attrs.Numeric = (chunk[1] & 0b00010000) != 0
-			attrs.Protected = (chunk[1] & 0b00100000) != 0
+			a.Hidden = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) != 0)
+			a.Highlight = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) == 0)
+			a.Modified = (chunk[1] & 0b00000001) != 0
+			a.Numeric = (chunk[1] & 0b00010000) != 0
+			a.Protected = (chunk[1] & 0b00100000) != 0
 		case consts.HIGHLIGHT:
 			switch highlight {
 			case consts.BLINK:
-				attrs.Blink = true
+				a.Blink = true
 			case consts.REVERSE:
-				attrs.Reverse = true
+				a.Reverse = true
 			case consts.UNDERSCORE:
-				attrs.Underscore = true
+				a.Underscore = true
 			}
 		case consts.COLOR:
-			attrs.Color = chunk[1]
+			a.Color = chunk[1]
 		}
 	}
-	return attrs
+	return a
 }
 
-func (attrs *Attributes) Byte() byte {
+func (a *Attributes) Byte() byte {
 	var char byte = 0b00000000
-	if attrs.Hidden {
+	if a.Hidden {
 		char |= 0b00001100
 	}
-	if attrs.Highlight {
+	if a.Highlight {
 		char |= 0b00001000
 	}
-	if attrs.Modified {
+	if a.Modified {
 		char |= 0b00000001
 	}
-	if attrs.Numeric {
+	if a.Numeric {
 		char |= 0b00010000
 	}
-	if attrs.Protected {
+	if a.Protected {
 		char |= 0b00100000
 	}
 	return char
 }
 
-func (attrs *Attributes) String() string {
+func (a *Attributes) String() string {
 	str := "ATTR=[ "
-	if attrs.Blink {
+	if a.Blink {
 		str += "BLINK "
 	}
-	if attrs.Hidden {
+	if a.Hidden {
 		str += "HIDDEN "
 	}
-	if attrs.Highlight {
+	if a.Highlight {
 		str += "HILITE "
 	}
-	if attrs.Modified {
+	if a.Modified {
 		str += "MDT "
 	}
-	if attrs.Numeric {
+	if a.Numeric {
 		str += "NUM "
 	}
-	if attrs.Protected {
+	if a.Protected {
 		str += "PROT "
 	}
-	if attrs.Reverse {
+	if a.Reverse {
 		str += "REV "
 	}
-	if attrs.Underscore {
+	if a.Underscore {
 		str += "USCORE "
 	}
 	str += "]"

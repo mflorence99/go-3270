@@ -12,14 +12,14 @@ func New() *Inbound {
 	return in
 }
 
-func (in *Inbound) Put(u8 byte) []byte {
-	in.bytes = append(in.bytes, u8)
+func (in *Inbound) Put(char byte) []byte {
+	in.bytes = append(in.bytes, char)
 	return in.bytes
 }
 
-func (in *Inbound) Put16(u16 uint16) []byte {
-	in.bytes = append(in.bytes, byte(u16>>8))
-	in.bytes = append(in.bytes, byte(u16&0x00ff))
+func (in *Inbound) Put16(chars uint16) []byte {
+	in.bytes = append(in.bytes, byte(chars>>8))
+	in.bytes = append(in.bytes, byte(chars&0x00ff))
 	return in.bytes
 }
 

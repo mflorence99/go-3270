@@ -28,10 +28,10 @@ var commands = map[Command]string{
 	0xF6: "RM",
 }
 
-func CommandFor(command Command) string {
-	return commands[command]
+func CommandFor(c Command) string {
+	return commands[c]
 }
 
-func (command Command) String() string {
-	return CommandFor(command)
+func (c Command) String() string {
+	return CommandFor(c)
 }

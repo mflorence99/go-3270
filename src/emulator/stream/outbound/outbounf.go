@@ -12,10 +12,10 @@ type Outbound struct {
 }
 
 func New(bytes *[]byte) *Outbound {
-	stream := new(Outbound)
-	stream.bytes = bytes
-	stream.ix = 0
-	return stream
+	out := new(Outbound)
+	out.bytes = bytes
+	out.ix = 0
+	return out
 }
 
 func (out *Outbound) HasEnough(count int) bool {

@@ -77,8 +77,8 @@ var aids = map[AID]string{
 
 var aidsLookup = make(map[string]AID)
 
-func AIDFor(aid AID) string {
-	return aids[aid]
+func AIDFor(a AID) string {
+	return aids[a]
 }
 
 func AIDOf(key string, alt, ctrl, shift bool) AID {
@@ -102,18 +102,18 @@ func AIDOf(key string, alt, ctrl, shift bool) AID {
 	return 0
 }
 
-func (aid AID) PAx() bool {
-	str, ok := aids[aid]
+func (a AID) PAx() bool {
+	str, ok := aids[a]
 	return ok && strings.HasPrefix(str, "PA")
 }
 
-func (aid AID) PFx() bool {
-	str, ok := aids[aid]
+func (a AID) PFx() bool {
+	str, ok := aids[a]
 	return ok && strings.HasPrefix(str, "PF")
 }
 
-func (aid AID) String() string {
-	return AIDFor(aid)
+func (a AID) String() string {
+	return AIDFor(a)
 }
 
 func init() {

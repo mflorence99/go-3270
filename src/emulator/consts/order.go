@@ -28,10 +28,10 @@ var orders = map[Order]string{
 	0x3C: "RA",
 }
 
-func OrderFor(order Order) string {
-	return orders[order]
+func OrderFor(o Order) string {
+	return orders[o]
 }
 
-func (order Order) String() string {
-	return OrderFor(order)
+func (o Order) String() string {
+	return OrderFor(o)
 }
