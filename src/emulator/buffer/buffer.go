@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+// 🔥 NOTE: the buffer will always hold ASCII characters
+
 type Buffer struct {
 	Changes *stack.Stack[int]
 
@@ -14,18 +16,29 @@ type Buffer struct {
 	buffer []*Cell
 }
 
-func NewBuffer(size int) Buffer {
-	b := Buffer{}
+func NewBuffer(size int) *Buffer {
+	b := new(Buffer)
 	b.buffer = make([]*Cell, size)
 	b.Changes = stack.NewStack[int](1)
+	b.Erase()
 	return b
 }
 
 // 🟦 Housekeeping methods
 
+//    Erase() fill the buffer with protected cells
 //    Len() get number of cell slots in buffer
 //    Peek() cell at given address
 //    Seek() reposition buffer address
+
+func (b *Buffer) Erase() {
+	for ix := range b.buffer {
+		b.buffer[ix] = &Cell{Attrs: &attrs.Attrs{Protected: true}}
+	}
+	for !b.Changes.Empty() {
+		b.Changes.Pop()
+	}
+}
 
 func (b *Buffer) Len() int {
 	return len(b.buffer)

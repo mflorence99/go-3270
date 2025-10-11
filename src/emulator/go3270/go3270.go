@@ -157,7 +157,7 @@ func (go3270 *Go3270) startRenderContextLoop(canvas js.Value, rgba *image.RGBA, 
 // 🟦 Go WASM methods callable by Javascript via go3270.ts
 
 func (go3270 *Go3270) Close() {
-	js.Global().Get("console").Call("log", "%cGo3270 closing", "color: orange")
+	js.Global().Get("console").Call("log", "🐞 Go3270 closing")
 	// 👇 perform any cleanup
 	js.Global().Call("cancelAnimationFrame", go3270.reqID)
 	go3270.device.Close()
@@ -166,13 +166,23 @@ func (go3270 *Go3270) Close() {
 }
 
 func (go3270 *Go3270) Focussed(focussed bool) {
-	js.Global().Get("console").Call("log", device.Ternary(focussed, "%cGo3270 gains focus", "%cGo3270 loses focus"), "color: olivedrab")
+	js.Global().Get("console").Call("log", device.Ternary(focussed, "⌨️ Go3270 gains focus", "⌨️ Go3270 loses focus"))
 	// 👇 just forward to device
 	go3270.device.Focussed(focussed)
 }
 
 func (go3270 *Go3270) Keystroke(code string, key string, alt bool, ctrl bool, shift bool) {
-	js.Global().Get("console").Call("log", fmt.Sprintf("%%cKeystroke(code=%s key=%s alt=%t ctrl=%t shift=%t)", code, key, alt, ctrl, shift), "color: powderblue")
+	str := "⌨️ "
+	if ctrl {
+		str += "CTRL+"
+	}
+	if shift {
+		str += "SHIFT+"
+	}
+	if alt {
+		str += "ALT+"
+	}
+	js.Global().Get("console").Call("log", fmt.Sprintf("%s%s %s", str, key, device.Ternary(code != key && len(key) > 1, code, "")))
 	// 👇 just forward to device
 	go3270.device.Keystroke(code, key, alt, ctrl, shift)
 }
