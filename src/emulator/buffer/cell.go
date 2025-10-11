@@ -5,6 +5,13 @@ import (
 )
 
 type Cell struct {
-	Attrs *attrs.Attributes
-	Char  byte
+	Attrs    *attrs.Attrs
+	Char     byte
+	FldAddr  int
+	FldStart bool
+}
+
+func NewCell() *Cell {
+	c := new(Cell)
+	return c
 }

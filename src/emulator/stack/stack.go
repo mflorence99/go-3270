@@ -4,7 +4,7 @@ type Stack[T any] struct {
 	data []T
 }
 
-func New[T any](capacity int) *Stack[T] {
+func NewStack[T any](capacity int) *Stack[T] {
 	return &Stack[T]{data: make([]T, 0, capacity)}
 }
 

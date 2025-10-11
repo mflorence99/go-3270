@@ -4,9 +4,9 @@ import (
 	"emulator/consts"
 )
 
-type Attributes struct {
+type Attrs struct {
 	Blink      bool
-	Color      byte
+	Color      consts.Color
 	Hidden     bool
 	Highlight  bool
 	Modified   bool
@@ -16,24 +16,23 @@ type Attributes struct {
 	Underscore bool
 }
 
-func New(bytes []byte) *Attributes {
-	// 👇 treat a single-byte attribute as BASIC
-	if len(bytes) == 1 {
-		bytes = []byte{byte(consts.BASIC), bytes[0]}
-	}
-	// 👇 now just look at extended attributes in pairs
-	a := new(Attributes)
+func NewBasic(basic byte) *Attrs {
+	a := new(Attrs)
+	a.fromByte(basic)
+	return a
+}
+
+func NewExtended(bytes []byte) *Attrs {
+	a := new(Attrs)
 	for ix := 0; ix < len(bytes)-1; ix += 2 {
 		chunk := bytes[ix : ix+2]
 		typecode := consts.Typecode(chunk[0])
+		basic := chunk[1]
+		color := consts.Color(chunk[1])
 		highlight := consts.Highlight(chunk[1])
 		switch typecode {
 		case consts.BASIC:
-			a.Hidden = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) != 0)
-			a.Highlight = ((chunk[1] & 0b00001000) != 0) && ((chunk[1] & 0b00000100) == 0)
-			a.Modified = (chunk[1] & 0b00000001) != 0
-			a.Numeric = (chunk[1] & 0b00010000) != 0
-			a.Protected = (chunk[1] & 0b00100000) != 0
+			a.fromByte(basic)
 		case consts.HIGHLIGHT:
 			switch highlight {
 			case consts.BLINK:
@@ -44,13 +43,21 @@ func New(bytes []byte) *Attributes {
 				a.Underscore = true
 			}
 		case consts.COLOR:
-			a.Color = chunk[1]
+			a.Color = color
 		}
 	}
 	return a
 }
 
-func (a *Attributes) Byte() byte {
+func (a *Attrs) fromByte(char byte) {
+	a.Hidden = ((char & 0b00001000) != 0) && ((char & 0b00000100) != 0)
+	a.Highlight = ((char & 0b00001000) != 0) && ((char & 0b00000100) == 0)
+	a.Modified = (char & 0b00000001) != 0
+	a.Numeric = (char & 0b00010000) != 0
+	a.Protected = (char & 0b00100000) != 0
+}
+
+func (a *Attrs) Byte() byte {
 	var char byte = 0b00000000
 	if a.Hidden {
 		char |= 0b00001100
@@ -70,7 +77,7 @@ func (a *Attributes) Byte() byte {
 	return char
 }
 
-func (a *Attributes) String() string {
+func (a *Attrs) String() string {
 	str := "ATTR=[ "
 	if a.Blink {
 		str += "BLINK "

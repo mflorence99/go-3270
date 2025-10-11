@@ -8,7 +8,7 @@ import (
 )
 
 func Test_Stack(t *testing.T) {
-	s := stack.New[int](10)
+	s := stack.NewStack[int](10)
 	assert.True(t, s.Len() == 0)
 	assert.True(t, s.Empty())
 	s.Push(1)

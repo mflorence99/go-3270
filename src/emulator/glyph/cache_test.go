@@ -9,7 +9,7 @@ import (
 )
 
 func Test_GetSet(t *testing.T) {
-	c := new(glyph.Cache)
+	c := glyph.NewCache()
 	glyph := glyph.Glyph{
 		Char:       0x00,
 		Color:      "#999999",

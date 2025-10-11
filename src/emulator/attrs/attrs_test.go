@@ -7,12 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var attribute = []byte{0b00111001}
+var basic byte = 0b00111001
 
-var attributes = []byte{0xC0, 0b00111001, 0x41, 0xF1, 0x41, 0xF2, 0x41, 0xF4, 0x42, 0xF4}
+var extended = []byte{0xC0, 0b00111001, 0x41, 0xF1, 0x41, 0xF2, 0x41, 0xF4, 0x42, 0xF4}
 
-func Test_New(t *testing.T) {
-	a := attrs.New(attribute)
+func Test_NewBasic(t *testing.T) {
+	a := attrs.NewBasic(basic)
 	assert.False(t, a.Blink)
 	assert.True(t, a.Highlight)
 	assert.True(t, a.Modified)
@@ -23,7 +23,7 @@ func Test_New(t *testing.T) {
 }
 
 func Test_NewExtended(t *testing.T) {
-	a := attrs.New(attributes)
+	a := attrs.NewExtended(extended)
 	assert.True(t, a.Blink)
 	assert.True(t, a.Highlight)
 	assert.True(t, a.Modified)
@@ -34,13 +34,13 @@ func Test_NewExtended(t *testing.T) {
 }
 
 func Test_Byte(t *testing.T) {
-	a := attrs.New(attribute)
+	a := attrs.NewBasic(basic)
 	byte := a.Byte()
 	assert.True(t, byte == 0b00111001)
 }
 
 func Test_String(t *testing.T) {
-	a := attrs.New(attributes)
+	a := attrs.NewExtended(extended)
 	str := a.String()
 	assert.True(t, str == "ATTR=[ BLINK HILITE MDT NUM PROT REV USCORE ]")
 }

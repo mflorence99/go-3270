@@ -12,6 +12,11 @@ type Glyph struct {
 	Underscore bool
 }
 
+func NewGlyph() *Glyph {
+	g := new(Glyph)
+	return g
+}
+
 func (g *Glyph) String() string {
 	str := fmt.Sprintf("GLYPH=[ 0x%02x %s ", g.Char, g.Color)
 	if g.Highlight {
