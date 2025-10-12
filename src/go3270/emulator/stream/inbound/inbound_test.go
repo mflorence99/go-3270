@@ -1,7 +1,7 @@
 package inbound_test
 
 import (
-	"go3270/stream/inbound"
+	"go3270/emulator/stream/inbound"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

@@ -1,7 +1,7 @@
 package glyph_test
 
 import (
-	"go3270/glyph"
+	"go3270/emulator/glyph"
 	"image"
 	"testing"
 

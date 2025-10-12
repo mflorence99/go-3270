@@ -1,8 +1,6 @@
 package attrs
 
-import (
-	"go3270/consts"
-)
+import "go3270/emulator/consts"
 
 type Attrs struct {
 	Blink      bool

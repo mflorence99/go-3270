@@ -1,8 +1,6 @@
 package buffer
 
-import (
-	"go3270/attrs"
-)
+import "go3270/emulator/attrs"
 
 type Cell struct {
 	Attrs    *attrs.Attrs

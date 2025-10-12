@@ -95,6 +95,7 @@ export const allTasks = [
       `${config.paths.root}/tsconfig-app.json`,
       // 🔥 HACK -- a directory must come last
       config.paths['emulator-go'],
+      config.paths['go3270-go'],
       config.paths['client-ts']
     ]
   }),
@@ -306,7 +307,7 @@ export const allTasks = [
     description: 'Run unit tests for client WASM',
     banner: { color: colors.client, icon: icons.wasm },
     // 🔥 can't test packages that depend on syscall/js
-    cmd: `(cd ${config.paths['go3270-go']} && go test go3270/attrs go3270/buffer go3270/consts go3270/conv go3270/glyph go3270/perf go3270/stack go3270/stream/inbound go3270/stream/outbound go3270/utils go3270/wcc -cover)`
+    cmd: `(cd ${config.paths['go3270-go']}/emulator && go test ./... -cover)`
   })
 ];
 

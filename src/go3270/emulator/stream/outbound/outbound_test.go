@@ -1,7 +1,7 @@
 package outbound_test
 
 import (
-	"go3270/stream/outbound"
+	"go3270/emulator/stream/outbound"
 	"slices"
 	"testing"
 
