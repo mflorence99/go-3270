@@ -38,3 +38,12 @@ func Test_Ternary(t *testing.T) {
 	assert.True(t, utils.Ternary(true, "a", "b") == "a")
 	assert.True(t, utils.Ternary(false, "a", "b") == "b")
 }
+
+func add(a, b int) int {
+	return a + b
+}
+
+func Test_Call(t *testing.T) {
+	res := utils.Call(add, 1, 2)
+	assert.True(t, res[0].(int) == 3)
+}
