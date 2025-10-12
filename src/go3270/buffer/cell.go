@@ -1,7 +1,7 @@
 package buffer
 
 import (
-	"emulator/attrs"
+	"go3270/attrs"
 )
 
 type Cell struct {

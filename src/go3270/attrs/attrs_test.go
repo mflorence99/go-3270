@@ -1,7 +1,7 @@
 package attrs_test
 
 import (
-	"emulator/attrs"
+	"go3270/attrs"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

@@ -1,7 +1,7 @@
 package utils_test
 
 import (
-	"emulator/utils"
+	"go3270/utils"
 	"reflect"
 	"testing"
 

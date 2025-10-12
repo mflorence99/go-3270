@@ -1,7 +1,7 @@
 package conv_test
 
 import (
-	"emulator/conv"
+	"go3270/conv"
 	"slices"
 	"testing"
 

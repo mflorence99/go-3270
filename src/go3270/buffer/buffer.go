@@ -1,9 +1,9 @@
 package buffer
 
 import (
-	"emulator/attrs"
-	"emulator/consts"
-	"emulator/stack"
+	"go3270/attrs"
+	"go3270/consts"
+	"go3270/stack"
 	"strings"
 )
 

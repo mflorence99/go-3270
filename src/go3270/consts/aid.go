@@ -1,7 +1,7 @@
 package consts
 
 import (
-	"emulator/utils"
+	"go3270/utils"
 	"regexp"
 	"strconv"
 	"strings"

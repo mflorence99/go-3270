@@ -1,8 +1,8 @@
 package buffer_test
 
 import (
-	"emulator/attrs"
-	"emulator/buffer"
+	"go3270/attrs"
+	"go3270/buffer"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

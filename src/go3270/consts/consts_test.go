@@ -1,8 +1,8 @@
 package consts_test
 
 import (
-	"emulator/consts"
 	"fmt"
+	"go3270/consts"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

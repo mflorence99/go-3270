@@ -1,7 +1,7 @@
 package wcc_test
 
 import (
-	"emulator/wcc"
+	"go3270/wcc"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

@@ -1,7 +1,7 @@
 package stack_test
 
 import (
-	"emulator/stack"
+	"go3270/stack"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

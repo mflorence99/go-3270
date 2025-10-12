@@ -1,7 +1,7 @@
 package glyph_test
 
 import (
-	"emulator/glyph"
+	"go3270/glyph"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

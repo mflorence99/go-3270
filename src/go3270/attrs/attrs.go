@@ -1,7 +1,7 @@
 package attrs
 
 import (
-	"emulator/consts"
+	"go3270/consts"
 )
 
 type Attrs struct {
