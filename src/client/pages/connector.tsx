@@ -142,7 +142,7 @@ export class Connector extends SignalWatcher(LitElement) {
             if (this.connecting)
               this.dispatchEvent(new CustomEvent('connected'));
             this.dispatchEvent(
-              new CustomEvent('receiveFromApp', {
+              new CustomEvent('outbound', {
                 detail: { bytes }
               })
             );

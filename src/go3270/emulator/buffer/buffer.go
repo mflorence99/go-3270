@@ -12,13 +12,13 @@ import (
 type Buffer struct {
 	Changes *stack.Stack[int]
 
-	addr   int
-	buffer []*Cell
+	addr int
+	buf  []*Cell
 }
 
 func NewBuffer(size int) *Buffer {
 	b := new(Buffer)
-	b.buffer = make([]*Cell, size)
+	b.buf = make([]*Cell, size)
 	b.Changes = stack.NewStack[int](1)
 	b.Erase()
 	return b
@@ -32,8 +32,8 @@ func NewBuffer(size int) *Buffer {
 //    Seek() reposition buffer address
 
 func (b *Buffer) Erase() {
-	for ix := range b.buffer {
-		b.buffer[ix] = &Cell{Attrs: &attrs.Attrs{Protected: true}}
+	for ix := range b.buf {
+		b.buf[ix] = &Cell{Attrs: &attrs.Attrs{Protected: true}}
 	}
 	for !b.Changes.Empty() {
 		b.Changes.Pop()
@@ -41,18 +41,18 @@ func (b *Buffer) Erase() {
 }
 
 func (b *Buffer) Len() int {
-	return len(b.buffer)
+	return len(b.buf)
 }
 
 func (b *Buffer) Peek(addr int) (*Cell, bool) {
-	if addr >= len(b.buffer) {
+	if addr >= len(b.buf) {
 		return nil, false
 	}
-	return b.buffer[addr], true
+	return b.buf[addr], true
 }
 
 func (b *Buffer) Seek(addr int) (int, bool) {
-	if addr >= len(b.buffer) {
+	if addr >= len(b.buf) {
 		return -1, false
 	}
 	b.addr = addr
@@ -66,23 +66,23 @@ func (b *Buffer) Seek(addr int) (int, bool) {
 //    GetPrev() cell at current address - 1, honoring wrap
 
 func (b *Buffer) Get() (*Cell, int) {
-	return b.buffer[b.addr], b.addr
+	return b.buf[b.addr], b.addr
 }
 
 func (b *Buffer) GetNext() (*Cell, int) {
 	addr := b.addr + 1
-	if addr >= len(b.buffer) {
+	if addr >= len(b.buf) {
 		addr = 0
 	}
-	return b.buffer[addr], addr
+	return b.buf[addr], addr
 }
 
 func (b *Buffer) PrevGet() (*Cell, int) {
 	addr := b.addr - 1
 	if addr < 0 {
-		addr = len(b.buffer) - 1
+		addr = len(b.buf) - 1
 	}
-	return b.buffer[addr], addr
+	return b.buf[addr], addr
 }
 
 // 🟦 Set methods
@@ -93,14 +93,14 @@ func (b *Buffer) PrevGet() (*Cell, int) {
 //    PrevAndSet() point to previous cell then replace it
 
 func (b *Buffer) Set(c *Cell) int {
-	b.buffer[b.addr] = c
+	b.buf[b.addr] = c
 	b.Changes.Push(b.addr)
 	return b.addr
 }
 
 func (b *Buffer) SetAndNext(c *Cell) int {
 	addr := b.Set(c)
-	if b.addr++; b.addr >= len(b.buffer) {
+	if b.addr++; b.addr >= len(b.buf) {
 		b.addr = 0
 	}
 	return addr
@@ -117,7 +117,7 @@ func (b *Buffer) StartFld(attrs *attrs.Attrs) int {
 
 func (b *Buffer) PrevAndSet(c *Cell) int {
 	if b.addr--; b.addr < 0 {
-		b.addr = len(b.buffer) - 1
+		b.addr = len(b.buf) - 1
 	}
 	addr := b.Set(c)
 	return addr

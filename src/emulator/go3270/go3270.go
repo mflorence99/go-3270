@@ -111,8 +111,8 @@ func New(this js.Value, args []js.Value) any {
 			go3270.Keystroke(args[0].String(), args[1].String(), args[2].Bool(), args[3].Bool(), args[4].Bool())
 			return nil
 		}),
-		"receiveFromApp": js.FuncOf(func(this js.Value, args []js.Value) any {
-			go3270.ReceiveFromApp(args[0])
+		"outbound": js.FuncOf(func(this js.Value, args []js.Value) any {
+			go3270.Outbound(args[0])
 			return nil
 		}),
 	}
@@ -187,14 +187,14 @@ func (go3270 *Go3270) Keystroke(code string, key string, alt bool, ctrl bool, sh
 	go3270.device.Keystroke(code, key, alt, ctrl, shift)
 }
 
-func (go3270 *Go3270) ReceiveFromApp(u8in js.Value) {
+func (go3270 *Go3270) Outbound(u8in js.Value) {
 	// 🔥 do this the hard way, just so we don't have to re-convert bytes
 	params := map[string]any{
 		"bytes":     u8in,
 		"color":     "yellow",
 		"ebcdic":    true,
 		"eventType": "dumpBytes",
-		"title":     "ReceiveFromApp",
+		"title":     "Outbound",
 	}
 	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
 		"detail": params,
@@ -203,7 +203,7 @@ func (go3270 *Go3270) ReceiveFromApp(u8in js.Value) {
 	// 👇 just forward to device
 	u8s := make([]byte, u8in.Get("length").Int())
 	js.CopyBytesToGo(u8s, u8in)
-	go3270.device.ReceiveFromApp(u8s)
+	go3270.device.Outbound(u8s)
 }
 
 // 🟦 Messages from go test-able code sent to the UI for action

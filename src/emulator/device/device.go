@@ -366,7 +366,7 @@ func (device *Device) PutByteIntoBuffer(u8 byte, attrs *Attributes) {
 	device.incrAddr(1)
 }
 
-func (device *Device) ReceiveFromApp(u8s []byte) {
+func (device *Device) Outbound(u8s []byte) {
 	// 👇 reset any binking
 	if device.blinker != nil {
 		close(device.blinker)

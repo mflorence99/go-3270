@@ -1,8 +1,6 @@
 import { Observable } from 'rxjs';
 import { Observer } from 'rxjs';
 
-import { dumpBytes } from '$lib/dump';
-
 const lookup: Record<string, number> = {
   BINARY: 0,
   DO: 253,
@@ -56,7 +54,7 @@ export class Tn3270 {
           const bytes = new Uint8ClampedArray(
             await e.data.arrayBuffer()
           );
-          this.receiveFromApp(bytes, observer);
+          this.outbound(bytes, observer);
         };
         // 🔥 ERROR
         this.#socket.onerror = (evt: Event): void => {
@@ -105,7 +103,7 @@ export class Tn3270 {
   }
 
   // 🔥 this class emulates the device and "outbound" data streams flow FROM application code TO the device
-  receiveFromApp(
+  outbound(
     bytes: Uint8ClampedArray,
     observer: Observer<Uint8ClampedArray>
   ): void {

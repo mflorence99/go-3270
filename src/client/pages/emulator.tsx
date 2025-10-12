@@ -122,8 +122,8 @@ export class Emulator extends SignalWatcher(LitElement) {
     this.#go3270?.keystroke(code, key, alt, ctrl, shift);
   }
 
-  receiveFromApp(bytes: Uint8ClampedArray): void {
-    this.#go3270?.receiveFromApp(bytes);
+  outbound(bytes: Uint8ClampedArray): void {
+    this.#go3270?.outbound(bytes);
   }
 
   override render(): TemplateResult {

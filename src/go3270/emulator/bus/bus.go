@@ -25,8 +25,9 @@ func (b *Bus) Publish(topic string, args ...any) {
 	}
 }
 
+// 🔥 ensure LIFO
 func (b *Bus) Subscribe(topic string, fn interface{}) {
-	b.handlers[topic] = append(b.handlers[topic], fn)
+	b.handlers[topic] = append([]interface{}{fn}, b.handlers[topic]...)
 }
 
 func (b *Bus) Unsubscribe(topic string) {
