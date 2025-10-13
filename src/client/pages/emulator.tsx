@@ -108,8 +108,8 @@ export class Emulator extends SignalWatcher(LitElement) {
     this.#go3270?.close();
   }
 
-  focussed(focussed: boolean): void {
-    this.#go3270?.focussed(focussed);
+  focussed(focus: boolean): void {
+    this.#go3270?.focus(focus);
   }
 
   keystroke(

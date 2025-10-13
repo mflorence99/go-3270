@@ -33,10 +33,10 @@ export class Mediator implements ReactiveController {
     this.host.emulator.disconnect();
   }
 
-  focussed(focussed: boolean): (evt: Event) => void {
+  focussed(focus: boolean): (evt: Event) => void {
     return () => {
       if (this.host.pageNum === Pages.emulator) {
-        this.host.emulator.focussed(focussed);
+        this.host.emulator.focussed(focus);
       }
     };
   }

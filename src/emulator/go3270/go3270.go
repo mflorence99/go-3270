@@ -31,12 +31,6 @@ var boldFontEmbed []byte
 type Go3270 struct {
 	bus    EventBus.Bus
 	device *device.Device
-
-	// 👇 manage frame rendering
-	lastImage     []byte
-	lastTimestamp float64
-	renderContext js.Func
-	reqID         js.Value
 }
 
 // 🔥 main.go places this function name on the DOM's global window object
@@ -103,8 +97,8 @@ func New(this js.Value, args []js.Value) any {
 			go3270.Close()
 			return nil
 		}),
-		"focussed": js.FuncOf(func(this js.Value, args []js.Value) any {
-			go3270.Focussed(args[0].Bool())
+		"focus": js.FuncOf(func(this js.Value, args []js.Value) any {
+			go3270.Focus(args[0].Bool())
 			return nil
 		}),
 		"keystroke": js.FuncOf(func(this js.Value, args []js.Value) any {
@@ -127,11 +121,16 @@ func New(this js.Value, args []js.Value) any {
 // 🟦 Render drawing context when changed via requestAnimationFrame
 
 func (go3270 *Go3270) startRenderContextLoop(canvas js.Value, rgba *image.RGBA, maxFPS float64) {
-	go3270.renderContext = js.FuncOf(func(this js.Value, args []js.Value) any {
+	var (
+		lastImage     []byte
+		lastTimestamp float64
+		renderContext js.Func
+	)
+	renderContext = js.FuncOf(func(this js.Value, args []js.Value) any {
 		timestamp := args[0].Float()
 		// 👇 make sure we don't bust the max FPS we were given
-		if timestamp-go3270.lastTimestamp >= (1000 / maxFPS) {
-			if go3270.lastImage == nil || !slices.Equal(go3270.lastImage, rgba.Pix) {
+		if timestamp-lastTimestamp >= (1000 / maxFPS) {
+			if lastImage == nil || !slices.Equal(lastImage, rgba.Pix) {
 				// 🔥 I copied this from go-canvas where the author was worried about 3 separate copies -- I haven't figured how to reduce it to 2 even when using Uint8ClampedArray -- but it only takes ~1ms anyway
 				pixels := js.Global().Get("Uint8ClampedArray").New(len(rgba.Pix))
 				js.CopyBytesToJS(pixels, rgba.Pix)
@@ -142,16 +141,16 @@ func (go3270 *Go3270) startRenderContextLoop(canvas js.Value, rgba *image.RGBA, 
 				img.Get("data").Call("set", pixels)
 				ctx.Call("putImageData", img, 0, 0)
 				// 👇 set up for next time
-				go3270.lastImage = make([]byte, len(rgba.Pix))
-				copy(go3270.lastImage, rgba.Pix)
-				go3270.lastTimestamp = timestamp
+				lastImage = make([]byte, len(rgba.Pix))
+				copy(lastImage, rgba.Pix)
+				lastTimestamp = timestamp
 			}
 		}
-		go3270.reqID = js.Global().Call("requestAnimationFrame", go3270.renderContext)
+		js.Global().Call("requestAnimationFrame", renderContext)
 		return nil
 	})
 	// 👇 kick off the rendering loop
-	js.Global().Call("requestAnimationFrame", go3270.renderContext)
+	js.Global().Call("requestAnimationFrame", renderContext)
 }
 
 // 🟦 Go WASM methods callable by Javascript via go3270.ts
@@ -159,16 +158,16 @@ func (go3270 *Go3270) startRenderContextLoop(canvas js.Value, rgba *image.RGBA, 
 func (go3270 *Go3270) Close() {
 	js.Global().Get("console").Call("log", "🐞 Go3270 closing")
 	// 👇 perform any cleanup
-	js.Global().Call("cancelAnimationFrame", go3270.reqID)
+	// js.Global().Call("cancelAnimationFrame", go3270.reqID)
 	go3270.device.Close()
 	// 🟦 Go WASM functions invoked by go test-able code
 	go3270.bus.Unsubscribe("go3270", go3270Message)
 }
 
-func (go3270 *Go3270) Focussed(focussed bool) {
-	js.Global().Get("console").Call("log", device.Ternary(focussed, "⌨️ Go3270 gains focus", "⌨️ Go3270 loses focus"))
+func (go3270 *Go3270) Focus(focus bool) {
+	js.Global().Get("console").Call("log", device.Ternary(focus, "⌨️ Go3270 gains focus", "⌨️ Go3270 loses focus"))
 	// 👇 just forward to device
-	go3270.device.Focussed(focussed)
+	go3270.device.Focus(focus)
 }
 
 func (go3270 *Go3270) Keystroke(code string, key string, alt bool, ctrl bool, shift bool) {

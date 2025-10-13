@@ -1,5 +1,9 @@
 package consts
 
+import (
+	"strings"
+)
+
 // 👁️ https://bitsavers.trailing-edge.com/pdf/ibm/3278/GA33-3056-0_3270_Information_Display_System_Color_and_Programmed_Symbols_3278_3279_3287_Sep1979.pdf?utm_source=chatgpt.com
 
 type Color byte
@@ -26,8 +30,23 @@ var colors = map[Color]string{
 	0xF7: "WHITE",
 }
 
+var jsColors = map[string]Color{
+	"BLACK":     0xF0,
+	"BLUE":      0xF1,
+	"RED":       0xF2,
+	"PINK":      0xF3,
+	"GREEN":     0xF4,
+	"TURQUOISE": 0xF5,
+	"YELLOW":    0xF6,
+	"WHITE":     0xF7,
+}
+
 func ColorFor(c Color) string {
 	return colors[c]
+}
+
+func ColorOf(str string) Color {
+	return jsColors[strings.ToUpper(str)]
 }
 
 func (c Color) String() string {

@@ -49,7 +49,7 @@ type Device struct {
 	cursorAt  int
 	erase     bool
 	error     bool
-	focussed  bool
+	focus     bool
 	locked    bool
 	message   string
 	numeric   bool
@@ -143,14 +143,14 @@ func (device *Device) EraseBuffer() {
 	device.erase = true
 }
 
-func (device *Device) Focussed(focussed bool) {
+func (device *Device) Focus(focus bool) {
 	device.changes = NewStack[int](1)
 	device.changes.Push(device.cursorAt)
-	device.error = !focussed
-	device.focussed = focussed
-	device.message = Ternary(focussed, "", "LOCKED")
+	device.error = !focus
+	device.focus = focus
+	device.message = Ternary(focus, "", "LOCKED")
 	device.SignalStatus()
-	device.RenderBuffer(RenderBufferOpts{blinkOn: focussed, quiet: true})
+	device.RenderBuffer(RenderBufferOpts{blinkOn: focus, quiet: true})
 }
 
 func (device *Device) Keystroke(code string, key string, alt bool, ctrl bool, shift bool) {
@@ -469,7 +469,7 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 		color := attrs.Color(device.color)
 		highlight := attrs.Highlight()
 		underscore := attrs.Underscore()
-		showCursor := (addr == device.cursorAt) && device.focussed
+		showCursor := (addr == device.cursorAt) && device.focus
 		blinkMe := (attrs.Blink() || showCursor) && opts.blinkOn
 		reverse := attrs.Reverse() != blinkMe
 		// 👇 lookup the glyph in the cache
@@ -514,7 +514,7 @@ func (device *Device) ResetStatus() {
 	device.cursorAt = 0
 	device.erase = false
 	device.error = false
-	device.focussed = true
+	device.focus = true
 	device.locked = true
 	device.message = ""
 	device.numeric = false
