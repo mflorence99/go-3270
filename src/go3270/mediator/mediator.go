@@ -10,9 +10,9 @@ import (
 	"github.com/golang/freetype/truetype"
 
 	"go3270/emulator"
-	"go3270/emulator/bus"
 	"go3270/emulator/consts"
 	"go3270/emulator/keyboard"
+	"go3270/emulator/pubsub"
 	"syscall/js"
 )
 
@@ -32,7 +32,7 @@ var (
 // The emulator package is handed an image into which it renders the 3270 stream and any operator input. Using requestAnimationFrame, this module actually draws the context onto a supplied HTML canvas whenever the context changes
 
 type Mediator struct {
-	bus *bus.Bus
+	bus *pubsub.Bus
 	emu *emulator.Emulator
 }
 
@@ -49,13 +49,13 @@ type Mediator struct {
 
 func NewMediator(this js.Value, args []js.Value) any {
 	m := new(Mediator)
-	m.bus = bus.NewBus()
+	m.bus = pubsub.NewBus()
 	// 🔥 must subscribe BEFORE we create the emulator
-	m.bus.Subscribe("close", m.close)
+	m.bus.Subscribe(pubsub.CLOSE, m.close)
 	// 👇 create and configure the emulator and its childreen
 	m.emu = emulator.NewEmulator(m.bus)
 	cfg := m.configure(args)
-	m.bus.Publish("config", cfg)
+	m.bus.Publish(pubsub.CONFIG, cfg)
 	return m.jsInterface()
 }
 
@@ -63,7 +63,7 @@ func (m *Mediator) close() {
 	m.bus.UnsubscribeAll()
 }
 
-func (m *Mediator) configure(args []js.Value) *emulator.Config {
+func (m *Mediator) configure(args []js.Value) emulator.Config {
 	// 👇 from the args
 	canvas := args[0]
 	bgColor := args[1].String()
@@ -119,19 +119,19 @@ func (m *Mediator) configure(args []js.Value) *emulator.Config {
 		RGBA:         rgba,
 		Rows:         24,
 	}
-	return &cfg
+	return cfg
 
 }
 
 func (m *Mediator) jsInterface() js.Value {
 	functions := map[string]any{
 		"close": js.FuncOf(func(this js.Value, args []js.Value) any {
-			m.bus.Publish("close")
+			m.bus.Publish(pubsub.CLOSE)
 			return nil
 		}),
 		"focus": js.FuncOf(func(this js.Value, args []js.Value) any {
 			state := args[0].Bool()
-			m.bus.Publish("focus", state)
+			m.bus.Publish(pubsub.FOCUS, state)
 			return nil
 		}),
 		"keystroke": js.FuncOf(func(this js.Value, args []js.Value) any {
@@ -142,13 +142,13 @@ func (m *Mediator) jsInterface() js.Value {
 				CTRL:  args[4].Bool(),
 				SHIFT: args[5].Bool(),
 			}
-			m.bus.Publish("keystroke", key)
+			m.bus.Publish(pubsub.KEYSTROKE, key)
 			return nil
 		}),
 		"outbound": js.FuncOf(func(this js.Value, args []js.Value) any {
 			bytes := make([]byte, args[0].Get("length").Int())
 			js.CopyBytesToGo(bytes, args[0])
-			m.bus.Publish("outbound", bytes)
+			m.bus.Publish(pubsub.OUTBOUND, bytes)
 			return nil
 		}),
 	}

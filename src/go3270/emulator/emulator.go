@@ -2,24 +2,24 @@ package emulator
 
 import (
 	"go3270/emulator/buffer"
-	"go3270/emulator/bus"
 	"go3270/emulator/keyboard"
+	"go3270/emulator/pubsub"
 )
 
 // 🟧 3270 emulator itself, in pure go test-able code
 
 type Emulator struct {
-	bus *bus.Bus
+	bus *pubsub.Bus
 	buf *buffer.Buffer
 	key *keyboard.Handler
 }
 
-func NewEmulator(bus *bus.Bus) *Emulator {
+func NewEmulator(bus *pubsub.Bus) *Emulator {
 	e := new(Emulator)
 	e.bus = bus
 	// 🔥 must subscribe BEFORE we create any children
-	e.bus.Subscribe("close", e.close)
-	e.bus.Subscribe("config", e.configure)
+	e.bus.Subscribe(pubsub.CLOSE, e.close)
+	e.bus.Subscribe(pubsub.CONFIG, e.configure)
 	return e
 }
 
