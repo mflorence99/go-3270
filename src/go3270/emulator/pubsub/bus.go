@@ -4,23 +4,6 @@ import (
 	"go3270/emulator/utils"
 )
 
-type Topic int
-
-const (
-
-	// 🟦 Published by mediator on behalf of UI, reveived by emulator
-
-	CLOSE Topic = iota
-	CONFIG
-	FOCUS
-	KEYSTROKE
-	OUTBOUND
-
-	// 🟦 Published by emulator, received by mediator & fowarded via dispatchEvent to UI
-
-	DUMP
-)
-
 type Bus struct {
 	handlers map[Topic][]interface{}
 }
