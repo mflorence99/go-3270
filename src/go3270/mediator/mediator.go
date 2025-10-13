@@ -54,6 +54,7 @@ func NewMediator(this js.Value, args []js.Value) any {
 	m.bus.SubDump(m.dump)
 	m.bus.SubInbound(m.inbound)
 	m.bus.SubPanic(m.panic)
+	m.bus.SubStatus(m.status)
 	// 👇 create and configure the emulator and its childreen
 	m.emu = emulator.NewEmulator(m.bus)
 	cfg := m.configure(args)
@@ -129,10 +130,10 @@ func (m *Mediator) dump(dmp pubsub.Dump) {
 	u8s := js.Global().Get("Uint8ClampedArray").New(len(dmp.Bytes))
 	js.CopyBytesToJS(u8s, dmp.Bytes)
 	params := map[string]any{
+		"eventType": "dump",
 		"bytes":     u8s,
 		"color":     dmp.Color,
 		"ebcdic":    dmp.EBCDIC,
-		"eventType": "dump",
 		"title":     dmp.Title,
 	}
 	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
@@ -145,8 +146,8 @@ func (m *Mediator) inbound(bytes []byte) {
 	u8s := js.Global().Get("Uint8ClampedArray").New(len(bytes))
 	js.CopyBytesToJS(u8s, bytes)
 	params := map[string]any{
-		"bytes":     u8s,
 		"eventType": "inbound",
+		"bytes":     u8s,
 	}
 	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
 		"detail": params,
@@ -188,8 +189,26 @@ func (m *Mediator) jsInterface() js.Value {
 
 func (m *Mediator) panic(msg string) {
 	params := map[string]any{
-		"args":      msg,
 		"eventType": "panic",
+		"args":      msg,
+	}
+	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
+		"detail": params,
+	})
+	js.Global().Get("window").Call("dispatchEvent", event)
+}
+
+func (m *Mediator) status(stat pubsub.Status) {
+	params := map[string]any{
+		"eventType": "status",
+		"alarm":     stat.Alarm,
+		"cursorAt":  stat.CursorAt,
+		"error":     stat.Error,
+		"locked":    stat.Locked,
+		"message":   stat.Message,
+		"numeric":   stat.Numeric,
+		"protected": stat.Protected,
+		"waiting":   stat.Waiting,
 	}
 	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
 		"detail": params,

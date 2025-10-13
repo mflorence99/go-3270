@@ -14,7 +14,7 @@ type Keystroke struct {
 }
 
 func (k Keystroke) String() string {
-	str := "⌨️ "
+	str := ""
 	if k.CTRL {
 		str += "CTRL+"
 	}

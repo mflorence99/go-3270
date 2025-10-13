@@ -55,6 +55,10 @@ func (b *Bus) PubPanic(msg string) {
 	b.Publish("panic", msg)
 }
 
+func (b *Bus) PubStatus(stat Status) {
+	b.Publish("status", stat)
+}
+
 // 🔥 ensure LIFO
 func (b *Bus) Subscribe(topic string, fn interface{}) {
 	b.handlers[topic] = append([]interface{}{fn}, b.handlers[topic]...)
@@ -90,6 +94,10 @@ func (b *Bus) SubOutbound(fn func(bytes []byte)) {
 
 func (b *Bus) SubPanic(fn func(msg string)) {
 	b.Subscribe("panic", fn)
+}
+
+func (b *Bus) SubStatus(fn func(stat Status)) {
+	b.Subscribe("status", fn)
 }
 
 func (b *Bus) UnsubscribeAll() {
