@@ -43,17 +43,11 @@ export class Mediator implements ReactiveController {
 
   async go3270Message(evt: Event): Promise<void> {
     switch ((evt as CustomEvent).detail.eventType) {
-      case 'dumpBytes':
+      case 'dump':
         {
           const { bytes, title, ebcdic, color } = (evt as CustomEvent)
             .detail;
           dumpBytes(bytes, title, ebcdic, color);
-        }
-        break;
-      case 'log':
-        {
-          const { args } = (evt as CustomEvent).detail;
-          console.log(...args.flat());
         }
         break;
       case 'panic':
@@ -62,7 +56,7 @@ export class Mediator implements ReactiveController {
           this.host.connector.panic(args[0]);
         }
         break;
-      case 'sendToApp':
+      case 'inbound':
         {
           const { bytes } = (evt as CustomEvent).detail;
           this.host.connector.sendToApp(bytes);

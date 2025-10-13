@@ -2,7 +2,9 @@ package emulator
 
 import (
 	"go3270/emulator/buffer"
+	"go3270/emulator/inbound"
 	"go3270/emulator/keyboard"
+	"go3270/emulator/outbound"
 	"go3270/emulator/pubsub"
 )
 
@@ -11,21 +13,25 @@ import (
 type Emulator struct {
 	bus *pubsub.Bus
 	buf *buffer.Buffer
+	in  *inbound.Handler
 	key *keyboard.Handler
+	out *outbound.Handler
 }
 
 func NewEmulator(bus *pubsub.Bus) *Emulator {
 	e := new(Emulator)
 	e.bus = bus
 	// 🔥 must subscribe BEFORE we create any children
-	e.bus.Subscribe(pubsub.CLOSE, e.close)
-	e.bus.Subscribe(pubsub.CONFIG, e.configure)
+	e.bus.SubClose(e.close)
+	e.bus.SubConfig(e.configure)
 	return e
 }
 
 func (e *Emulator) close() {}
 
-func (e *Emulator) configure(cfg *Config) {
+func (e *Emulator) configure(cfg pubsub.Config) {
 	e.buf = buffer.NewBuffer(cfg.Rows * cfg.Cols)
+	e.in = inbound.NewHandler(e.bus)
 	e.key = keyboard.NewHandler(e.bus)
+	e.out = outbound.NewHandler(e.bus)
 }

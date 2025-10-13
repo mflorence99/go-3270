@@ -1,4 +1,4 @@
-package keyboard
+package pubsub
 
 import (
 	"fmt"

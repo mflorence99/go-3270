@@ -156,7 +156,7 @@ func (go3270 *Go3270) startRenderContextLoop(canvas js.Value, rgba *image.RGBA, 
 // 🟦 Go WASM methods callable by Javascript via go3270.ts
 
 func (go3270 *Go3270) Close() {
-	js.Global().Get("console").Call("log", "🐞 Go3270 closing")
+	println("🐞 Go3270 closing")
 	// 👇 perform any cleanup
 	// js.Global().Call("cancelAnimationFrame", go3270.reqID)
 	go3270.device.Close()
@@ -165,7 +165,7 @@ func (go3270 *Go3270) Close() {
 }
 
 func (go3270 *Go3270) Focus(focus bool) {
-	js.Global().Get("console").Call("log", device.Ternary(focus, "⌨️ Go3270 gains focus", "⌨️ Go3270 loses focus"))
+	println(device.Ternary(focus, "⌨️ Go3270 gains focus", "⌨️ Go3270 loses focus"))
 	// 👇 just forward to device
 	go3270.device.Focus(focus)
 }
@@ -181,7 +181,7 @@ func (go3270 *Go3270) Keystroke(code string, key string, alt bool, ctrl bool, sh
 	if alt {
 		str += "ALT+"
 	}
-	js.Global().Get("console").Call("log", fmt.Sprintf("%s%s %s", str, key, device.Ternary(code != key && len(key) > 1, code, "")))
+	println(fmt.Sprintf("%s%s %s", str, key, device.Ternary(code != key && len(key) > 1, code, "")))
 	// 👇 just forward to device
 	go3270.device.Keystroke(code, key, alt, ctrl, shift)
 }
@@ -192,7 +192,7 @@ func (go3270 *Go3270) Outbound(u8in js.Value) {
 		"bytes":     u8in,
 		"color":     "yellow",
 		"ebcdic":    true,
-		"eventType": "dumpBytes",
+		"eventType": "dump",
 		"title":     "Outbound",
 	}
 	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
@@ -229,12 +229,12 @@ func go3270Message(msg device.Go3270Message) {
 	})
 	js.Global().Get("window").Call("dispatchEvent", event)
 	// 👇 special case: dump what we send
-	if msg.EventType == "sendToApp" {
+	if msg.EventType == "inbound" {
 		params := map[string]any{
 			"bytes":     u8out,
 			"color":     "palegreen",
 			"ebcdic":    true,
-			"eventType": "dumpBytes",
+			"eventType": "dump",
 			"title":     "SendToApp",
 		}
 		event := js.Global().Get("CustomEvent").New("go3270", map[string]any{

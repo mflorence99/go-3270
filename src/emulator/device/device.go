@@ -443,7 +443,7 @@ func (device *Device) RenderBuffer(opts RenderBufferOpts) {
 			"ebcdic": true,
 			"title":  "RenderBuffer",
 		}
-		device.SendGo3270Message(Go3270Message{EventType: "dumpBytes", Params: params, U8s: device.buffer})
+		device.SendGo3270Message(Go3270Message{EventType: "dump", Params: params, U8s: device.buffer})
 	}
 	// 👇 pre-figure the bounding box
 	w := math.Round(device.fontWidth * device.paddedWidth)

@@ -9,15 +9,22 @@ type Handler struct {
 }
 
 func NewHandler(bus *pubsub.Bus) *Handler {
-	k := new(Handler)
-	k.bus = bus
+	o := new(Handler)
+	o.bus = bus
 	// 🔥 must subscribe BEFORE we create any children
-	k.bus.Subscribe(pubsub.CLOSE, k.close)
-	k.bus.Subscribe(pubsub.OUTBOUND, k.handle)
-	return k
+	o.bus.SubClose(o.close)
+	o.bus.SubOutbound(o.handle)
+	return o
 }
 
-func (k *Handler) close() {}
+func (o *Handler) close() {}
 
-func (k *Handler) handle(bytes []byte) {
+func (o *Handler) handle(bytes []byte) {
+	dmp := pubsub.Dump{
+		Bytes:  bytes,
+		Color:  "yellow",
+		EBCDIC: true,
+		Title:  "Outbound",
+	}
+	o.bus.PubDump(dmp)
 }

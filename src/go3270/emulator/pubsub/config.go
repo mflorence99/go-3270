@@ -1,4 +1,4 @@
-package emulator
+package pubsub
 
 import (
 	"go3270/emulator/consts"

@@ -15,13 +15,13 @@ func NewHandler(bus *pubsub.Bus) *Handler {
 	k := new(Handler)
 	k.bus = bus
 	// 🔥 must subscribe BEFORE we create any children
-	k.bus.Subscribe(pubsub.CLOSE, k.close)
-	k.bus.Subscribe(pubsub.KEYSTROKE, k.handle)
+	k.bus.SubClose(k.close)
+	k.bus.SubKeystroke(k.handle)
 	return k
 }
 
 func (k *Handler) close() {}
 
-func (k *Handler) handle(key Keystroke) {
+func (k *Handler) handle(key pubsub.Keystroke) {
 	println(fmt.Sprintf("⌨️ %s", key))
 }

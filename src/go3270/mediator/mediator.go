@@ -11,7 +11,6 @@ import (
 
 	"go3270/emulator"
 	"go3270/emulator/consts"
-	"go3270/emulator/keyboard"
 	"go3270/emulator/pubsub"
 	"syscall/js"
 )
@@ -51,11 +50,14 @@ func NewMediator(this js.Value, args []js.Value) any {
 	m := new(Mediator)
 	m.bus = pubsub.NewBus()
 	// 🔥 must subscribe BEFORE we create the emulator
-	m.bus.Subscribe(pubsub.CLOSE, m.close)
+	m.bus.SubClose(m.close)
+	m.bus.SubDump(m.dump)
+	m.bus.SubInbound(m.inbound)
+	m.bus.SubPanic(m.panic)
 	// 👇 create and configure the emulator and its childreen
 	m.emu = emulator.NewEmulator(m.bus)
 	cfg := m.configure(args)
-	m.bus.Publish(pubsub.CONFIG, cfg)
+	m.bus.PubConfig(cfg)
 	return m.jsInterface()
 }
 
@@ -63,7 +65,7 @@ func (m *Mediator) close() {
 	m.bus.UnsubscribeAll()
 }
 
-func (m *Mediator) configure(args []js.Value) emulator.Config {
+func (m *Mediator) configure(args []js.Value) pubsub.Config {
 	// 👇 from the args
 	canvas := args[0]
 	bgColor := args[1].String()
@@ -104,7 +106,7 @@ func (m *Mediator) configure(args []js.Value) emulator.Config {
 	// 👇 prepare the rendering surface
 	rgba := image.NewRGBA(image.Rect(0, 0, int(canvasWidth), int(canvasHeight)))
 	// 👇 finally!
-	cfg := emulator.Config{
+	cfg := pubsub.Config{
 		BgColor:      bgColor,
 		BoldFace:     &boldFace,
 		CLUT:         clut,
@@ -123,34 +125,74 @@ func (m *Mediator) configure(args []js.Value) emulator.Config {
 
 }
 
+func (m *Mediator) dump(dmp pubsub.Dump) {
+	u8s := js.Global().Get("Uint8ClampedArray").New(len(dmp.Bytes))
+	js.CopyBytesToJS(u8s, dmp.Bytes)
+	params := map[string]any{
+		"bytes":     u8s,
+		"color":     dmp.Color,
+		"ebcdic":    dmp.EBCDIC,
+		"eventType": "dump",
+		"title":     dmp.Title,
+	}
+	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
+		"detail": params,
+	})
+	js.Global().Get("window").Call("dispatchEvent", event)
+}
+
+func (m *Mediator) inbound(bytes []byte) {
+	u8s := js.Global().Get("Uint8ClampedArray").New(len(bytes))
+	js.CopyBytesToJS(u8s, bytes)
+	params := map[string]any{
+		"bytes":     u8s,
+		"eventType": "inbound",
+	}
+	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
+		"detail": params,
+	})
+	js.Global().Get("window").Call("dispatchEvent", event)
+}
+
 func (m *Mediator) jsInterface() js.Value {
 	functions := map[string]any{
 		"close": js.FuncOf(func(this js.Value, args []js.Value) any {
-			m.bus.Publish(pubsub.CLOSE)
+			m.bus.PubClose()
 			return nil
 		}),
 		"focus": js.FuncOf(func(this js.Value, args []js.Value) any {
 			state := args[0].Bool()
-			m.bus.Publish(pubsub.FOCUS, state)
+			m.bus.PubFocus(state)
 			return nil
 		}),
 		"keystroke": js.FuncOf(func(this js.Value, args []js.Value) any {
-			key := keyboard.Keystroke{
+			key := pubsub.Keystroke{
 				Code:  args[0].String(),
 				Key:   args[1].String(),
 				ALT:   args[3].Bool(),
 				CTRL:  args[4].Bool(),
 				SHIFT: args[5].Bool(),
 			}
-			m.bus.Publish(pubsub.KEYSTROKE, key)
+			m.bus.PubKeystroke(key)
 			return nil
 		}),
 		"outbound": js.FuncOf(func(this js.Value, args []js.Value) any {
 			bytes := make([]byte, args[0].Get("length").Int())
 			js.CopyBytesToGo(bytes, args[0])
-			m.bus.Publish(pubsub.OUTBOUND, bytes)
+			m.bus.PubOutbound(bytes)
 			return nil
 		}),
 	}
 	return js.ValueOf(functions)
+}
+
+func (m *Mediator) panic(msg string) {
+	params := map[string]any{
+		"args":      msg,
+		"eventType": "panic",
+	}
+	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
+		"detail": params,
+	})
+	js.Global().Get("window").Call("dispatchEvent", event)
 }

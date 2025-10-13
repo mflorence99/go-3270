@@ -8,7 +8,7 @@ import (
 // 🟧 3270 emulator
 
 func main() {
-	js.Global().Get("console").Call("log", "%cgo-3270 WASM initialized", "color: pink")
+	println("🐞 Go3270 WASM initialized")
 	js.Global().Set("NewGo3270", js.FuncOf(go3270.New))
 	select {}
 }
