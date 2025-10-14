@@ -77,7 +77,7 @@ func (b *Bus) SubConfig(fn func(cfg Config)) {
 }
 
 func (b *Bus) SubDump(fn func(dmp Dump)) {
-	b.Subscribe("config", fn)
+	b.Subscribe("dump", fn)
 }
 
 func (b *Bus) SubFocus(fn func(focus bool)) {
