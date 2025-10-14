@@ -85,12 +85,31 @@ abstract class Base<T> {
 
 export type CLUT = Record<string, [string, string]>;
 
+export const defaultCLUT: CLUT = {
+  black: ['#111138', '#505050'],
+  blue: ['#0078FF', '#3366CC'],
+  red: ['#D40000', '#E06666'],
+  pink: ['#FF69B4', '#FFB3DA'],
+  green: ['#00AA00', '#88DD88'],
+  turquoise: ['#00C8AA', '#99E8DD'],
+  yellow: ['#FF8000', '#FFB266'],
+  white: ['#888888', '#FFFFFF']
+};
+
 export type Config = {
   color: string;
   emulator: string;
   fontSize: string;
   host: string;
   port: string;
+};
+
+export const defaultConfig: Config = {
+  color: 'green',
+  emulator: '2',
+  fontSize: '8',
+  host: 'localhost',
+  port: '3270'
 };
 
 export type Status = {
@@ -104,6 +123,17 @@ export type Status = {
   waiting: boolean;
 };
 
+export const defaultStatus: Status = {
+  alarm: false,
+  cursorAt: -1,
+  error: false,
+  locked: false,
+  message: '',
+  numeric: false,
+  protected: false,
+  waiting: false
+};
+
 export type StateModel = {
   clut: CLUT;
   config: Config;
@@ -111,38 +141,16 @@ export type StateModel = {
 };
 
 const defaultState: StateModel = {
-  clut: {
-    black: ['#111138', '#505050'],
-    blue: ['#0078FF', '#3366CC'],
-    red: ['#D40000', '#E06666'],
-    pink: ['#FF69B4', '#FFB3DA'],
-    green: ['#00AA00', '#88DD88'],
-    turquoise: ['#00C8AA', '#99E8DD'],
-    yellow: ['#FF8000', '#FFB266'],
-    white: ['#888888', '#FFFFFF']
-  },
-  config: {
-    color: 'green',
-    emulator: '2',
-    fontSize: '8',
-    host: 'localhost',
-    port: '3270'
-  },
-  status: {
-    alarm: false,
-    cursorAt: -1,
-    error: false,
-    locked: false,
-    message: '',
-    numeric: false,
-    protected: false,
-    waiting: false
-  }
+  clut: defaultCLUT,
+  config: defaultConfig,
+  status: defaultStatus
 };
 
 export class State extends Base<StateModel> {
   // 👇 just an example of a computed property
   asJSON = computed(() => JSON.stringify(this.model.get()));
+
+  clut = computed((): CLUT => this.model.get().clut);
 
   color = computed((): string[] => {
     const clut = this.model.get().clut;

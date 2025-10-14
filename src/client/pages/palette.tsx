@@ -7,6 +7,7 @@ import { TemplateResult } from 'lit';
 import { consume } from '@lit/context';
 import { css } from 'lit';
 import { customElement } from 'lit/decorators.js';
+import { defaultCLUT } from '$client/state/state';
 import { globals } from '$client/css/globals/shadow-dom';
 import { html } from 'lit';
 import { query } from 'lit/decorators.js';
@@ -165,14 +166,14 @@ export class Palette extends SignalWatcher(LitElement) {
                             data-color=${color}
                             data-color-index="0"
                             type="color"
-                            value=${clut[color]![0]} />
+                            .value=${clut[color]![0]} />
                         </td>
                         <td>
                           <input
                             data-color=${color}
                             data-color-ix="1"
                             type="color"
-                            value=${clut[color]![1]} />
+                            .value=${clut[color]![1]} />
                         </td>
                       </tr>
                     `
@@ -262,6 +263,11 @@ export class Palette extends SignalWatcher(LitElement) {
 
               <div class="buttons">
                 <md-filled-button>Save</md-filled-button>
+                <md-outlined-button
+                  @click=${this.restore}
+                  type="button">
+                  Restore
+                </md-outlined-button>
                 <md-outlined-button @click=${this.done} type="button">
                   Done
                 </md-outlined-button>
@@ -271,5 +277,10 @@ export class Palette extends SignalWatcher(LitElement) {
         </form>
       </main>
     `;
+  }
+
+  restore(evt: Event): void {
+    evt.preventDefault();
+    this.state.updateCLUT(defaultCLUT);
   }
 }
