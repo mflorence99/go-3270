@@ -4,22 +4,22 @@ import (
 	"go3270/emulator/pubsub"
 )
 
-type Handler struct {
+type Consumer struct {
 	bus *pubsub.Bus
 }
 
-func NewHandler(bus *pubsub.Bus) *Handler {
-	o := new(Handler)
+func NewConsumer(bus *pubsub.Bus) *Consumer {
+	o := new(Consumer)
 	o.bus = bus
 	// 🔥 must subscribe BEFORE we create any children
 	o.bus.SubClose(o.close)
-	o.bus.SubOutbound(o.handle)
+	o.bus.SubOutbound(o.consume)
 	return o
 }
 
-func (o *Handler) close() {}
+func (o *Consumer) close() {}
 
-func (o *Handler) handle(bytes []byte) {
+func (o *Consumer) consume(bytes []byte) {
 	dmp := pubsub.Dump{
 		Bytes:  bytes,
 		Color:  "yellow",

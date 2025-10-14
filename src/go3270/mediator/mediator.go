@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"math"
+	"slices"
 
 	"github.com/fogleman/gg"
 	"github.com/golang/freetype/truetype"
@@ -85,6 +86,7 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 	rows := args[6].Int()
 	dpi := args[7].Float()
 	// 👇 constants
+	maxFPS := 30.0
 	paddedHeight := 1.5
 	paddedWidth := 1.1
 	// 👇 load the fonts
@@ -106,6 +108,8 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 	canvas.Set("height", canvasHeight)
 	// 👇 prepare the rendering surface
 	rgba := image.NewRGBA(image.Rect(0, 0, int(canvasWidth), int(canvasHeight)))
+	// 👇 kick off the render context loop
+	m.rcLoop(canvas, rgba, maxFPS)
 	// 👇 finally!
 	cfg := pubsub.Config{
 		BgColor:      bgColor,
@@ -214,4 +218,39 @@ func (m *Mediator) status(stat pubsub.Status) {
 		"detail": params,
 	})
 	js.Global().Get("window").Call("dispatchEvent", event)
+}
+
+// 🟦 Render drawing context when changed via requestAnimationFrame
+
+func (m *Mediator) rcLoop(canvas js.Value, rgba *image.RGBA, maxFPS float64) {
+	var (
+		lastImage     []byte
+		lastTimestamp float64
+		rc            js.Func
+	)
+	rc = js.FuncOf(func(this js.Value, args []js.Value) any {
+		timestamp := args[0].Float()
+		// 👇 make sure we don't bust the max FPS we were given
+		if timestamp-lastTimestamp >= (1000 / maxFPS) {
+			if lastImage == nil || !slices.Equal(lastImage, rgba.Pix) {
+				// 🔥 I copied this from go-canvas where the author was worried about 3 separate copies -- I haven't figured how to reduce it to 2 even when using Uint8ClampedArray -- but it only takes ~2ms anyway
+				pixels := js.Global().Get("Uint8ClampedArray").New(len(rgba.Pix))
+				js.CopyBytesToJS(pixels, rgba.Pix)
+				canvasHeight := canvas.Get("offsetHeight")
+				canvasWidth := canvas.Get("offsetWidth")
+				ctx := canvas.Call("getContext", "2d")
+				img := ctx.Call("createImageData", canvasWidth, canvasHeight)
+				img.Get("data").Call("set", pixels)
+				ctx.Call("putImageData", img, 0, 0)
+				// 👇 set up for next time
+				lastImage = make([]byte, len(rgba.Pix))
+				copy(lastImage, rgba.Pix)
+				lastTimestamp = timestamp
+			}
+		}
+		js.Global().Call("requestAnimationFrame", rc)
+		return nil
+	})
+	// 👇 kick off the rendering loop
+	js.Global().Call("requestAnimationFrame", rc)
 }

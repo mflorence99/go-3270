@@ -6,6 +6,7 @@ import (
 	"go3270/emulator/keyboard"
 	"go3270/emulator/outbound"
 	"go3270/emulator/pubsub"
+	"go3270/emulator/screen"
 	"go3270/emulator/state"
 )
 
@@ -14,9 +15,10 @@ import (
 type Emulator struct {
 	bus *pubsub.Bus
 	buf *buffer.Buffer
-	in  *inbound.Handler
-	key *keyboard.Handler
-	out *outbound.Handler
+	in  *inbound.Producer
+	key *keyboard.Consumer
+	out *outbound.Consumer
+	scr *screen.Screen
 	st  *state.State
 }
 
@@ -32,9 +34,10 @@ func NewEmulator(bus *pubsub.Bus) *Emulator {
 func (e *Emulator) close() {}
 
 func (e *Emulator) configure(cfg pubsub.Config) {
-	e.buf = buffer.NewBuffer(cfg.Rows * cfg.Cols)
-	e.in = inbound.NewHandler(e.bus)
-	e.key = keyboard.NewHandler(e.bus)
-	e.out = outbound.NewHandler(e.bus)
+	e.buf = buffer.NewBuffer(cfg)
+	e.in = inbound.NewProducer(e.bus)
+	e.key = keyboard.NewConsumer(e.bus)
+	e.out = outbound.NewConsumer(e.bus)
+	e.scr = screen.NewScreen(cfg)
 	e.st = state.NewState(e.bus)
 }

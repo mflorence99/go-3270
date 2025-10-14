@@ -5,23 +5,21 @@ import (
 	"go3270/emulator/pubsub"
 )
 
-// 🟧 Keyboard handler
-
-type Handler struct {
+type Consumer struct {
 	bus *pubsub.Bus
 }
 
-func NewHandler(bus *pubsub.Bus) *Handler {
-	k := new(Handler)
+func NewConsumer(bus *pubsub.Bus) *Consumer {
+	k := new(Consumer)
 	k.bus = bus
 	// 🔥 must subscribe BEFORE we create any children
 	k.bus.SubClose(k.close)
-	k.bus.SubKeystroke(k.handle)
+	k.bus.SubKeystroke(k.consume)
 	return k
 }
 
-func (k *Handler) close() {}
+func (k *Consumer) close() {}
 
-func (k *Handler) handle(key pubsub.Keystroke) {
+func (k *Consumer) consume(key pubsub.Keystroke) {
 	println(fmt.Sprintf("⌨️ %s", key))
 }

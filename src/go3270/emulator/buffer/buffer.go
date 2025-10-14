@@ -3,6 +3,7 @@ package buffer
 import (
 	"go3270/emulator/attrs"
 	"go3270/emulator/consts"
+	"go3270/emulator/pubsub"
 	"go3270/emulator/stack"
 	"strings"
 )
@@ -16,9 +17,9 @@ type Buffer struct {
 	buf  []*Cell
 }
 
-func NewBuffer(size int) *Buffer {
+func NewBuffer(cfg pubsub.Config) *Buffer {
 	b := new(Buffer)
-	b.buf = make([]*Cell, size)
+	b.buf = make([]*Cell, cfg.Cols*cfg.Rows)
 	b.Changes = stack.NewStack[int](1)
 	b.Erase()
 	return b

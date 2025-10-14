@@ -4,22 +4,22 @@ import (
 	"go3270/emulator/pubsub"
 )
 
-type Handler struct {
+type Producer struct {
 	bus *pubsub.Bus
 }
 
-func NewHandler(bus *pubsub.Bus) *Handler {
-	i := new(Handler)
+func NewProducer(bus *pubsub.Bus) *Producer {
+	i := new(Producer)
 	i.bus = bus
 	// 🔥 must subscribe BEFORE we create any children
 	i.bus.SubClose(i.close)
-	i.bus.SubInbound(i.handle)
 	return i
 }
 
-func (i *Handler) close() {}
+func (i *Producer) close() {}
 
-func (i *Handler) handle(bytes []byte) {
+func (i *Producer) Produce() {
+	bytes := make([]byte, 0)
 	dmp := pubsub.Dump{
 		Bytes:  bytes,
 		Color:  "palegreen",
