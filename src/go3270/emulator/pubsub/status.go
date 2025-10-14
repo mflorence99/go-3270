@@ -18,19 +18,19 @@ type Status struct {
 func (s Status) String() string {
 	str := ""
 	if s.Alarm {
-		str += "ALARM+"
+		str += "ALARM "
 	}
 	if s.Locked {
-		str += "LOCK+"
+		str += "LOCK "
 	}
 	if s.Numeric {
-		str += "NUM+"
+		str += "NUM "
 	}
 	if s.Protected {
-		str += "PROT+"
+		str += "PROT "
 	}
 	if s.Waiting {
-		str += "WAIT+"
+		str += "WAIT "
 	}
 	return fmt.Sprintf("%s%s", str, s.Message)
 }

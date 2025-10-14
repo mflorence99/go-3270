@@ -6,13 +6,13 @@ import (
 )
 
 type Screen struct {
-	Cells []Box
+	CPs []Box
 }
 
 func NewScreen(cfg pubsub.Config) *Screen {
 	s := new(Screen)
-	s.Cells = make([]Box, cfg.Cols*cfg.Rows)
-	for ix := range s.Cells {
+	s.CPs = make([]Box, cfg.Cols*cfg.Rows)
+	for ix := range s.CPs {
 		w := math.Round(cfg.FontWidth * cfg.PaddedWidth)
 		h := math.Round(cfg.FontHeight * cfg.PaddedHeight)
 		col := ix % cfg.Cols
@@ -21,7 +21,7 @@ func NewScreen(cfg pubsub.Config) *Screen {
 		y := -math.Round(float64(row) * h)
 		// 🔥 we could do better calculating the baseline - this is just a WAG, because an em is drawn with a significantly different height than that returned by MeasureString()
 		baseline := y + h - (cfg.FontSize / 2)
-		s.Cells[ix] = Box{x, y, w, h, baseline}
+		s.CPs[ix] = Box{x, y, w, h, baseline}
 	}
 	return s
 }

@@ -14,11 +14,13 @@ func NewBus() *Bus {
 	return b
 }
 
+// 🟦 Type-safe publishers
+
 func (b *Bus) Publish(topic string, args ...any) {
 	handlers, ok := b.handlers[topic]
 	if ok {
-		for ix := range handlers {
-			utils.Call(handlers[ix], args...)
+		for _, handler := range handlers {
+			utils.Call(handler, args...)
 		}
 	}
 }
@@ -59,8 +61,10 @@ func (b *Bus) PubStatus(stat Status) {
 	b.Publish("status", stat)
 }
 
-// 🔥 ensure LIFO
+// 🟦 Type-safe subscribers
+
 func (b *Bus) Subscribe(topic string, fn interface{}) {
+	// 🔥 ensure LIFO
 	b.handlers[topic] = append([]interface{}{fn}, b.handlers[topic]...)
 }
 

@@ -16,13 +16,13 @@ type Keystroke struct {
 func (k Keystroke) String() string {
 	str := ""
 	if k.CTRL {
-		str += "CTRL+"
+		str += "CTRL "
 	}
 	if k.SHIFT {
-		str += "SHIFT+"
+		str += "SHIFT "
 	}
 	if k.ALT {
-		str += "ALT+"
+		str += "ALT "
 	}
 	return fmt.Sprintf("%s%s %s", str, k.Key, utils.Ternary(k.Code != k.Key && len(k.Key) > 1, k.Code, ""))
 }

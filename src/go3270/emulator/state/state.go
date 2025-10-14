@@ -5,8 +5,6 @@ import (
 	"go3270/emulator/pubsub"
 )
 
-// 🟧 Manage emulator state
-
 type State struct {
 	bus  *pubsub.Bus
 	stat pubsub.Status

@@ -116,7 +116,7 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 		BoldFace:     &boldFace,
 		CLUT:         clut,
 		Color:        color,
-		Cols:         80,
+		Cols:         cols,
 		FontHeight:   fontHeight,
 		FontSize:     fontSize,
 		FontWidth:    fontWidth,
@@ -124,40 +124,13 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 		PaddedHeight: paddedHeight,
 		PaddedWidth:  paddedWidth,
 		RGBA:         rgba,
-		Rows:         24,
+		Rows:         rows,
 	}
 	return cfg
 
 }
 
-func (m *Mediator) dump(dmp pubsub.Dump) {
-	u8s := js.Global().Get("Uint8ClampedArray").New(len(dmp.Bytes))
-	js.CopyBytesToJS(u8s, dmp.Bytes)
-	params := map[string]any{
-		"eventType": "dump",
-		"bytes":     u8s,
-		"color":     dmp.Color,
-		"ebcdic":    dmp.EBCDIC,
-		"title":     dmp.Title,
-	}
-	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
-		"detail": params,
-	})
-	js.Global().Get("window").Call("dispatchEvent", event)
-}
-
-func (m *Mediator) inbound(bytes []byte) {
-	u8s := js.Global().Get("Uint8ClampedArray").New(len(bytes))
-	js.CopyBytesToJS(u8s, bytes)
-	params := map[string]any{
-		"eventType": "inbound",
-		"bytes":     u8s,
-	}
-	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
-		"detail": params,
-	})
-	js.Global().Get("window").Call("dispatchEvent", event)
-}
+// 🟦 Create the Javascript interface through which the UI calls the Go code
 
 func (m *Mediator) jsInterface() js.Value {
 	functions := map[string]any{
@@ -191,15 +164,44 @@ func (m *Mediator) jsInterface() js.Value {
 	return js.ValueOf(functions)
 }
 
+// 🟦 Forward messages to UI from subscriptions via dispatchEvent
+
+func (m *Mediator) dispatchEvent(params map[string]any) {
+	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
+		"detail": params,
+	})
+	js.Global().Get("window").Call("dispatchEvent", event)
+}
+
+func (m *Mediator) dump(dmp pubsub.Dump) {
+	u8s := js.Global().Get("Uint8ClampedArray").New(len(dmp.Bytes))
+	js.CopyBytesToJS(u8s, dmp.Bytes)
+	params := map[string]any{
+		"eventType": "dump",
+		"bytes":     u8s,
+		"color":     dmp.Color,
+		"ebcdic":    dmp.EBCDIC,
+		"title":     dmp.Title,
+	}
+	m.dispatchEvent(params)
+}
+
+func (m *Mediator) inbound(bytes []byte) {
+	u8s := js.Global().Get("Uint8ClampedArray").New(len(bytes))
+	js.CopyBytesToJS(u8s, bytes)
+	params := map[string]any{
+		"eventType": "inbound",
+		"bytes":     u8s,
+	}
+	m.dispatchEvent(params)
+}
+
 func (m *Mediator) panic(msg string) {
 	params := map[string]any{
 		"eventType": "panic",
 		"args":      msg,
 	}
-	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
-		"detail": params,
-	})
-	js.Global().Get("window").Call("dispatchEvent", event)
+	m.dispatchEvent(params)
 }
 
 func (m *Mediator) status(stat pubsub.Status) {
@@ -214,10 +216,7 @@ func (m *Mediator) status(stat pubsub.Status) {
 		"protected": stat.Protected,
 		"waiting":   stat.Waiting,
 	}
-	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{
-		"detail": params,
-	})
-	js.Global().Get("window").Call("dispatchEvent", event)
+	m.dispatchEvent(params)
 }
 
 // 🟦 Render drawing context when changed via requestAnimationFrame
