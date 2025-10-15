@@ -6,7 +6,7 @@ type Inbound struct {
 	bytes []byte
 }
 
-func New() *Inbound {
+func NewStream() *Inbound {
 	in := new(Inbound)
 	in.bytes = []byte{}
 	return in

@@ -7,7 +7,7 @@ type WCC struct {
 	Unlock   bool
 }
 
-func New(char byte) *WCC {
+func NewWCC(char byte) *WCC {
 	w := new(WCC)
 	w.Alarm = (char & 0b00000100) != 0
 	w.Reset = (char & 0b01000000) != 0

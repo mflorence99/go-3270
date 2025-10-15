@@ -51,19 +51,22 @@ func (s *Screen) render() {
 		box := s.CPs[addr]
 		cell, _ := s.buf.Peek(addr)
 		attrs := cell.Attrs
-		// 👇 different color if highlighted
-		color := s.cfg.CLUT[attrs.Color]
-		ix := utils.Ternary(attrs.Highlight, 1, 0)
-		// 👇 the cache will find us the glyph iself
-		g := glyph.Glyph{
-			Char:       cell.Char,
-			Color:      color[ix],
-			Highlight:  attrs.Highlight,
-			Reverse:    attrs.Reverse,
-			Underscore: attrs.Underscore,
+		invisible := cell.Char == 0x00 || cell.FldStart || attrs.Hidden
+		if !invisible {
+			// 👇 different color if highlighted
+			color := utils.Ternary(attrs.Color == 0, s.cfg.Color, s.cfg.CLUT[attrs.Color])
+			ix := utils.Ternary(attrs.Highlight, 1, 0)
+			// 👇 the cache will find us the glyph iself
+			g := glyph.Glyph{
+				Char:       cell.Char,
+				Color:      color[ix],
+				Highlight:  attrs.Highlight,
+				Reverse:    attrs.Reverse,
+				Underscore: attrs.Underscore,
+			}
+			img := s.gc.ImageFor(g, box)
+			dc.DrawImage(img, int(box.X), int(box.Y))
 		}
-		img := s.gc.ImageFor(g, box)
-		dc.DrawImage(img, int(box.X), int(box.Y))
 	}
 }
 

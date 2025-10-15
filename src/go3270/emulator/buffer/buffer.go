@@ -46,9 +46,25 @@ func (b *Buffer) reset() {
 
 // 🟦 Housekeeping methods
 
+//    Addr() get current buffer address
+//    Chars() extracts ASCII chars from buffer for debugging
 //    Len() get number of cell slots in buffer
 //    Peek() cell at given address
 //    Seek() reposition buffer address
+
+func (b *Buffer) Addr() int {
+	return b.addr
+}
+
+func (b *Buffer) Chars() []byte {
+	chars := make([]byte, b.Len())
+	for ix, cell := range b.buf {
+		if cell != nil {
+			chars[ix] = cell.Char
+		}
+	}
+	return chars
+}
 
 func (b *Buffer) Len() int {
 	return len(b.buf)

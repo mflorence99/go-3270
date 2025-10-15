@@ -80,9 +80,9 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 	for i := 0; i < keys.Length(); i++ {
 		k := keys.Index(i).String()
 		v := [2]string{obj.Get(k).Index(0).String(), obj.Get(k).Index(1).String()}
-		fmt.Printf("🎨 %s = %v\n", k, v)
 		clut[consts.ColorOf(k)] = v
 	}
+	println(fmt.Sprintf("🎨 %v", clut))
 	fontSize := args[4].Float()
 	cols := args[5].Int()
 	rows := args[6].Int()
@@ -236,8 +236,9 @@ func (m *Mediator) rcLoop(canvas js.Value, rgba *image.RGBA, maxFPS float64) {
 		// 👇 make sure we don't bust the max FPS we were given
 		if timestamp-lastTimestamp >= (1000 / maxFPS) {
 			if lastImage == nil || !slices.Equal(lastImage, rgba.Pix) {
-				println("🐞 bitblt to HTML canvas")
 				// 🔥 I copied this from go-canvas where the author was worried about 3 separate copies -- I haven't figured how to reduce it to 2 even when using Uint8ClampedArray -- but it only takes ~2ms anyway
+				println(fmt.Sprintf("🐞 bitblt %d pixels to HTML canvas", len(rgba.Pix)))
+				// println(fmt.Sprintf("%v", rgba.Pix))
 				pixels := js.Global().Get("Uint8ClampedArray").New(len(rgba.Pix))
 				js.CopyBytesToJS(pixels, rgba.Pix)
 				canvasHeight := canvas.Get("offsetHeight")

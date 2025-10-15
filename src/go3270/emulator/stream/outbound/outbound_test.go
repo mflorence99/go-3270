@@ -11,7 +11,7 @@ import (
 var stream = []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05}
 
 func Test_HasEnough(t *testing.T) {
-	out := outbound.New(&stream)
+	out := outbound.NewStream(&stream)
 	assert.True(t, out.HasEnough(0))
 	assert.True(t, out.HasEnough(5))
 	assert.True(t, out.HasEnough(6))
@@ -19,7 +19,7 @@ func Test_HasEnough(t *testing.T) {
 }
 
 func Test_Next(t *testing.T) {
-	out := outbound.New(&stream)
+	out := outbound.NewStream(&stream)
 	for ix := 0; ix <= len(stream); ix++ {
 		char, ok := out.Next()
 		if ix < len(stream) {
@@ -33,7 +33,7 @@ func Test_Next(t *testing.T) {
 }
 
 func Test_Next16(t *testing.T) {
-	out := outbound.New(&stream)
+	out := outbound.NewStream(&stream)
 	chars, ok := out.Next16()
 	assert.True(t, chars == 0x01)
 	assert.True(t, ok)
@@ -49,7 +49,7 @@ func Test_Next16(t *testing.T) {
 }
 
 func Test_NextSlice(t *testing.T) {
-	out := outbound.New(&stream)
+	out := outbound.NewStream(&stream)
 	_, ok := out.Next()
 	assert.True(t, ok)
 	char, ok := out.Next()
@@ -64,7 +64,7 @@ func Test_NextSlice(t *testing.T) {
 }
 
 func Test_NextSliceUntil(t *testing.T) {
-	out := outbound.New(&stream)
+	out := outbound.NewStream(&stream)
 	slice, ok := out.NextSliceUntil([]byte{0x02, 0x03})
 	assert.True(t, slices.Equal(slice, []byte{0x00, 0x01}))
 	assert.True(t, ok)
@@ -78,7 +78,7 @@ func Test_NextSliceUntil(t *testing.T) {
 }
 
 func Test_Peek(t *testing.T) {
-	out := outbound.New(&stream)
+	out := outbound.NewStream(&stream)
 	char, _ := out.Peek()
 	assert.True(t, char == 0x00)
 	slice, ok := out.NextSlice(6)
@@ -90,7 +90,7 @@ func Test_Peek(t *testing.T) {
 }
 
 func Test_PeekSlice(t *testing.T) {
-	out := outbound.New(&stream)
+	out := outbound.NewStream(&stream)
 	slice, ok := out.PeekSlice(6)
 	assert.True(t, slices.Equal(slice, []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05}))
 	assert.True(t, ok)
@@ -103,7 +103,7 @@ func Test_PeekSlice(t *testing.T) {
 }
 
 func Test_PeekSliceUntil(t *testing.T) {
-	out := outbound.New(&stream)
+	out := outbound.NewStream(&stream)
 	slice, ok := out.PeekSliceUntil([]byte{0x02, 0x03})
 	assert.True(t, slices.Equal(slice, []byte{0x00, 0x01}))
 	assert.True(t, ok)

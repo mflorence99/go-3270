@@ -39,7 +39,7 @@ func NewEmulator(bus *pubsub.Bus) *Emulator {
 	// 👇 i/o components
 	e.key = keyboard.NewConsumer(e.bus)
 	e.in = inbound.NewProducer(e.bus)
-	e.out = outbound.NewConsumer(e.bus)
+	e.out = outbound.NewConsumer(e.bus, e.buf, e.st)
 	// 🔥 configure first
 	e.bus.SubConfig(e.configure)
 	e.bus.SubClose(e.close)

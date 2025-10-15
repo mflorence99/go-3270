@@ -45,6 +45,11 @@ func Test_ColorFor(t *testing.T) {
 	assert.True(t, consts.ColorFor(0xFF) == "")
 }
 
+func Test_ColorOf(t *testing.T) {
+	assert.True(t, consts.ColorOf("RED") == 0xF2)
+	assert.True(t, consts.ColorOf("WHITE") == 0xF7)
+}
+
 func Test_CommandFor(t *testing.T) {
 	assert.True(t, consts.CommandFor(0x6F) == "EAU")
 	assert.True(t, consts.CommandFor(0xF5) == "EW")

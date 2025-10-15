@@ -17,7 +17,7 @@ func GetFuncName(fn any) (pkg string, nm string) {
 		pc = v.Pointer()
 		// 👇 for the caller
 	} else {
-		pc, _, _, _ = runtime.Caller(1)
+		pc, _, _, _ = runtime.Caller(2)
 	}
 	// 👇 get the function object for the PC
 	f := runtime.FuncForPC(pc)

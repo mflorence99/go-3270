@@ -21,7 +21,7 @@ func testBuffer() *buffer.Buffer {
 	return b
 }
 
-// 🟦 HSmoke test
+// 🟦 Smoke test
 
 func Test_Smoke(t *testing.T) {
 	b := testBuffer()

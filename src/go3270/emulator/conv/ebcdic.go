@@ -255,14 +255,12 @@ var EBCDIC = []byte{
 	' ',
 }
 
-func E2A(e []byte) []byte {
-	a := make([]byte, len(e))
-	for ix := 0; ix < len(e); ix++ {
-		if e[ix] >= 64 {
-			a[ix] = EBCDIC[e[ix]-64]
-		} else {
-			a[ix] = ' '
-		}
+func E2A(e byte) byte {
+	a := byte(0x00)
+	if e >= 64 {
+		a = EBCDIC[e-64]
+	} else {
+		a = ' '
 	}
 	return a
 }

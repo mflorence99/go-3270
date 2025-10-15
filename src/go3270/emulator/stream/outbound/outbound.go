@@ -11,7 +11,7 @@ type Outbound struct {
 	ix    int
 }
 
-func New(bytes *[]byte) *Outbound {
+func NewStream(bytes *[]byte) *Outbound {
 	out := new(Outbound)
 	out.bytes = bytes
 	out.ix = 0

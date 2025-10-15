@@ -31,7 +31,7 @@ func (c *Cache) ImageFor(g Glyph, box pubsub.Box) image.Image {
 	img, ok := c.cache[g]
 	if !ok {
 		// 👇 cache miss: draw the glyph in a temporary context
-		println("🔥 glyph cache miss", g.Char)
+		// println("🔥 glyph cache miss", g.Char)
 		rgba := image.NewRGBA(image.Rect(0, 0, int(box.W), int(box.H)))
 		temp := gg.NewContextForRGBA(rgba)
 		temp.SetFontFace(utils.Ternary(g.Highlight, *c.cfg.BoldFace, *c.cfg.NormalFace))

@@ -14,15 +14,11 @@ func Test_Init(t *testing.T) {
 }
 
 func Test_A2E(t *testing.T) {
-	a := []byte{'H', 'E', 'L', 'L', 'O', ' '}
-	e := []byte{200, 197, 211, 211, 214, 64}
-	assert.True(t, slices.Equal(e, conv.A2E(a)))
+	assert.True(t, conv.A2E('H') == 200)
 }
 
 func Test_E2A(t *testing.T) {
-	a := []byte{'G', 'O', 'O', 'D', 'B', 'Y', 'E', ' '}
-	e := []byte{199, 214, 214, 196, 194, 232, 197, 64}
-	assert.True(t, slices.Equal(a, conv.E2A(e)))
+	assert.True(t, conv.E2A(199) == 'G')
 }
 
 func Test_AddrFromBytes(t *testing.T) {
