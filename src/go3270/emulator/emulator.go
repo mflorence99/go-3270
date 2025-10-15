@@ -2,6 +2,7 @@ package emulator
 
 import (
 	"go3270/emulator/buffer"
+	"go3270/emulator/glyph"
 	"go3270/emulator/inbound"
 	"go3270/emulator/keyboard"
 	"go3270/emulator/outbound"
@@ -15,6 +16,7 @@ import (
 type Emulator struct {
 	bus *pubsub.Bus
 	buf *buffer.Buffer
+	gc  *glyph.Cache
 	in  *inbound.Producer
 	key *keyboard.Consumer
 	out *outbound.Consumer
@@ -35,6 +37,7 @@ func (e *Emulator) close() {}
 
 func (e *Emulator) configure(cfg pubsub.Config) {
 	e.buf = buffer.NewBuffer(cfg)
+	e.gc = glyph.NewCache(cfg)
 	e.in = inbound.NewProducer(e.bus)
 	e.key = keyboard.NewConsumer(e.bus)
 	e.out = outbound.NewConsumer(e.bus)
