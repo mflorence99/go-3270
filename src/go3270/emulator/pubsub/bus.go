@@ -53,6 +53,10 @@ func (b *Bus) PubReset() {
 	b.Publish("reset")
 }
 
+func (b *Bus) PubRender() {
+	b.Publish("render")
+}
+
 func (b *Bus) PubStatus(stat Status) {
 	b.Publish("status", stat)
 }
@@ -97,6 +101,10 @@ func (b *Bus) SubPanic(fn func(msg string)) {
 
 func (b *Bus) SubReset(fn func()) {
 	b.Subscribe("reset", fn)
+}
+
+func (b *Bus) SubRender(fn func()) {
+	b.Subscribe("render", fn)
 }
 
 func (b *Bus) SubStatus(fn func(stat Status)) {

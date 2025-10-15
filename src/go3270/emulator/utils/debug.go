@@ -7,12 +7,20 @@ import (
 )
 
 func GetFuncName(fn any) (pkg string, nm string) {
-	v := reflect.ValueOf(fn)
-	if v.Kind() != reflect.Func {
-		return "", ""
+	var pc uintptr
+	// 👇 for a specific function
+	if fn != nil {
+		v := reflect.ValueOf(fn)
+		if v.Kind() != reflect.Func {
+			return "", ""
+		}
+		pc = v.Pointer()
+		// 👇 for the caller
+	} else {
+		pc, _, _, _ = runtime.Caller(1)
 	}
 	// 👇 get the function object for the PC
-	f := runtime.FuncForPC(v.Pointer())
+	f := runtime.FuncForPC(pc)
 	if f == nil {
 		return "", ""
 	}

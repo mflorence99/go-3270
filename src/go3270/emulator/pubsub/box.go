@@ -1,8 +1,7 @@
-package screen
+package pubsub
 
 import (
 	"fmt"
-	"go3270/emulator/pubsub"
 	"math"
 )
 
@@ -14,7 +13,7 @@ type Box struct {
 	Baseline float64
 }
 
-func NewBox(row, col int, cfg pubsub.Config) Box {
+func NewBox(row, col int, cfg Config) Box {
 	w := math.Round(cfg.FontWidth * cfg.PaddedWidth)
 	h := math.Round(cfg.FontHeight * cfg.PaddedHeight)
 	x := math.Round(float64(col) * w)

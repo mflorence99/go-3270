@@ -29,14 +29,17 @@ type Emulator struct {
 func NewEmulator(bus *pubsub.Bus) *Emulator {
 	e := new(Emulator)
 	e.bus = bus
-	e.blnkr = tick.NewBlinker(e.bus)
+	// 👇 core components
 	e.buf = buffer.NewBuffer(e.bus)
 	e.gc = glyph.NewCache(e.bus)
-	e.in = inbound.NewProducer(e.bus)
-	e.key = keyboard.NewConsumer(e.bus)
-	e.out = outbound.NewConsumer(e.bus)
-	e.scr = screen.NewScreen(e.bus)
 	e.st = state.NewState(e.bus)
+	// 👇 rendering components
+	e.blnkr = tick.NewBlinker(e.bus)
+	e.scr = screen.NewScreen(e.bus, e.buf, e.gc)
+	// 👇 i/o components
+	e.key = keyboard.NewConsumer(e.bus)
+	e.in = inbound.NewProducer(e.bus)
+	e.out = outbound.NewConsumer(e.bus)
 	// 🔥 configure first
 	e.bus.SubConfig(e.configure)
 	e.bus.SubClose(e.close)
