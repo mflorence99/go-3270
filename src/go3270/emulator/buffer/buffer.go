@@ -11,35 +11,44 @@ import (
 // 🔥 NOTE: the buffer will always hold ASCII characters
 
 type Buffer struct {
-	Changes *stack.Stack[int]
+	Dirty *stack.Stack[int]
 
 	addr int
+	bus  *pubsub.Bus
 	buf  []*Cell
+	cfg  pubsub.Config
 }
 
-func NewBuffer(cfg pubsub.Config) *Buffer {
+func NewBuffer(bus *pubsub.Bus) *Buffer {
 	b := new(Buffer)
-	b.buf = make([]*Cell, cfg.Cols*cfg.Rows)
-	b.Changes = stack.NewStack[int](1)
-	b.Erase()
+	b.bus = bus
+	// 🔥 configure first
+	b.bus.SubConfig(b.configure)
+	b.bus.SubReset(b.reset)
 	return b
+}
+
+func (b *Buffer) configure(cfg pubsub.Config) {
+	b.cfg = cfg
+	b.buf = make([]*Cell, cfg.Cols*cfg.Rows)
+	b.Dirty = stack.NewStack[int](1)
+}
+
+func (b *Buffer) reset() {
+	b.addr = 0
+	for ix := range b.buf {
+		b.buf[ix] = &Cell{Attrs: &attrs.Attrs{Protected: true}}
+	}
+	for !b.Dirty.Empty() {
+		b.Dirty.Pop()
+	}
 }
 
 // 🟦 Housekeeping methods
 
-//    Erase() fill the buffer with protected cells
 //    Len() get number of cell slots in buffer
 //    Peek() cell at given address
 //    Seek() reposition buffer address
-
-func (b *Buffer) Erase() {
-	for ix := range b.buf {
-		b.buf[ix] = &Cell{Attrs: &attrs.Attrs{Protected: true}}
-	}
-	for !b.Changes.Empty() {
-		b.Changes.Pop()
-	}
-}
 
 func (b *Buffer) Len() int {
 	return len(b.buf)
@@ -95,7 +104,7 @@ func (b *Buffer) PrevGet() (*Cell, int) {
 
 func (b *Buffer) Set(c *Cell) int {
 	b.buf[b.addr] = c
-	b.Changes.Push(b.addr)
+	b.Dirty.Push(b.addr)
 	return b.addr
 }
 

@@ -51,7 +51,6 @@ func NewMediator(this js.Value, args []js.Value) any {
 	m := new(Mediator)
 	m.bus = pubsub.NewBus()
 	// 🔥 must subscribe BEFORE we create the emulator
-	m.bus.SubClose(m.close)
 	m.bus.SubDump(m.dump)
 	m.bus.SubInbound(m.inbound)
 	m.bus.SubPanic(m.panic)
@@ -60,11 +59,14 @@ func NewMediator(this js.Value, args []js.Value) any {
 	m.emu = emulator.NewEmulator(m.bus)
 	cfg := m.configure(args)
 	m.bus.PubConfig(cfg)
+	m.bus.PubReset()
 	return m.jsInterface()
 }
 
 func (m *Mediator) close() {
+	m.bus.PubClose()
 	m.bus.UnsubscribeAll()
+	println("🐞 Mediator closed")
 }
 
 func (m *Mediator) configure(args []js.Value) pubsub.Config {
@@ -89,6 +91,7 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 	maxFPS := 30.0
 	paddedHeight := 1.5
 	paddedWidth := 1.1
+	tickMs := 500
 	// 👇 load the fonts
 	normalFont, _ := truetype.Parse(normalFontEmbed)
 	normalFace := truetype.NewFace(normalFont, &truetype.Options{Size: fontSize, DPI: dpi /* , Hinting: font.HintingFull */})
@@ -108,8 +111,9 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 	canvas.Set("height", canvasHeight)
 	// 👇 prepare the rendering surface
 	rgba := image.NewRGBA(image.Rect(0, 0, int(canvasWidth), int(canvasHeight)))
-	// 👇 kick off the render context loop
+	// 👇 kick off loops
 	m.rcLoop(canvas, rgba, maxFPS)
+	m.tickLoop(tickMs)
 	// 👇 finally!
 	cfg := pubsub.Config{
 		BgColor:      bgColor,
@@ -135,7 +139,7 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 func (m *Mediator) jsInterface() js.Value {
 	functions := map[string]any{
 		"close": js.FuncOf(func(this js.Value, args []js.Value) any {
-			m.bus.PubClose()
+			m.close()
 			return nil
 		}),
 		"focus": js.FuncOf(func(this js.Value, args []js.Value) any {
@@ -232,6 +236,7 @@ func (m *Mediator) rcLoop(canvas js.Value, rgba *image.RGBA, maxFPS float64) {
 		// 👇 make sure we don't bust the max FPS we were given
 		if timestamp-lastTimestamp >= (1000 / maxFPS) {
 			if lastImage == nil || !slices.Equal(lastImage, rgba.Pix) {
+				println("🐞 bitblt to HTML canvas")
 				// 🔥 I copied this from go-canvas where the author was worried about 3 separate copies -- I haven't figured how to reduce it to 2 even when using Uint8ClampedArray -- but it only takes ~2ms anyway
 				pixels := js.Global().Get("Uint8ClampedArray").New(len(rgba.Pix))
 				js.CopyBytesToJS(pixels, rgba.Pix)
@@ -252,4 +257,16 @@ func (m *Mediator) rcLoop(canvas js.Value, rgba *image.RGBA, maxFPS float64) {
 	})
 	// 👇 kick off the rendering loop
 	js.Global().Call("requestAnimationFrame", rc)
+}
+
+// 🟦 Inject ticks into the system eg: to support blinking
+
+func (m *Mediator) tickLoop(interval int) {
+	counter := 0
+	ticker := js.FuncOf(func(this js.Value, args []js.Value) any {
+		m.bus.PubTick(counter)
+		counter++
+		return nil
+	})
+	js.Global().Call("setInterval", ticker, interval)
 }

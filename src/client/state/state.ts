@@ -125,7 +125,7 @@ export type Status = {
 
 export const defaultStatus: Status = {
   alarm: false,
-  cursorAt: -1,
+  cursorAt: 0,
   error: false,
   locked: false,
   message: '',

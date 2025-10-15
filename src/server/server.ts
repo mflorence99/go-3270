@@ -8,7 +8,7 @@ import { statSync } from 'node:fs';
 
 import retry from 'async-retry';
 
-let theServer: Bun.Server;
+let theServer: Bun.Server<any>;
 
 // 👇 we track context by a simple sessionID index
 
@@ -132,7 +132,7 @@ const fetchUpgrade = (url: URL, req: Request): Response | void => {
         host: url.searchParams.get('host'),
         port: url.searchParams.get('port'),
         sessionID: sessionID++
-      }
+      } as any
     })
   ) {
     return /* 👈 do not return a Response */;

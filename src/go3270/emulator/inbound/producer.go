@@ -6,19 +6,22 @@ import (
 
 type Producer struct {
 	bus *pubsub.Bus
+	cfg pubsub.Config
 }
 
 func NewProducer(bus *pubsub.Bus) *Producer {
-	i := new(Producer)
-	i.bus = bus
-	// 🔥 must subscribe BEFORE we create any children
-	i.bus.SubClose(i.close)
-	return i
+	p := new(Producer)
+	p.bus = bus
+	// 🔥 configure first
+	p.bus.SubConfig(p.configure)
+	return p
 }
 
-func (i *Producer) close() {}
+func (p *Producer) configure(cfg pubsub.Config) {
+	p.cfg = cfg
+}
 
-func (i *Producer) Produce() {
+func (p *Producer) Produce() {
 	bytes := make([]byte, 0)
 	dmp := pubsub.Dump{
 		Bytes:  bytes,
@@ -26,6 +29,6 @@ func (i *Producer) Produce() {
 		EBCDIC: true,
 		Title:  "Inbound",
 	}
-	i.bus.PubDump(dmp)
-	i.bus.PubInbound(bytes)
+	p.bus.PubDump(dmp)
+	p.bus.PubInbound(bytes)
 }

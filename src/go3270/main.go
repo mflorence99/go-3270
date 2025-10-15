@@ -1,4 +1,4 @@
-package go3270
+package main
 
 import (
 	"go3270/mediator"

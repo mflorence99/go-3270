@@ -7,19 +7,22 @@ import (
 
 type Consumer struct {
 	bus *pubsub.Bus
+	cfg pubsub.Config
 }
 
 func NewConsumer(bus *pubsub.Bus) *Consumer {
-	k := new(Consumer)
-	k.bus = bus
-	// 🔥 must subscribe BEFORE we create any children
-	k.bus.SubClose(k.close)
-	k.bus.SubKeystroke(k.consume)
-	return k
+	c := new(Consumer)
+	c.bus = bus
+	// 🔥 configure first
+	c.bus.SubConfig(c.configure)
+	c.bus.SubKeystroke(c.consume)
+	return c
 }
 
-func (k *Consumer) close() {}
+func (c *Consumer) configure(cfg pubsub.Config) {
+	c.cfg = cfg
+}
 
-func (k *Consumer) consume(key pubsub.Keystroke) {
+func (c *Consumer) consume(key pubsub.Keystroke) {
 	println(fmt.Sprintf("⌨️ %s", key))
 }

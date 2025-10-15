@@ -1,6 +1,7 @@
 package pubsub
 
 import (
+	"fmt"
 	"go3270/emulator/utils"
 )
 
@@ -15,15 +16,6 @@ func NewBus() *Bus {
 }
 
 // 🟦 Type-safe publishers
-
-func (b *Bus) Publish(topic string, args ...any) {
-	handlers, ok := b.handlers[topic]
-	if ok {
-		for _, handler := range handlers {
-			utils.Call(handler, args...)
-		}
-	}
-}
 
 func (b *Bus) PubClose() {
 	b.Publish("close")
@@ -57,16 +49,19 @@ func (b *Bus) PubPanic(msg string) {
 	b.Publish("panic", msg)
 }
 
+func (b *Bus) PubReset() {
+	b.Publish("reset")
+}
+
 func (b *Bus) PubStatus(stat Status) {
 	b.Publish("status", stat)
 }
 
-// 🟦 Type-safe subscribers
-
-func (b *Bus) Subscribe(topic string, fn interface{}) {
-	// 🔥 ensure LIFO
-	b.handlers[topic] = append([]interface{}{fn}, b.handlers[topic]...)
+func (b *Bus) PubTick(counter int) {
+	b.Publish("tick", counter)
 }
+
+// 🟦 Type-safe subscribers
 
 func (b *Bus) SubClose(fn func()) {
 	b.Subscribe("close", fn)
@@ -100,10 +95,39 @@ func (b *Bus) SubPanic(fn func(msg string)) {
 	b.Subscribe("panic", fn)
 }
 
+func (b *Bus) SubReset(fn func()) {
+	b.Subscribe("reset", fn)
+}
+
 func (b *Bus) SubStatus(fn func(stat Status)) {
 	b.Subscribe("status", fn)
 }
 
+func (b *Bus) SubTick(fn func(counter int)) {
+	b.Subscribe("tick", fn)
+}
+
+// 🟦 Brute force cleanup
+
 func (b *Bus) UnsubscribeAll() {
 	b.handlers = make(map[string][]interface{})
+}
+
+// 🟦 Public, just for test cases
+
+func (b *Bus) Publish(topic string, args ...any) {
+	handlers, ok := b.handlers[topic]
+	if ok {
+		for _, handler := range handlers {
+			if topic != "tick" {
+				pkg, nm := utils.GetFuncName(handler)
+				println(fmt.Sprintf("🐞 topic %s -> func %s() in %s", topic, nm, pkg))
+			}
+			utils.Call(handler, args...)
+		}
+	}
+}
+
+func (b *Bus) Subscribe(topic string, fn interface{}) {
+	b.handlers[topic] = append(b.handlers[topic], fn)
 }

@@ -16,7 +16,7 @@ type Status struct {
 }
 
 func (s Status) String() string {
-	str := ""
+	str := fmt.Sprintf("CURSOR %d ", s.CursorAt)
 	if s.Alarm {
 		str += "ALARM "
 	}

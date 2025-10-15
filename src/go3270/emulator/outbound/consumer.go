@@ -6,25 +6,28 @@ import (
 
 type Consumer struct {
 	bus *pubsub.Bus
+	cfg pubsub.Config
 }
 
 func NewConsumer(bus *pubsub.Bus) *Consumer {
-	o := new(Consumer)
-	o.bus = bus
-	// 🔥 must subscribe BEFORE we create any children
-	o.bus.SubClose(o.close)
-	o.bus.SubOutbound(o.consume)
-	return o
+	c := new(Consumer)
+	c.bus = bus
+	// 🔥 configure first
+	c.bus.SubConfig(c.configure)
+	c.bus.SubOutbound(c.consume)
+	return c
 }
 
-func (o *Consumer) close() {}
+func (c *Consumer) configure(cfg pubsub.Config) {
+	c.cfg = cfg
+}
 
-func (o *Consumer) consume(bytes []byte) {
+func (c *Consumer) consume(bytes []byte) {
 	dmp := pubsub.Dump{
 		Bytes:  bytes,
 		Color:  "yellow",
 		EBCDIC: true,
 		Title:  "Outbound",
 	}
-	o.bus.PubDump(dmp)
+	c.bus.PubDump(dmp)
 }
