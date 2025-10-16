@@ -3,6 +3,7 @@ package keyboard
 import (
 	"fmt"
 	"go3270/emulator/buffer"
+	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/state"
 	"go3270/emulator/utils"
@@ -42,45 +43,99 @@ func (k *Keyboard) focus(focussed bool) {
 
 func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 	println(fmt.Sprintf("⌨️ %s", key))
+	// 👇 prepare to move the cursor -- most keystrokes do this
 	cursorAt := k.st.Stat.CursorAt
 	cursorTo := cursorAt
 	cursorMax := k.cfg.Rows * k.cfg.Cols
+	// 👇 maintain a stack of changed cells
+	deltas := utils.NewStack[int](1)
+	// 👇 make sure we know where to start
+	k.buf.Seek(cursorAt)
+	// 👇 pre-analyze AID key
+	aid := consts.AIDOf(key.Key, key.ALT, key.CTRL, key.SHIFT)
 
-	k.buf.Dirty.Push(cursorAt)
+	switch {
 
-	switch key.Code {
+	case aid == consts.CLEAR:
+		k.st.Patch(state.Patch{
+			Alarm:   utils.BoolPtr(false),
+			Error:   utils.BoolPtr(false),
+			Message: utils.StringPtr(""),
+		})
 
-	case "ArrowDown":
+	case aid.PAx():
+		println(fmt.Sprintf("🐞 %s", aid))
+
+	case aid == consts.ENTER:
+		println(fmt.Sprintf("🐞 %s", aid))
+
+	case aid.PFx():
+		println(fmt.Sprintf("🐞 %s", aid))
+
+	case key.Code == "ArrowDown":
 		cursorTo = cursorAt + k.cfg.Cols
 		if cursorTo >= cursorMax {
 			cursorTo = cursorAt % k.cfg.Cols
 		}
 
-	case "ArrowLeft":
+	case key.Code == "ArrowLeft":
 		cursorTo = cursorAt - 1
 		if cursorTo < 0 {
 			cursorTo = cursorMax - 1
 		}
 
-	case "ArrowRight":
+	case key.Code == "ArrowRight":
 		cursorTo = cursorAt + 1
 		if cursorTo >= cursorMax {
 			cursorTo = 0
 		}
-	case "ArrowUp":
+	case key.Code == "ArrowUp":
 		cursorTo = cursorAt - k.cfg.Cols
 		if cursorTo < 0 {
 			cursorTo = (cursorAt % k.cfg.Cols) + cursorMax - k.cfg.Cols
 		}
 
+	case key.Code == "Backspace":
+		_, ok := k.buf.Backspace()
+		if ok {
+			cursorTo = k.buf.Addr()
+		} else {
+			k.st.Patch(state.Patch{Alarm: utils.BoolPtr(true)})
+		}
+
+	case key.Code == "Tab":
+		println(fmt.Sprintf("🐞 tab %s", utils.Ternary(key.SHIFT, "bwd", "fwd")))
+		_, ok := k.buf.Tab(utils.Ternary(key.SHIFT, -1, +1))
+		if ok {
+			cursorTo = k.buf.Addr()
+		} else {
+			k.st.Patch(state.Patch{Alarm: utils.BoolPtr(true)})
+		}
+
+	case len(key.Key) == 1:
+		_, ok := k.buf.Keyin(key.Key[0])
+		if ok {
+			cursorTo = k.buf.Addr()
+		} else {
+			k.st.Patch(state.Patch{Alarm: utils.BoolPtr(true)})
+		}
 	}
 
-	k.buf.Dirty.Push(cursorTo)
-
-	k.st.Patch(state.Patch{
-		CursorAt: utils.IntPtr(cursorTo),
-	})
-	k.buf.Seek(cursorTo)
-
-	k.bus.PubRender()
+	// 👇 only if the cursor has moved!
+	if cursorTo != cursorAt {
+		deltas.Push(cursorAt)
+		deltas.Push(cursorTo)
+		k.buf.Seek(cursorTo)
+		// 👇 update the status depending on the new cell
+		cell, _ := k.buf.Get()
+		k.st.Patch(state.Patch{
+			CursorAt:  utils.IntPtr(cursorTo),
+			Numeric:   utils.BoolPtr(cell.Attrs.Numeric),
+			Protected: utils.BoolPtr(cell.Attrs.Protected || cell.FldStart),
+		})
+	}
+	// 👇 render any changes
+	if !deltas.Empty() {
+		k.bus.PubRender(deltas)
+	}
 }

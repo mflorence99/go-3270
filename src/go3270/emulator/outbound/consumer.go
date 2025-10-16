@@ -67,7 +67,7 @@ func (c *Consumer) consume(chars []byte) {
 		c.commands(out, cmd)
 	}
 	// 👇 render the buffer
-	c.bus.PubRender()
+	c.bus.PubRender(c.buf.Dirty)
 	// 👇 dump the buffer for debugging
 	dmp = pubsub.Dump{
 		Bytes:  c.buf.Chars(),

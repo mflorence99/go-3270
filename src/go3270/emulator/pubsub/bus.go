@@ -16,6 +16,10 @@ func NewBus() *Bus {
 
 // 🟦 Type-safe publishers
 
+func (b *Bus) PubBlink(addrs *utils.Stack[int], blinkOn bool) {
+	b.Publish("blink", addrs, blinkOn)
+}
+
 func (b *Bus) PubClose() {
 	b.Publish("close")
 }
@@ -52,8 +56,8 @@ func (b *Bus) PubReset() {
 	b.Publish("reset")
 }
 
-func (b *Bus) PubRender() {
-	b.Publish("render")
+func (b *Bus) PubRender(addrs *utils.Stack[int]) {
+	b.Publish("render", addrs)
 }
 
 func (b *Bus) PubStatus(stat *Status) {
@@ -65,6 +69,10 @@ func (b *Bus) PubTick(counter int) {
 }
 
 // 🟦 Type-safe subscribers
+
+func (b *Bus) SubBlink(fn func(addrs *utils.Stack[int], blinkOn bool)) {
+	b.Subscribe("blink", fn)
+}
 
 func (b *Bus) SubClose(fn func()) {
 	b.Subscribe("close", fn)
@@ -102,7 +110,7 @@ func (b *Bus) SubReset(fn func()) {
 	b.Subscribe("reset", fn)
 }
 
-func (b *Bus) SubRender(fn func()) {
+func (b *Bus) SubRender(fn func(addrs *utils.Stack[int])) {
 	b.Subscribe("render", fn)
 }
 

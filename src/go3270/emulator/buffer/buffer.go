@@ -151,14 +151,16 @@ func (b *Buffer) PrevAndSet(c *Cell) int {
 
 // 🟦 Keystroke methods
 
-//    Keyin() update char in current cell, then advance to next
-//    Backspace() point to previous cell then update its char
+//    Keyin() updates char in current cell, then advances to next
+//    Backspace() points to previous cell then updates its char
+//    Tab() skips forward or backward to the next unprotected field
 
 func (b *Buffer) Keyin(char byte) (int, bool) {
 	c, _ := b.Get()
+	// println(fmt.Sprintf("🐞 %v", c))
 	// 👇 validate data entry into current cell
 	numlock := c.Attrs.Numeric && !strings.Contains("0123456789.", string(char))
-	prot := c.Attrs.Hidden || c.Attrs.Protected
+	prot := c.FldStart || c.Attrs.Hidden || c.Attrs.Protected
 	if numlock || prot {
 		return -1, false
 	}
@@ -175,15 +177,15 @@ func (b *Buffer) Keyin(char byte) (int, bool) {
 }
 
 func (b *Buffer) Backspace() (int, bool) {
-	// 👇-validate data entry into previous cell
+	// 👇 validate data entry into previous cell
 	c, addr := b.PrevGet()
-	prot := c.Attrs.Hidden || c.Attrs.Protected
+	prot := c.FldStart || c.Attrs.Hidden || c.Attrs.Protected
 	if prot {
 		return -1, false
 	}
 	// 👇 reposition to previous cell and update it
 	b.Seek(addr)
-	c.Char = 0x00
+	c.Char = ' '
 	c.Attrs.Modified = true
 	addr = b.Set(c)
 	// 👇 set the MDT flag at the field level
@@ -192,6 +194,33 @@ func (b *Buffer) Backspace() (int, bool) {
 		return -1, false
 	}
 	return addr, true
+}
+
+func (b *Buffer) Tab(dir int) (int, bool) {
+	start := b.addr
+	addr := b.addr
+	for ix := 0; ; ix++ {
+		// 👇 wrap to the start means no unprotected field
+		if addr == start && ix > 0 {
+			break
+		}
+		// 👇 look at the "next" cell
+		addr += dir
+		if addr < 0 {
+			addr = len(b.buf) - 1
+		} else if addr >= len(b.buf) {
+			addr = 0
+		}
+		// 👇 see if we've hit an unprotected field start
+		cell, _ := b.Peek(addr)
+		if cell.FldStart && !cell.Attrs.Protected {
+			b.Seek(addr) // 👈 go to FldStart
+			_, addr := b.GetNext()
+			b.Seek(addr) // 👈 now to first char
+			return addr, true
+		}
+	}
+	return -1, false
 }
 
 func (b *Buffer) setFldMDT(fldAddr int) bool {

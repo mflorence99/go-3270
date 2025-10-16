@@ -6,8 +6,6 @@ import (
 	"go3270/emulator/pubsub"
 	"go3270/emulator/state"
 	"go3270/emulator/utils"
-
-	"github.com/fogleman/gg"
 )
 
 type Blinker struct {
@@ -46,30 +44,8 @@ func (b *Blinker) blink(counter int) {
 	if !b.st.Stat.Locked || !blinkOn {
 		blinkers.Push(b.st.Stat.CursorAt)
 	}
-	// 👇 iterate over all the blinkers
-	dc := gg.NewContextForRGBA(b.cfg.RGBA)
-	for !blinkers.Empty() {
-		addr, _ := blinkers.Pop()
-		// 👇 gather related data
-		box := b.scr.CPs[addr]
-		cell, _ := b.buf.Peek(addr)
-		attrs := cell.Attrs
-		// 👇 different color if highlighted
-		color := utils.Ternary(attrs.Color == 0, b.cfg.Color, b.cfg.CLUT[attrs.Color])
-		ix := utils.Ternary(attrs.Highlight, 1, 0)
-		// 👇 the cache will find us the glyph iself
-		g := glyph.Glyph{
-			Char:       cell.Char,
-			Color:      color[ix],
-			Highlight:  attrs.Highlight,
-			Reverse:    blinkOn,
-			Underscore: attrs.Underscore,
-		}
-		img := b.gc.ImageFor(g, box)
-		dc.DrawImage(img, int(box.X), int(box.Y))
-	}
 	// 👇 now we can render
-	b.bus.PubRender()
+	b.bus.PubBlink(blinkers, blinkOn)
 }
 
 func (b *Blinker) configure(cfg pubsub.Config) {
