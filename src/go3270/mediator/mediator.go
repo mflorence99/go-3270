@@ -151,9 +151,9 @@ func (m *Mediator) jsInterface() js.Value {
 			key := pubsub.Keystroke{
 				Code:  args[0].String(),
 				Key:   args[1].String(),
-				ALT:   args[3].Bool(),
-				CTRL:  args[4].Bool(),
-				SHIFT: args[5].Bool(),
+				ALT:   args[2].Bool(),
+				CTRL:  args[3].Bool(),
+				SHIFT: args[4].Bool(),
 			}
 			m.bus.PubKeystroke(key)
 			return nil
@@ -237,7 +237,7 @@ func (m *Mediator) rcLoop(canvas js.Value, rgba *image.RGBA, maxFPS float64) {
 		if timestamp-lastTimestamp >= (1000 / maxFPS) {
 			if lastImage == nil || !slices.Equal(lastImage, rgba.Pix) {
 				// 🔥 I copied this from go-canvas where the author was worried about 3 separate copies -- I haven't figured how to reduce it to 2 even when using Uint8ClampedArray -- but it only takes ~2ms anyway
-				println(fmt.Sprintf("🐞 bitblt %d pixels to HTML canvas", len(rgba.Pix)))
+				// println(fmt.Sprintf("🐞 bitblt %d pixels to HTML canvas", len(rgba.Pix)))
 				// println(fmt.Sprintf("%v", rgba.Pix))
 				pixels := js.Global().Get("Uint8ClampedArray").New(len(rgba.Pix))
 				js.CopyBytesToJS(pixels, rgba.Pix)

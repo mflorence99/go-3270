@@ -9,7 +9,7 @@ import (
 type State struct {
 	bus  *pubsub.Bus
 	cfg  pubsub.Config
-	stat pubsub.Status
+	Stat pubsub.Status
 }
 
 func NewState(bus *pubsub.Bus) *State {
@@ -40,31 +40,31 @@ func (s *State) reset() {
 
 func (s *State) Patch(p Patch) {
 	if p.Alarm != nil {
-		s.stat.Alarm = *p.Alarm
+		s.Stat.Alarm = *p.Alarm
 	}
 	if p.CursorAt != nil {
-		s.stat.CursorAt = *p.CursorAt
+		s.Stat.CursorAt = *p.CursorAt
 	}
 	if p.Error != nil {
-		s.stat.Error = *p.Error
+		s.Stat.Error = *p.Error
 	}
 	if p.Locked != nil {
-		s.stat.Locked = *p.Locked
+		s.Stat.Locked = *p.Locked
 	}
 	if p.Message != nil {
-		s.stat.Message = *p.Message
+		s.Stat.Message = *p.Message
 	}
 	if p.Numeric != nil {
-		s.stat.Numeric = *p.Numeric
+		s.Stat.Numeric = *p.Numeric
 	}
 	if p.Protected != nil {
-		s.stat.Protected = *p.Protected
+		s.Stat.Protected = *p.Protected
 	}
 	if p.Waiting != nil {
-		s.stat.Waiting = *p.Waiting
+		s.Stat.Waiting = *p.Waiting
 	}
-	s.bus.PubStatus(s.stat)
-	println(fmt.Sprintf("⚙️ %s", s.stat))
+	s.bus.PubStatus(s.Stat)
+	println(fmt.Sprintf("⚙️ %s", s.Stat))
 	// 👇 make sure to reset alarm
-	s.stat.Alarm = false
+	s.Stat.Alarm = false
 }

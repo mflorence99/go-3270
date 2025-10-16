@@ -9,7 +9,7 @@ import (
 	"go3270/emulator/conv"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/state"
-	"go3270/emulator/stream/outbound"
+	"go3270/emulator/stream"
 	"go3270/emulator/utils"
 	"go3270/emulator/wcc"
 	"time"
@@ -38,6 +38,7 @@ func (c *Consumer) configure(cfg pubsub.Config) {
 }
 
 func (c *Consumer) consume(chars []byte) {
+	defer utils.ElapsedTime(time.Now())
 	// 👇 dump the stream for debugging
 	dmp := pubsub.Dump{
 		Bytes:  chars,
@@ -48,10 +49,10 @@ func (c *Consumer) consume(chars []byte) {
 	c.bus.PubDump(dmp)
 	// 👇 data can be split into multiple frames
 	slices := bytes.Split(chars, consts.LT)
-	streams := make([]*outbound.Outbound, 0)
+	streams := make([]*stream.Outbound, 0)
 	for ix := range slices {
 		if len(slices[ix]) > 0 {
-			stream := outbound.NewStream(&slices[ix])
+			stream := stream.NewOutbound(&slices[ix])
 			streams = append(streams, stream)
 		}
 	}
@@ -77,8 +78,7 @@ func (c *Consumer) consume(chars []byte) {
 	c.bus.PubDump(dmp)
 }
 
-func (c *Consumer) commands(out *outbound.Outbound, cmd consts.Command) {
-	defer utils.ElapsedTime(time.Now())
+func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 	// 👇 dispatch on command
 	switch cmd {
 
@@ -113,7 +113,7 @@ func (c *Consumer) commands(out *outbound.Outbound, cmd consts.Command) {
 	}
 }
 
-func (c *Consumer) orders(out *outbound.Outbound) {
+func (c *Consumer) orders(out *stream.Outbound) {
 	fldAddr := 0
 	fldAttrs := &attrs.Attrs{Protected: true}
 	for out.HasNext() {
@@ -185,7 +185,7 @@ func (c *Consumer) orders(out *outbound.Outbound) {
 	}
 }
 
-func (c *Consumer) wcc(out *outbound.Outbound) {
+func (c *Consumer) wcc(out *stream.Outbound) {
 	char, ok := out.Next()
 	if !ok {
 		c.bus.PubPanic("Unable to extract WCC")

@@ -1,7 +1,6 @@
 package pubsub
 
 import (
-	"fmt"
 	"go3270/emulator/utils"
 )
 
@@ -127,10 +126,10 @@ func (b *Bus) Publish(topic string, args ...any) {
 	handlers, ok := b.handlers[topic]
 	if ok {
 		for _, handler := range handlers {
-			if topic != "tick" {
-				pkg, nm := utils.GetFuncName(handler)
-				println(fmt.Sprintf("🐞 topic %s -> func %s() in %s", topic, nm, pkg))
-			}
+			// if topic != "tick" {
+			// 	pkg, nm := utils.GetFuncName(handler)
+			// 	println(fmt.Sprintf("🐞 topic %s -> func %s() in %s", topic, nm, pkg))
+			// }
 			utils.Call(handler, args...)
 		}
 	}

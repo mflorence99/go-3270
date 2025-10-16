@@ -21,7 +21,7 @@ func (s Status) String() string {
 		str += "ALARM "
 	}
 	if s.Locked {
-		str += "LOCK "
+		str += "LOCKED "
 	}
 	if s.Numeric {
 		str += "NUM "

@@ -5,7 +5,6 @@ import (
 	"go3270/emulator/glyph"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/utils"
-	"time"
 
 	"github.com/fogleman/gg"
 )
@@ -42,7 +41,7 @@ func (s *Screen) configure(cfg pubsub.Config) {
 }
 
 func (s *Screen) render() {
-	defer utils.ElapsedTime(time.Now())
+	// defer utils.ElapsedTime(time.Now())
 	dc := gg.NewContextForRGBA(s.cfg.RGBA)
 	// 👇 iterate over all changed cells
 	for !s.buf.Dirty.Empty() {

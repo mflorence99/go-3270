@@ -4,14 +4,14 @@ import (
 	"go3270/emulator/attrs"
 	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
-	"go3270/emulator/stack"
+	"go3270/emulator/utils"
 	"strings"
 )
 
 // 🔥 NOTE: the buffer will always hold ASCII characters
 
 type Buffer struct {
-	Dirty *stack.Stack[int]
+	Dirty *utils.Stack[int]
 
 	addr int
 	bus  *pubsub.Bus
@@ -31,7 +31,7 @@ func NewBuffer(bus *pubsub.Bus) *Buffer {
 func (b *Buffer) configure(cfg pubsub.Config) {
 	b.cfg = cfg
 	b.buf = make([]*Cell, cfg.Cols*cfg.Rows)
-	b.Dirty = stack.NewStack[int](1)
+	b.Dirty = utils.NewStack[int](1)
 }
 
 func (b *Buffer) reset() {

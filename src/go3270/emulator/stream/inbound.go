@@ -1,4 +1,4 @@
-package inbound
+package stream
 
 // 🔥 "Inbound" data flows from the 3270 ie this code to the application
 
@@ -6,7 +6,7 @@ type Inbound struct {
 	bytes []byte
 }
 
-func NewStream() *Inbound {
+func NewInbound() *Inbound {
 	in := new(Inbound)
 	in.bytes = []byte{}
 	return in

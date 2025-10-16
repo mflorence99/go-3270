@@ -1,4 +1,4 @@
-package outbound
+package stream
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ type Outbound struct {
 	ix    int
 }
 
-func NewStream(bytes *[]byte) *Outbound {
+func NewOutbound(bytes *[]byte) *Outbound {
 	out := new(Outbound)
 	out.bytes = bytes
 	out.ix = 0
