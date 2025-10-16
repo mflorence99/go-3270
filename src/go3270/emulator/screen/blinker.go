@@ -26,7 +26,7 @@ func NewBlinker(bus *pubsub.Bus, buf *buffer.Buffer, gc *glyph.Cache, scr *Scree
 	b.gc = gc
 	b.scr = scr
 	b.st = st
-	// 🔥 configure first
+	// 👇 subscriptions
 	b.bus.SubConfig(b.configure)
 	b.bus.SubTick(b.blink)
 	return b

@@ -7,15 +7,16 @@ import (
 )
 
 type State struct {
-	bus  *pubsub.Bus
-	cfg  pubsub.Config
-	Stat pubsub.Status
+	Stat *pubsub.Status
+
+	bus *pubsub.Bus
+	cfg pubsub.Config
 }
 
 func NewState(bus *pubsub.Bus) *State {
 	s := new(State)
 	s.bus = bus
-	// 🔥 configure first
+	// 👇 subscriptions
 	s.bus.SubConfig(s.configure)
 	s.bus.SubReset(s.reset)
 	return s
@@ -23,6 +24,7 @@ func NewState(bus *pubsub.Bus) *State {
 
 func (s *State) configure(cfg pubsub.Config) {
 	s.cfg = cfg
+	s.Stat = &pubsub.Status{}
 }
 
 func (s *State) reset() {

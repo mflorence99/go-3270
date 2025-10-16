@@ -17,6 +17,7 @@ type Emulator struct {
 	blnkr *screen.Blinker
 	bus   *pubsub.Bus
 	buf   *buffer.Buffer
+	cfg   pubsub.Config
 	gc    *glyph.Cache
 	in    *inbound.Producer
 	key   *keyboard.Keyboard
@@ -25,28 +26,29 @@ type Emulator struct {
 	st    *state.State
 }
 
-func NewEmulator(bus *pubsub.Bus) *Emulator {
+func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	e := new(Emulator)
 	e.bus = bus
-	// 👇 core components
+	e.cfg = cfg
+	// 👇 core components; need these FIRST
 	e.buf = buffer.NewBuffer(e.bus)
 	e.gc = glyph.NewCache(e.bus)
 	e.st = state.NewState(e.bus)
 	// 👇 rendering components
-	e.scr = screen.NewScreen(e.bus, e.buf, e.gc)
+	e.scr = screen.NewScreen(e.bus, e.buf, e.gc, e.st)
 	e.blnkr = screen.NewBlinker(e.bus, e.buf, e.gc, e.scr, e.st)
 	// 👇 i/o components
 	e.key = keyboard.NewKeyboard(e.bus, e.buf, e.st)
 	e.in = inbound.NewProducer(e.bus)
 	e.out = outbound.NewConsumer(e.bus, e.buf, e.st)
-	// 🔥 configure first
-	e.bus.SubConfig(e.configure)
+	// 👇 subscriptions
 	e.bus.SubClose(e.close)
+	// 👇 now configure all components
+	e.bus.PubConfig(cfg)
+	e.bus.PubReset()
 	return e
 }
 
 func (e *Emulator) close() {
 	println("🐞 Emulator closed")
 }
-
-func (e *Emulator) configure(cfg pubsub.Config) {}

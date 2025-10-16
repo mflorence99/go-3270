@@ -56,7 +56,7 @@ func (b *Bus) PubRender() {
 	b.Publish("render")
 }
 
-func (b *Bus) PubStatus(stat Status) {
+func (b *Bus) PubStatus(stat *Status) {
 	b.Publish("status", stat)
 }
 
@@ -106,7 +106,7 @@ func (b *Bus) SubRender(fn func()) {
 	b.Subscribe("render", fn)
 }
 
-func (b *Bus) SubStatus(fn func(stat Status)) {
+func (b *Bus) SubStatus(fn func(stat *Status)) {
 	b.Subscribe("status", fn)
 }
 

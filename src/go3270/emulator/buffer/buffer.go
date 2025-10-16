@@ -22,7 +22,7 @@ type Buffer struct {
 func NewBuffer(bus *pubsub.Bus) *Buffer {
 	b := new(Buffer)
 	b.bus = bus
-	// 🔥 configure first
+	// 👇 subscriptions
 	b.bus.SubConfig(b.configure)
 	b.bus.SubReset(b.reset)
 	return b

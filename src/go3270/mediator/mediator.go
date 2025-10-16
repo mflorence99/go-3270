@@ -56,10 +56,7 @@ func NewMediator(this js.Value, args []js.Value) any {
 	m.bus.SubPanic(m.panic)
 	m.bus.SubStatus(m.status)
 	// 👇 create and configure the emulator and its childreen
-	m.emu = emulator.NewEmulator(m.bus)
-	cfg := m.configure(args)
-	m.bus.PubConfig(cfg)
-	m.bus.PubReset()
+	m.emu = emulator.NewEmulator(m.bus, m.configure(args))
 	return m.jsInterface()
 }
 
@@ -208,7 +205,7 @@ func (m *Mediator) panic(msg string) {
 	m.dispatchEvent(params)
 }
 
-func (m *Mediator) status(stat pubsub.Status) {
+func (m *Mediator) status(stat *pubsub.Status) {
 	params := map[string]any{
 		"eventType": "status",
 		"alarm":     stat.Alarm,

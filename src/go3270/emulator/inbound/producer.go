@@ -12,7 +12,7 @@ type Producer struct {
 func NewProducer(bus *pubsub.Bus) *Producer {
 	p := new(Producer)
 	p.bus = bus
-	// 🔥 configure first
+	// 👇 subscriptions
 	p.bus.SubConfig(p.configure)
 	return p
 }

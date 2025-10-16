@@ -17,7 +17,7 @@ type Cache struct {
 func NewCache(bus *pubsub.Bus) *Cache {
 	c := new(Cache)
 	c.bus = bus
-	// 🔥 configure first
+	// 👇 subscriptions
 	c.bus.SubConfig(c.configure)
 	return c
 }

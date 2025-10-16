@@ -4,6 +4,7 @@ import (
 	"go3270/emulator/buffer"
 	"go3270/emulator/glyph"
 	"go3270/emulator/pubsub"
+	"go3270/emulator/state"
 	"go3270/emulator/utils"
 
 	"github.com/fogleman/gg"
@@ -16,14 +17,16 @@ type Screen struct {
 	bus *pubsub.Bus
 	cfg pubsub.Config
 	gc  *glyph.Cache
+	st  *state.State
 }
 
-func NewScreen(bus *pubsub.Bus, buf *buffer.Buffer, gc *glyph.Cache) *Screen {
+func NewScreen(bus *pubsub.Bus, buf *buffer.Buffer, gc *glyph.Cache, st *state.State) *Screen {
 	s := new(Screen)
 	s.bus = bus
 	s.buf = buf
 	s.gc = gc
-	// 🔥 configure first
+	s.st = st
+	// 👇 subscriptions
 	s.bus.SubConfig(s.configure)
 	s.bus.SubRender(s.render)
 	s.bus.SubReset(s.reset)
@@ -60,7 +63,7 @@ func (s *Screen) render() {
 				Char:       cell.Char,
 				Color:      color[ix],
 				Highlight:  attrs.Highlight,
-				Reverse:    attrs.Reverse,
+				Reverse:    attrs.Reverse || addr == s.st.Stat.CursorAt,
 				Underscore: attrs.Underscore,
 			}
 			img := s.gc.ImageFor(g, box)

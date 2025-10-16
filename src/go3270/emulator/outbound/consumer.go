@@ -27,7 +27,7 @@ func NewConsumer(bus *pubsub.Bus, buf *buffer.Buffer, st *state.State) *Consumer
 	c.bus = bus
 	c.buf = buf
 	c.st = st
-	// 🔥 configure first
+	// 👇 subscriptions
 	c.bus.SubConfig(c.configure)
 	c.bus.SubOutbound(c.consume)
 	return c
