@@ -27,15 +27,29 @@ func NewScreen(bus *pubsub.Bus, buf *buffer.Buffer, gc *glyph.Cache, st *state.S
 	s.gc = gc
 	s.st = st
 	// 👇 subscriptions
-	s.bus.SubBlink(s.blink)
+	s.bus.SubTick(s.blink)
 	s.bus.SubConfig(s.configure)
 	s.bus.SubRender(s.render)
 	s.bus.SubReset(s.reset)
 	return s
 }
 
-func (s *Screen) blink(addrs *utils.Stack[int], blinkOn bool) {
-	s.renderImpl(addrs, true, blinkOn)
+func (s *Screen) blink(counter int) {
+	blinkOn := counter%2 == 0
+	// 👇 find all the blinbers
+	blinkers := utils.NewStack[int](1)
+	for addr := 0; addr < s.buf.Len(); addr++ {
+		cell, _ := s.buf.Peek(addr)
+		if !cell.FldStart && cell.Attrs.Blink {
+			blinkers.Push(addr)
+		}
+	}
+	// 👇 include the cursor if we have the focus
+	if !s.st.Stat.Locked || !blinkOn {
+		blinkers.Push(s.st.Stat.CursorAt)
+	}
+	// 👇 now we can render
+	s.renderImpl(blinkers, true, blinkOn)
 }
 
 func (s *Screen) configure(cfg pubsub.Config) {

@@ -14,16 +14,15 @@ import (
 // 🟧 3270 emulator itself, in pure go test-able code
 
 type Emulator struct {
-	blnkr *screen.Blinker
-	bus   *pubsub.Bus
-	buf   *buffer.Buffer
-	cfg   pubsub.Config
-	gc    *glyph.Cache
-	in    *inbound.Producer
-	key   *keyboard.Keyboard
-	out   *outbound.Consumer
-	scr   *screen.Screen
-	st    *state.State
+	bus *pubsub.Bus
+	buf *buffer.Buffer
+	cfg pubsub.Config
+	gc  *glyph.Cache
+	in  *inbound.Producer
+	key *keyboard.Keyboard
+	out *outbound.Consumer
+	scr *screen.Screen
+	st  *state.State
 }
 
 func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
@@ -36,7 +35,6 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	e.st = state.NewState(e.bus)
 	// 👇 rendering components
 	e.scr = screen.NewScreen(e.bus, e.buf, e.gc, e.st)
-	e.blnkr = screen.NewBlinker(e.bus, e.buf, e.gc, e.scr, e.st)
 	// 👇 i/o components
 	e.key = keyboard.NewKeyboard(e.bus, e.buf, e.st)
 	e.in = inbound.NewProducer(e.bus)
