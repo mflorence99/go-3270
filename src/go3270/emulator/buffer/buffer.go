@@ -11,12 +11,11 @@ import (
 // 🔥 NOTE: the buffer will always hold ASCII characters
 
 type Buffer struct {
-	Dirty *utils.Stack[int]
-
-	addr int
-	bus  *pubsub.Bus
-	buf  []*Cell
-	cfg  pubsub.Config
+	addr   int
+	bus    *pubsub.Bus
+	buf    []*Cell
+	cfg    pubsub.Config
+	deltas *utils.Stack[int]
 }
 
 func NewBuffer(bus *pubsub.Bus) *Buffer {
@@ -31,7 +30,7 @@ func NewBuffer(bus *pubsub.Bus) *Buffer {
 func (b *Buffer) configure(cfg pubsub.Config) {
 	b.cfg = cfg
 	b.buf = make([]*Cell, cfg.Cols*cfg.Rows)
-	b.Dirty = utils.NewStack[int](1)
+	b.deltas = utils.NewStack[int](1)
 }
 
 func (b *Buffer) reset() {
@@ -39,8 +38,8 @@ func (b *Buffer) reset() {
 	for ix := range b.buf {
 		b.buf[ix] = &Cell{Attrs: &attrs.Attrs{Protected: true}}
 	}
-	for !b.Dirty.Empty() {
-		b.Dirty.Pop()
+	for !b.deltas.Empty() {
+		b.deltas.Pop()
 	}
 }
 
@@ -48,6 +47,7 @@ func (b *Buffer) reset() {
 
 //    Addr() get current buffer address
 //    Chars() extracts ASCII chars from buffer for debugging
+//    Deltas() returns stack of changes
 //    Len() get number of cell slots in buffer
 //    Peek() cell at given address
 //    Seek() reposition buffer address
@@ -64,6 +64,10 @@ func (b *Buffer) Chars() []byte {
 		}
 	}
 	return chars
+}
+
+func (b *Buffer) Deltas() *utils.Stack[int] {
+	return b.deltas
 }
 
 func (b *Buffer) Len() int {
@@ -120,7 +124,7 @@ func (b *Buffer) PrevGet() (*Cell, int) {
 
 func (b *Buffer) Set(c *Cell) int {
 	b.buf[b.addr] = c
-	b.Dirty.Push(b.addr)
+	b.deltas.Push(b.addr)
 	return b.addr
 }
 

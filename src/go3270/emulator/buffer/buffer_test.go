@@ -94,10 +94,10 @@ func makeCell(num bool) *buffer.Cell {
 
 func Test_Set(t *testing.T) {
 	b := testBuffer()
-	assert.True(t, b.Dirty.Len() == 0)
+	assert.True(t, b.Deltas().Len() == 0)
 	c := makeCell(false)
 	addr := b.Set(c)
-	assert.True(t, b.Dirty.Len() == 1)
+	assert.True(t, b.Deltas().Len() == 1)
 	assert.True(t, addr == 0)
 	c, _ = b.Get()
 	assert.True(t, c.Char == 0x40)
@@ -105,11 +105,11 @@ func Test_Set(t *testing.T) {
 
 func Test_SetAndNext(t *testing.T) {
 	b := testBuffer()
-	assert.True(t, b.Dirty.Len() == 0)
+	assert.True(t, b.Deltas().Len() == 0)
 	b.Seek(99)
 	c := makeCell(false)
 	addr := b.SetAndNext(c)
-	assert.True(t, b.Dirty.Len() == 1)
+	assert.True(t, b.Deltas().Len() == 1)
 	assert.True(t, addr == 99)
 	c, _ = b.Get()
 	assert.True(t, c.Char == 0x00)
@@ -117,19 +117,19 @@ func Test_SetAndNext(t *testing.T) {
 
 func Test_StartFld(t *testing.T) {
 	b := testBuffer()
-	assert.True(t, b.Dirty.Len() == 0)
+	assert.True(t, b.Deltas().Len() == 0)
 	b.Seek(50)
 	addr := b.StartFld(&attrs.Attrs{})
-	assert.True(t, b.Dirty.Len() == 1)
+	assert.True(t, b.Deltas().Len() == 1)
 	assert.True(t, addr == 50)
 }
 
 func Test_PrevAndSet(t *testing.T) {
 	b := testBuffer()
-	assert.True(t, b.Dirty.Len() == 0)
+	assert.True(t, b.Deltas().Len() == 0)
 	c := makeCell(false)
 	addr := b.PrevAndSet(c)
-	assert.True(t, b.Dirty.Len() == 1)
+	assert.True(t, b.Deltas().Len() == 1)
 	assert.True(t, addr == 99)
 	c, _ = b.Get()
 	assert.True(t, c.Char == 0x40)
@@ -146,7 +146,7 @@ func Test_Keyin(t *testing.T) {
 	b.SetAndNext(makeCell(true))
 	b.SetAndNext(makeCell(true))
 	b.SetAndNext(makeCell(true))
-	assert.True(t, b.Dirty.Len() == 4)
+	assert.True(t, b.Deltas().Len() == 4)
 	b.Seek(3)
 	addr, ok = b.Keyin('x')
 	assert.True(t, addr == -1)

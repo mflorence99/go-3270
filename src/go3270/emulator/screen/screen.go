@@ -11,11 +11,10 @@ import (
 )
 
 type Screen struct {
-	CPs []pubsub.Box
-
 	buf *buffer.Buffer
 	bus *pubsub.Bus
 	cfg pubsub.Config
+	cps []pubsub.Box
 	gc  *glyph.Cache
 	st  *state.State
 }
@@ -54,11 +53,11 @@ func (s *Screen) blink(counter int) {
 
 func (s *Screen) configure(cfg pubsub.Config) {
 	s.cfg = cfg
-	s.CPs = make([]pubsub.Box, cfg.Cols*cfg.Rows)
-	for ix := range s.CPs {
+	s.cps = make([]pubsub.Box, cfg.Cols*cfg.Rows)
+	for ix := range s.cps {
 		row := int(ix / cfg.Cols)
 		col := ix % cfg.Cols
-		s.CPs[ix] = pubsub.NewBox(row, col, cfg)
+		s.cps[ix] = pubsub.NewBox(row, col, cfg)
 	}
 }
 
@@ -73,7 +72,7 @@ func (s *Screen) renderImpl(addrs *utils.Stack[int], doBlink bool, blinkOn bool)
 	for !addrs.Empty() {
 		addr, _ := addrs.Pop()
 		// 👇 gather related data
-		box := s.CPs[addr]
+		box := s.cps[addr]
 		cell, _ := s.buf.Peek(addr)
 		attrs := cell.Attrs
 		invisible := cell.Char == 0x00 || cell.FldStart || attrs.Hidden
