@@ -208,6 +208,7 @@ const webSocketImpl = {
         important: `#${ctx.sessionID} EMULATOR \uea99 PROXY`,
         text: 'forward message to application'
       });
+      console.log(message);
       ctx.tcpSocket?.write(message);
     }
   },

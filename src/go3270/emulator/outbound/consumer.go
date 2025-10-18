@@ -78,12 +78,14 @@ func (c *Consumer) consume(chars []byte) {
 	c.bus.PubDump(dmp)
 }
 
+// 🟦 Commands
+
 func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 	// 👇 dispatch on command
 	switch cmd {
 
 	case consts.EAU:
-		c.bus.PubPanic("🔥 EAU not handled")
+		c.eau()
 
 	case consts.EW:
 		c.bus.PubReset()
@@ -96,104 +98,37 @@ func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 		c.orders(out)
 
 	case consts.RB:
-		c.bus.PubPanic("🔥 RB not handled")
+		c.rb()
 
 	case consts.RM:
-		c.bus.PubPanic("🔥 RM not handled")
+		c.rm()
 
 	case consts.RMA:
-		c.bus.PubPanic("🔥 RMA not handled")
+		c.rma()
 
 	case consts.W:
 		c.wcc(out)
 		c.orders(out)
 
 	case consts.WSF:
-		c.bus.PubPanic("🔥 WSF not handled")
+		c.wsf()
 	}
 }
 
-func (c *Consumer) orders(out *stream.Outbound) {
-	fldAddr := 0
-	fldAttrs := &attrs.Attrs{Protected: true}
-	for out.HasNext() {
-		// 👇 look at each byte to see if it is an order
-		char, _ := out.Next()
-		order := consts.Order(char)
-		// 👇 dispatch on order
-		switch order {
+func (c *Consumer) eau() {
+	c.bus.PubPanic("🔥 EAU not handled")
+}
 
-		case consts.EUA:
-			println("🔥 EUA not handled")
-			out.NextSlice(2)
+func (c *Consumer) rb() {
+	c.bus.PubPanic("🔥 RB not handled")
+}
 
-		case consts.GE:
-			println("🔥 GE not handled")
-			out.Next()
+func (c *Consumer) rm() {
+	c.bus.PubInboundRM(consts.INBOUND)
+}
 
-		case consts.IC:
-			c.st.Patch(state.Patch{
-				CursorAt: utils.IntPtr(c.buf.Addr()),
-			})
-
-		case consts.MF:
-			println("🔥 MF not handled")
-			count, _ := out.Next()
-			out.NextSlice(int(count) * 2)
-
-		case consts.PT:
-			println("🔥 PT not handled")
-
-		case consts.RA:
-			raw, _ := out.NextSlice(2)
-			stop := conv.AddrFromBytes(raw)
-			ebcdic, _ := out.Next()
-			ascii := conv.E2A(ebcdic)
-			for cell, addr := c.buf.Get(); addr != stop; cell, addr = c.buf.GetNext() {
-				cell.Char = ascii
-			}
-
-		case consts.SA:
-			println("🔥 SA not handled")
-			out.NextSlice(2)
-
-		case consts.SBA:
-			raw, _ := out.NextSlice(2)
-			_, ok := c.buf.Seek(conv.AddrFromBytes(raw))
-			if !ok {
-				c.bus.PubPanic("Data requires a device with a larger screen")
-			}
-
-		case consts.SF:
-			next, _ := out.Next()
-			fldAttrs = attrs.NewBasic(next)
-			if !fldAttrs.Protected {
-				println(fmt.Sprintf("🐞 SF at %d %s", c.buf.Addr(), fldAttrs))
-			}
-			fldAddr = c.buf.StartFld(fldAttrs)
-
-		case consts.SFE:
-			count, _ := out.Next()
-			next, _ := out.NextSlice(int(count) * 2)
-			fldAttrs = attrs.NewExtended(next)
-			if !fldAttrs.Protected {
-				println(fmt.Sprintf("🐞 SFE at %d %s", c.buf.Addr(), fldAttrs))
-			}
-			fldAddr = c.buf.StartFld(fldAttrs)
-
-		// 👇 if it isn't an order, it's data
-		default:
-			if char == 0x00 || char >= 0x40 {
-				cell := &buffer.Cell{
-					Attrs:    fldAttrs,
-					Char:     conv.E2A(char),
-					FldAddr:  fldAddr,
-					FldStart: false,
-				}
-				c.buf.SetAndNext(cell)
-			}
-		}
-	}
+func (c *Consumer) rma() {
+	c.bus.PubPanic("🔥 RMA not handled")
 }
 
 func (c *Consumer) wcc(out *stream.Outbound) {
@@ -215,4 +150,153 @@ func (c *Consumer) wcc(out *stream.Outbound) {
 	if wcc.ResetMDT {
 		println("🔥 wcc.ResetMDT not handled")
 	}
+}
+
+func (c *Consumer) wsf() {
+	c.bus.PubPanic("🔥 WSF not handled")
+}
+
+// 🟦 Orders
+
+func (c *Consumer) orders(out *stream.Outbound) {
+	fldAddr := 0
+	fldAttrs := &attrs.Attrs{Protected: true}
+	for out.HasNext() {
+		// 👇 look at each byte to see if it is an order
+		char, _ := out.Next()
+		order := consts.Order(char)
+		// 👇 dispatch on order
+		switch order {
+
+		case consts.EUA:
+			c.eua(out)
+
+		case consts.GE:
+			c.ge(out)
+
+		case consts.IC:
+			c.ic()
+
+		case consts.MF:
+			c.mf(out)
+
+		case consts.PT:
+			c.pt()
+
+		case consts.RA:
+			c.ra(out)
+
+		case consts.SA:
+			c.sa(out)
+
+		case consts.SBA:
+			c.sba(out)
+
+		case consts.SF:
+			fldAddr, fldAttrs = c.sf(out)
+
+		case consts.SFE:
+			fldAddr, fldAttrs = c.sfe(out)
+
+		// 👇 if it isn't an order, it's data
+		default:
+			if char == 0x00 || char >= 0x40 {
+				cell := &buffer.Cell{
+					Attrs:    fldAttrs,
+					Char:     conv.E2A(char),
+					FldAddr:  fldAddr,
+					FldStart: false,
+				}
+				c.buf.SetAndNext(cell)
+			}
+		}
+	}
+}
+
+func (c *Consumer) eua(out *stream.Outbound) {
+	println("🔥 EUA not handled")
+	out.NextSlice(2)
+}
+
+func (c *Consumer) ge(out *stream.Outbound) {
+	println("🔥 GE not handled")
+	out.Next()
+}
+
+func (c *Consumer) ic() {
+	c.st.Patch(state.Patch{
+		CursorAt: utils.IntPtr(c.buf.Addr()),
+	})
+}
+
+func (c *Consumer) mf(out *stream.Outbound) {
+	println("🔥 MF not handled")
+	count, _ := out.Next()
+	out.NextSlice(int(count) * 2)
+}
+
+func (c *Consumer) pt() {
+	println("🔥 PT not handled")
+}
+
+func (c *Consumer) ra(out *stream.Outbound) {
+	raw, _ := out.NextSlice(2)
+	stop := conv.AddrFromBytes(raw)
+	ebcdic, _ := out.Next()
+	ascii := conv.E2A(ebcdic)
+	// 👇 foundation of what will be repeated
+	cell, addr := c.buf.Get()
+	attrs := cell.Attrs
+	fldAddr := cell.FldAddr
+	// 👇 special case: if stop is current address, just fill the buffer
+	if stop == addr {
+		c.buf.Erase(ascii)
+	} else {
+		// 👇 watch for wrap around as we blast through to stop
+		for {
+			cell.Attrs = attrs
+			cell.Char = ascii
+			cell.FldAddr = fldAddr
+			cell.FldStart = false
+			cell, addr = c.buf.GetNext()
+			if addr == stop {
+				break
+			}
+			c.buf.Seek(addr)
+		}
+	}
+}
+
+func (c *Consumer) sa(out *stream.Outbound) {
+	println("🔥 SA not handled")
+	out.NextSlice(2)
+}
+
+func (c *Consumer) sba(out *stream.Outbound) {
+	raw, _ := out.NextSlice(2)
+	_, ok := c.buf.Seek(conv.AddrFromBytes(raw))
+	if !ok {
+		c.bus.PubPanic("🔥 Data requires a device with a larger screen")
+	}
+}
+
+func (c *Consumer) sf(out *stream.Outbound) (int, *attrs.Attrs) {
+	next, _ := out.Next()
+	fldAttrs := attrs.NewBasic(next)
+	if !fldAttrs.Protected {
+		println(fmt.Sprintf("🐞 SF at %d %s", c.buf.Addr(), fldAttrs))
+	}
+	fldAddr := c.buf.StartFld(fldAttrs)
+	return fldAddr, fldAttrs
+}
+
+func (c *Consumer) sfe(out *stream.Outbound) (int, *attrs.Attrs) {
+	count, _ := out.Next()
+	next, _ := out.NextSlice(int(count) * 2)
+	fldAttrs := attrs.NewExtended(next)
+	if !fldAttrs.Protected {
+		println(fmt.Sprintf("🐞 SFE at %d %s", c.buf.Addr(), fldAttrs))
+	}
+	fldAddr := c.buf.StartFld(fldAttrs)
+	return fldAddr, fldAttrs
 }

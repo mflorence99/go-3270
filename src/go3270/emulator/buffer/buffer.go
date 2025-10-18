@@ -34,13 +34,7 @@ func (b *Buffer) configure(cfg pubsub.Config) {
 }
 
 func (b *Buffer) reset() {
-	b.addr = 0
-	for ix := range b.buf {
-		b.buf[ix] = &Cell{Attrs: &attrs.Attrs{Protected: true}}
-	}
-	for !b.deltas.Empty() {
-		b.deltas.Pop()
-	}
+	b.Erase(0x00)
 }
 
 // 🟦 Housekeeping methods
@@ -48,6 +42,7 @@ func (b *Buffer) reset() {
 //    Addr() get current buffer address
 //    Chars() extracts ASCII chars from buffer for debugging
 //    Deltas() returns stack of changes
+//    Flds() returns slice of all fields
 //    Len() get number of cell slots in buffer
 //    Peek() cell at given address
 //    Seek() reposition buffer address
@@ -68,6 +63,35 @@ func (b *Buffer) Chars() []byte {
 
 func (b *Buffer) Deltas() *utils.Stack[int] {
 	return b.deltas
+}
+
+func (b *Buffer) Erase(char byte) {
+	b.addr = 0
+	for ix := range b.buf {
+		b.buf[ix] = &Cell{Attrs: &attrs.Attrs{Protected: true}, Char: char}
+	}
+	for !b.deltas.Empty() {
+		b.deltas.Pop()
+	}
+}
+
+func (b *Buffer) Flds() [][]*Cell {
+	fld := make([]*Cell, 0)
+	flds := make([][]*Cell, 0)
+	for _, cell := range b.buf {
+		if cell != nil && cell.FldStart {
+			if len(fld) > 0 {
+				flds = append(flds, fld)
+				fld = make([]*Cell, 0)
+			}
+		}
+		fld = append(fld, cell)
+	}
+	// 👇 don't forget the last field
+	if len(fld) > 0 {
+		flds = append(flds, fld)
+	}
+	return flds
 }
 
 func (b *Buffer) Len() int {
@@ -140,6 +164,7 @@ func (b *Buffer) StartFld(attrs *attrs.Attrs) int {
 	c := Cell{
 		Attrs:    attrs,
 		Char:     byte(consts.SF),
+		FldAddr:  b.addr,
 		FldStart: true,
 	}
 	return b.SetAndNext(&c)

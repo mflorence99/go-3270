@@ -56,6 +56,10 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 
 	switch {
 
+	case aid == consts.CLEAR:
+		println(fmt.Sprintf("🐞 %s", aid))
+		k.bus.PubInboundAttn(aid)
+
 	case aid == consts.ENTER:
 		println(fmt.Sprintf("🐞 %s", aid))
 		k.bus.PubInboundRM(aid)
@@ -66,6 +70,7 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 
 	case aid.PFx():
 		println(fmt.Sprintf("🐞 %s", aid))
+		k.bus.PubInboundRM(aid)
 
 	case key.Code == "ArrowDown":
 		cursorTo = cursorAt + k.cfg.Cols

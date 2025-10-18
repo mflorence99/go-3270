@@ -54,16 +54,22 @@ func (p *Producer) produce(bytes []byte, title string) {
 
 func (p *Producer) rm(aid consts.AID) {
 	in := stream.NewInbound()
+	// 👇 AID + cursor first
 	in.Put(byte(aid))
 	cursorAt := p.st.Stat.CursorAt
 	in.PutSlice(conv.AddrToBytes(cursorAt))
-
-	// 🔥 TEMPORARY!!!!
-
-	in.Put(byte(consts.SBA))
-	in.PutSlice(conv.AddrToBytes(cursorAt))
-	in.Put(conv.A2E('1'))
-
+	// 👇 SBA | addr + 1 | data for each modified field
+	flds := p.buf.Flds()
+	for _, cells := range flds {
+		if cells[0].Attrs.Modified {
+			in.Put(byte(consts.SBA))
+			in.PutSlice(conv.AddrToBytes(cells[0].FldAddr + 1))
+			for ix := 1; ix < len(cells); ix++ {
+				in.Put(conv.A2E(cells[ix].Char))
+			}
+		}
+	}
+	// 👇 frame boundary LT is last
 	in.PutSlice(consts.LT)
 	title := fmt.Sprintf("Inbound %s RM", aid)
 	p.produce(in.Bytes(), title)
