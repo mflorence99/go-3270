@@ -56,12 +56,13 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 
 	switch {
 
-	case aid.PAx():
-		println(fmt.Sprintf("🐞 %s", aid))
-
 	case aid == consts.ENTER:
 		println(fmt.Sprintf("🐞 %s", aid))
-		k.bus.PubRM(aid)
+		k.bus.PubInboundRM(aid)
+
+	case aid.PAx():
+		println(fmt.Sprintf("🐞 %s", aid))
+		k.bus.PubInboundAttn(aid)
 
 	case aid.PFx():
 		println(fmt.Sprintf("🐞 %s", aid))

@@ -1,6 +1,7 @@
 package inbound
 
 import (
+	"fmt"
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
@@ -23,20 +24,29 @@ func NewProducer(bus *pubsub.Bus, buf *buffer.Buffer, st *state.State) *Producer
 	p.st = st
 	// 👇 subscriptions
 	p.bus.SubConfig(p.configure)
-	p.bus.SubRM(p.rm)
+	p.bus.SubInboundAttn(p.attn)
+	p.bus.SubInboundRM(p.rm)
 	return p
+}
+
+func (p *Producer) attn(aid consts.AID) {
+	in := stream.NewInbound()
+	in.Put(byte(aid))
+	in.PutSlice(consts.LT)
+	title := fmt.Sprintf("Inbound %s", aid)
+	p.produce(in.Bytes(), title)
 }
 
 func (p *Producer) configure(cfg pubsub.Config) {
 	p.cfg = cfg
 }
 
-func (p *Producer) produce(bytes []byte) {
+func (p *Producer) produce(bytes []byte, title string) {
 	dmp := pubsub.Dump{
 		Bytes:  bytes,
 		Color:  "palegreen",
 		EBCDIC: true,
-		Title:  "Inbound",
+		Title:  title,
 	}
 	p.bus.PubDump(dmp)
 	p.bus.PubInbound(bytes)
@@ -47,8 +57,14 @@ func (p *Producer) rm(aid consts.AID) {
 	in.Put(byte(aid))
 	cursorAt := p.st.Stat.CursorAt
 	in.PutSlice(conv.AddrToBytes(cursorAt))
+
+	// 🔥 TEMPORARY!!!!
+
 	in.Put(byte(consts.SBA))
 	in.PutSlice(conv.AddrToBytes(cursorAt))
 	in.Put(conv.A2E('1'))
-	p.produce(in.Bytes())
+
+	in.PutSlice(consts.LT)
+	title := fmt.Sprintf("Inbound %s RM", aid)
+	p.produce(in.Bytes(), title)
 }

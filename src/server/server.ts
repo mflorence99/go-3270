@@ -137,12 +137,15 @@ const fetchUpgrade = (url: URL, req: Request): Response | void => {
   ) {
     return /* 👈 do not return a Response */;
   }
-  return new Response('Failed to create socket connection to 3270', {
-    status: 500
-  });
+  return new Response(
+    'Failed to create socket connection between proxy server and 3270 emulator',
+    {
+      status: 500
+    }
+  );
 };
 
-// ↔️ handle socket SERVER <-> 3270
+// ↔️ handle socket PROXY <-> APP
 
 const tcpSocketImpl = (ctx: Context): void => {
   ctx.tcpSocket = new TCPSocket();
@@ -152,7 +155,7 @@ const tcpSocketImpl = (ctx: Context): void => {
     { host: ctx.host, port: parseInt(ctx.port) },
     () => {
       log({
-        important: `#${ctx.sessionID} 3270 \uea99 SERVER`,
+        important: `#${ctx.sessionID} APP \uea99 PROXY`,
         text: `connected at ${ctx.host}:${ctx.port}`
       });
     }
@@ -160,10 +163,9 @@ const tcpSocketImpl = (ctx: Context): void => {
   // 👇 MESSAGE
   ctx.tcpSocket.on('data', (data: any) => {
     log({
-      important: `#${ctx.sessionID} 3270 \uea99 SERVER`,
-      text: 'forward message to CLIENT'
+      important: `#${ctx.sessionID} APP \uea99 PROXY`,
+      text: 'forward message to 3270 emulator'
     });
-    console.log(data);
     ctx.webSocket?.send(data);
   });
   // 👇 ERROR
@@ -171,7 +173,7 @@ const tcpSocketImpl = (ctx: Context): void => {
   ctx.tcpSocket.on('error', (e: Error) => {
     log({
       error: true,
-      important: `#${ctx.sessionID} 3270 \uea99 SERVER`,
+      important: `#${ctx.sessionID} APP \uea99 PROXY`,
       text: e.message
     });
     ctx.tcpSocket = undefined;
@@ -180,7 +182,7 @@ const tcpSocketImpl = (ctx: Context): void => {
   // 👇 CLOSE
   ctx.tcpSocket.on('end', () => {
     log({
-      important: `#${ctx.sessionID} 3270 \uea99 SERVER`,
+      important: `#${ctx.sessionID} APP \uea99 PROXY`,
       text: 'disconnected'
     });
     ctx.tcpSocket = undefined;
@@ -188,7 +190,7 @@ const tcpSocketImpl = (ctx: Context): void => {
   });
 };
 
-// ↔️ handle socket CLIENT <-> SERVER
+// ↔️ handle socket EMULATOR <-> PROXY
 
 const webSocketImpl = {
   // 👇 OPEN
@@ -203,10 +205,9 @@ const webSocketImpl = {
     const ctx = contexts[ws.data.sessionID];
     if (ctx) {
       log({
-        important: `#${ctx.sessionID} CLIENT \uea99 SERVER`,
-        text: 'forward message to 3270'
+        important: `#${ctx.sessionID} EMULATOR \uea99 PROXY`,
+        text: 'forward message to application'
       });
-      console.log(message);
       ctx.tcpSocket?.write(message);
     }
   },
@@ -217,7 +218,7 @@ const webSocketImpl = {
     if (ctx) {
       log({
         error: true,
-        important: `#${ctx.sessionID} CLIENT \uea99 SERVER`,
+        important: `#${ctx.sessionID} EMULATOR \uea99 PROXY`,
         text: e.message
       });
       ctx.webSocket = undefined;
@@ -230,7 +231,7 @@ const webSocketImpl = {
     const ctx = contexts[ws.data.sessionID];
     if (ctx) {
       log({
-        important: `#${ctx.sessionID} CLIENT \uea99 SERVER`,
+        important: `#${ctx.sessionID} EMULATOR \uea99 PROXY`,
         text: 'disconnected'
       });
       ctx.webSocket = undefined;
