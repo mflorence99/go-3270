@@ -1,6 +1,7 @@
 package pubsub
 
 import (
+	"go3270/emulator/consts"
 	"go3270/emulator/utils"
 )
 
@@ -56,6 +57,10 @@ func (b *Bus) PubRender(addrs *utils.Stack[int]) {
 	b.Publish("render", addrs)
 }
 
+func (b *Bus) PubRM(aid consts.AID) {
+	b.Publish("RM", aid)
+}
+
 func (b *Bus) PubStatus(stat *Status) {
 	b.Publish("status", stat)
 }
@@ -104,6 +109,10 @@ func (b *Bus) SubReset(fn func()) {
 
 func (b *Bus) SubRender(fn func(addrs *utils.Stack[int])) {
 	b.Subscribe("render", fn)
+}
+
+func (b *Bus) SubRM(fn func(aid consts.AID)) {
+	b.Subscribe("RM", fn)
 }
 
 func (b *Bus) SubStatus(fn func(stat *Status)) {

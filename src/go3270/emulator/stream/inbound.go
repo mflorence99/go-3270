@@ -12,6 +12,10 @@ func NewInbound() *Inbound {
 	return in
 }
 
+func (in *Inbound) Bytes() []byte {
+	return in.bytes
+}
+
 func (in *Inbound) Put(char byte) []byte {
 	in.bytes = append(in.bytes, char)
 	return in.bytes

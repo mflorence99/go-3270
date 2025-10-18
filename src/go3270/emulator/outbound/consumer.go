@@ -125,9 +125,11 @@ func (c *Consumer) orders(out *stream.Outbound) {
 
 		case consts.EUA:
 			println("🔥 EUA not handled")
+			out.NextSlice(2)
 
 		case consts.GE:
 			println("🔥 GE not handled")
+			out.Next()
 
 		case consts.IC:
 			c.st.Patch(state.Patch{
@@ -136,15 +138,24 @@ func (c *Consumer) orders(out *stream.Outbound) {
 
 		case consts.MF:
 			println("🔥 MF not handled")
+			count, _ := out.Next()
+			out.NextSlice(int(count) * 2)
 
 		case consts.PT:
 			println("🔥 PT not handled")
 
 		case consts.RA:
-			println("🔥 RA not handled")
+			raw, _ := out.NextSlice(2)
+			stop := conv.AddrFromBytes(raw)
+			ebcdic, _ := out.Next()
+			ascii := conv.E2A(ebcdic)
+			for cell, addr := c.buf.Get(); addr != stop; cell, addr = c.buf.GetNext() {
+				cell.Char = ascii
+			}
 
 		case consts.SA:
 			println("🔥 SA not handled")
+			out.NextSlice(2)
 
 		case consts.SBA:
 			raw, _ := out.NextSlice(2)

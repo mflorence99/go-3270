@@ -163,6 +163,7 @@ const tcpSocketImpl = (ctx: Context): void => {
       important: `#${ctx.sessionID} 3270 \uea99 SERVER`,
       text: 'forward message to CLIENT'
     });
+    console.log(data);
     ctx.webSocket?.send(data);
   });
   // 👇 ERROR
@@ -205,6 +206,7 @@ const webSocketImpl = {
         important: `#${ctx.sessionID} CLIENT \uea99 SERVER`,
         text: 'forward message to 3270'
       });
+      console.log(message);
       ctx.tcpSocket?.write(message);
     }
   },

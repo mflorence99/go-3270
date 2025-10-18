@@ -21,8 +21,8 @@ type Screen struct {
 
 func NewScreen(bus *pubsub.Bus, buf *buffer.Buffer, gc *glyph.Cache, st *state.State) *Screen {
 	s := new(Screen)
-	s.bus = bus
 	s.buf = buf
+	s.bus = bus
 	s.gc = gc
 	s.st = st
 	// 👇 subscriptions
@@ -68,7 +68,7 @@ func (s *Screen) render(addrs *utils.Stack[int]) {
 func (s *Screen) renderImpl(addrs *utils.Stack[int], doBlink bool, blinkOn bool) {
 	// defer utils.ElapsedTime(time.Now())
 	dc := gg.NewContextForRGBA(s.cfg.RGBA)
-	// 👇 iterate over all changed cells
+	// 👇 iterate over all requested cells
 	for !addrs.Empty() {
 		addr, _ := addrs.Pop()
 		// 👇 gather related data

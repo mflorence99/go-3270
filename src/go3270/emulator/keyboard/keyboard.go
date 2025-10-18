@@ -18,8 +18,8 @@ type Keyboard struct {
 
 func NewKeyboard(bus *pubsub.Bus, buf *buffer.Buffer, st *state.State) *Keyboard {
 	k := new(Keyboard)
-	k.bus = bus
 	k.buf = buf
+	k.bus = bus
 	k.st = st
 	// 👇 subscriptions
 	k.bus.SubConfig(k.configure)
@@ -56,18 +56,12 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 
 	switch {
 
-	case aid == consts.CLEAR:
-		k.st.Patch(state.Patch{
-			Alarm:   utils.BoolPtr(false),
-			Error:   utils.BoolPtr(false),
-			Message: utils.StringPtr(""),
-		})
-
 	case aid.PAx():
 		println(fmt.Sprintf("🐞 %s", aid))
 
 	case aid == consts.ENTER:
 		println(fmt.Sprintf("🐞 %s", aid))
+		k.bus.PubRM(aid)
 
 	case aid.PFx():
 		println(fmt.Sprintf("🐞 %s", aid))
