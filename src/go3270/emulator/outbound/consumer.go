@@ -39,14 +39,6 @@ func (c *Consumer) configure(cfg pubsub.Config) {
 
 func (c *Consumer) consume(chars []byte) {
 	defer utils.ElapsedTime(time.Now())
-	// 👇 dump the stream for debugging
-	dmp := pubsub.Dump{
-		Bytes:  chars,
-		Color:  "yellow",
-		EBCDIC: true,
-		Title:  "Outbound",
-	}
-	c.bus.PubDump(dmp)
 	// 👇 data can be split into multiple frames
 	slices := bytes.Split(chars, consts.LT)
 	streams := make([]*stream.Outbound, 0)
@@ -65,14 +57,7 @@ func (c *Consumer) consume(chars []byte) {
 	}
 	// 👇 render the buffer
 	c.bus.PubRender(c.buf.Deltas())
-	// 👇 dump the buffer for debugging
-	dmp = pubsub.Dump{
-		Bytes:  c.buf.Chars(),
-		Color:  "plum",
-		EBCDIC: false,
-		Title:  "Rendered Buffer",
-	}
-	c.bus.PubDump(dmp)
+	c.bus.PubRendered(c.buf.Chars())
 }
 
 // 🟦 Commands
@@ -124,7 +109,7 @@ func (c *Consumer) ewa(out *stream.Outbound) {
 }
 
 func (c *Consumer) rb() {
-	c.bus.PubPanic("🔥 RB not handled")
+	c.bus.PubRM(consts.INBOUND)
 }
 
 func (c *Consumer) rm() {
@@ -132,7 +117,7 @@ func (c *Consumer) rm() {
 }
 
 func (c *Consumer) rma() {
-	c.bus.PubPanic("🔥 RMA not handled")
+	c.bus.PubRM(consts.INBOUND)
 }
 
 func (c *Consumer) w(out *stream.Outbound) {
@@ -171,7 +156,35 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 		sflds = append(sflds, sfld)
 	}
 	println(fmt.Sprintf("🔥 WSF %v", sflds))
+	// 👇 there are a million SF types, but we are interested in READ_PARTITION
 	c.bus.PubWSF(sflds)
+	for _, sfld := range sflds {
+		if sfld.ID == consts.READ_PARTITION {
+			pid := sfld.Info[0]
+			if pid == 0xFF {
+				cmd := sfld.Info[1]
+				// 🔥 the manual appears to differ with observed behavior and an extra 0xFF apears in the WSF
+				if cmd == 0xFF && len(sfld.Info) > 2 {
+					cmd = sfld.Info[2]
+				}
+				switch consts.Command(cmd) {
+
+				case consts.Q:
+					c.bus.PubQ()
+
+				case consts.RB:
+					c.bus.PubRM(consts.INBOUND)
+
+				case consts.RM:
+					c.bus.PubRM(consts.INBOUND)
+
+				case consts.RMA:
+					c.bus.PubRM(consts.INBOUND)
+
+				}
+			}
+		}
+	}
 }
 
 // 🟦 Orders

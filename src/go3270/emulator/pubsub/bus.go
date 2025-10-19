@@ -53,6 +53,14 @@ func (b *Bus) PubPanic(msg string) {
 	b.Publish("panic", msg)
 }
 
+func (b *Bus) PubQ() {
+	b.Publish("q")
+}
+
+func (b *Bus) PubRB(aid consts.AID) {
+	b.Publish("rb", aid)
+}
+
 func (b *Bus) PubReset() {
 	b.Publish("reset")
 }
@@ -61,8 +69,16 @@ func (b *Bus) PubRender(addrs *utils.Stack[int]) {
 	b.Publish("render", addrs)
 }
 
+func (b *Bus) PubRendered(bytes []byte) {
+	b.Publish("rendered", bytes)
+}
+
 func (b *Bus) PubRM(aid consts.AID) {
 	b.Publish("rm", aid)
+}
+
+func (b *Bus) PubRMA(aid consts.AID) {
+	b.Publish("rms", aid)
 }
 
 func (b *Bus) PubStatus(stat *Status) {
@@ -80,7 +96,7 @@ func (b *Bus) PubWSF(sflds []consts.SFld) {
 // 🟦 Type-safe subscribers
 
 func (b *Bus) SubAttn(fn func(aid consts.AID)) {
-	b.Subscribe("Attn", fn)
+	b.Subscribe("attn", fn)
 }
 
 func (b *Bus) SubClose(fn func()) {
@@ -115,6 +131,14 @@ func (b *Bus) SubPanic(fn func(msg string)) {
 	b.Subscribe("panic", fn)
 }
 
+func (b *Bus) SubQ(fn func()) {
+	b.Subscribe("q", fn)
+}
+
+func (b *Bus) SubRB(fn func(aid consts.AID)) {
+	b.Subscribe("rb", fn)
+}
+
 func (b *Bus) SubReset(fn func()) {
 	b.Subscribe("reset", fn)
 }
@@ -123,8 +147,16 @@ func (b *Bus) SubRender(fn func(addrs *utils.Stack[int])) {
 	b.Subscribe("render", fn)
 }
 
+func (b *Bus) SubRendered(fn func(bytes []byte)) {
+	b.Subscribe("rendered", fn)
+}
+
 func (b *Bus) SubRM(fn func(aid consts.AID)) {
 	b.Subscribe("rm", fn)
+}
+
+func (b *Bus) SubRMA(fn func(aid consts.AID)) {
+	b.Subscribe("rma", fn)
 }
 
 func (b *Bus) SubStatus(fn func(stat *Status)) {

@@ -1,7 +1,6 @@
 package inbound
 
 import (
-	"fmt"
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
@@ -25,8 +24,10 @@ func NewProducer(bus *pubsub.Bus, buf *buffer.Buffer, st *state.State) *Producer
 	// 👇 subscriptions
 	p.bus.SubConfig(p.configure)
 	p.bus.SubAttn(p.attn)
+	p.bus.SubQ(p.q)
+	p.bus.SubRB(p.rb)
 	p.bus.SubRM(p.rm)
-	p.bus.SubWSF(p.wsf)
+	p.bus.SubRMA(p.rma)
 	return p
 }
 
@@ -34,23 +35,19 @@ func (p *Producer) attn(aid consts.AID) {
 	in := stream.NewInbound()
 	in.Put(byte(aid))
 	in.PutSlice(consts.LT)
-	title := fmt.Sprintf("Inbound %s", aid)
-	p.produce(in.Bytes(), title)
+	p.bus.PubInbound(in.Bytes())
 }
 
 func (p *Producer) configure(cfg pubsub.Config) {
 	p.cfg = cfg
 }
 
-func (p *Producer) produce(bytes []byte, title string) {
-	dmp := pubsub.Dump{
-		Bytes:  bytes,
-		Color:  "palegreen",
-		EBCDIC: true,
-		Title:  title,
-	}
-	p.bus.PubDump(dmp)
-	p.bus.PubInbound(bytes)
+func (p *Producer) q() {
+	println("🔥 Q not handled")
+}
+
+func (p *Producer) rb(aid consts.AID) {
+	p.bus.PubPanic("🔥 RB not handled")
 }
 
 func (p *Producer) rm(aid consts.AID) {
@@ -72,9 +69,9 @@ func (p *Producer) rm(aid consts.AID) {
 	}
 	// 👇 frame boundary LT is last
 	in.PutSlice(consts.LT)
-	title := fmt.Sprintf("Inbound %s RM", aid)
-	p.produce(in.Bytes(), title)
+	p.bus.PubInbound(in.Bytes())
 }
 
-func (p *Producer) wsf(sflds []consts.SFld) {
+func (p *Producer) rma(aid consts.AID) {
+	p.bus.PubPanic("🔥 RMA not handled")
 }

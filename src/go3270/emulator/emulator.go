@@ -18,6 +18,7 @@ type Emulator struct {
 	buf *buffer.Buffer
 	cfg pubsub.Config
 	gc  *glyph.Cache
+	log *pubsub.Logger
 	in  *inbound.Producer
 	key *keyboard.Keyboard
 	out *outbound.Consumer
@@ -32,6 +33,7 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	// 👇 core components; need these FIRST
 	e.buf = buffer.NewBuffer(e.bus)
 	e.gc = glyph.NewCache(e.bus)
+	e.log = pubsub.NewLogger(e.bus)
 	e.st = state.NewState(e.bus)
 	// 👇 rendering components
 	e.scr = screen.NewScreen(e.bus, e.buf, e.gc, e.st)
