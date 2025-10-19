@@ -186,7 +186,6 @@ func (b *Buffer) PrevAndSet(c *Cell) int {
 
 func (b *Buffer) Keyin(char byte) (int, bool) {
 	c, _ := b.Get()
-	// println(fmt.Sprintf("🐞 %v", c))
 	// 👇 validate data entry into current cell
 	numlock := c.Attrs.Numeric && !strings.Contains("-0123456789.", string(char))
 	prot := c.FldStart || c.Attrs.Hidden || c.Attrs.Protected

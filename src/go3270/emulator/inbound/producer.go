@@ -24,8 +24,9 @@ func NewProducer(bus *pubsub.Bus, buf *buffer.Buffer, st *state.State) *Producer
 	p.st = st
 	// 👇 subscriptions
 	p.bus.SubConfig(p.configure)
-	p.bus.SubInboundAttn(p.attn)
-	p.bus.SubInboundRM(p.rm)
+	p.bus.SubAttn(p.attn)
+	p.bus.SubRM(p.rm)
+	p.bus.SubWSF(p.wsf)
 	return p
 }
 
@@ -73,4 +74,7 @@ func (p *Producer) rm(aid consts.AID) {
 	in.PutSlice(consts.LT)
 	title := fmt.Sprintf("Inbound %s RM", aid)
 	p.produce(in.Bytes(), title)
+}
+
+func (p *Producer) wsf(sflds []consts.SFld) {
 }

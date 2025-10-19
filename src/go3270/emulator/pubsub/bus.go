@@ -17,6 +17,10 @@ func NewBus() *Bus {
 
 // 🟦 Type-safe publishers
 
+func (b *Bus) PubAttn(aid consts.AID) {
+	b.Publish("attn", aid)
+}
+
 func (b *Bus) PubClose() {
 	b.Publish("close")
 }
@@ -41,14 +45,6 @@ func (b *Bus) PubInbound(bytes []byte) {
 	b.Publish("inbound", bytes)
 }
 
-func (b *Bus) PubInboundAttn(aid consts.AID) {
-	b.Publish("inbound-Attn", aid)
-}
-
-func (b *Bus) PubInboundRM(aid consts.AID) {
-	b.Publish("inbound-RM", aid)
-}
-
 func (b *Bus) PubOutbound(bytes []byte) {
 	b.Publish("outbound", bytes)
 }
@@ -65,6 +61,10 @@ func (b *Bus) PubRender(addrs *utils.Stack[int]) {
 	b.Publish("render", addrs)
 }
 
+func (b *Bus) PubRM(aid consts.AID) {
+	b.Publish("rm", aid)
+}
+
 func (b *Bus) PubStatus(stat *Status) {
 	b.Publish("status", stat)
 }
@@ -73,7 +73,15 @@ func (b *Bus) PubTick(counter int) {
 	b.Publish("tick", counter)
 }
 
+func (b *Bus) PubWSF(sflds []consts.SFld) {
+	b.Publish("wsf", sflds)
+}
+
 // 🟦 Type-safe subscribers
+
+func (b *Bus) SubAttn(fn func(aid consts.AID)) {
+	b.Subscribe("Attn", fn)
+}
 
 func (b *Bus) SubClose(fn func()) {
 	b.Subscribe("close", fn)
@@ -99,14 +107,6 @@ func (b *Bus) SubInbound(fn func(bytes []byte)) {
 	b.Subscribe("inbound", fn)
 }
 
-func (b *Bus) SubInboundAttn(fn func(aid consts.AID)) {
-	b.Subscribe("inbound-Attn", fn)
-}
-
-func (b *Bus) SubInboundRM(fn func(aid consts.AID)) {
-	b.Subscribe("inbound-RM", fn)
-}
-
 func (b *Bus) SubOutbound(fn func(bytes []byte)) {
 	b.Subscribe("outbound", fn)
 }
@@ -123,12 +123,20 @@ func (b *Bus) SubRender(fn func(addrs *utils.Stack[int])) {
 	b.Subscribe("render", fn)
 }
 
+func (b *Bus) SubRM(fn func(aid consts.AID)) {
+	b.Subscribe("rm", fn)
+}
+
 func (b *Bus) SubStatus(fn func(stat *Status)) {
 	b.Subscribe("status", fn)
 }
 
 func (b *Bus) SubTick(fn func(counter int)) {
 	b.Subscribe("tick", fn)
+}
+
+func (b *Bus) SubWSF(fn func(sflds []consts.SFld)) {
+	b.Subscribe("wsf", fn)
 }
 
 // 🟦 Brute force cleanup

@@ -1,7 +1,6 @@
 package keyboard
 
 import (
-	"fmt"
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
@@ -33,7 +32,6 @@ func (k *Keyboard) configure(cfg pubsub.Config) {
 }
 
 func (k *Keyboard) focus(focussed bool) {
-	println(fmt.Sprintf("⌨️ 3270 %s focus", utils.Ternary(focussed, "gains", "loses")))
 	k.st.Patch(state.Patch{
 		Error:   utils.BoolPtr(!focussed),
 		Locked:  utils.BoolPtr(!focussed),
@@ -42,7 +40,6 @@ func (k *Keyboard) focus(focussed bool) {
 }
 
 func (k *Keyboard) keystroke(key pubsub.Keystroke) {
-	println(fmt.Sprintf("⌨️ %s", key))
 	// 👇 prepare to move the cursor -- most keystrokes do this
 	cursorAt := k.st.Stat.CursorAt
 	cursorTo := cursorAt
@@ -57,20 +54,16 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 	switch {
 
 	case aid == consts.CLEAR:
-		println(fmt.Sprintf("🐞 %s", aid))
-		k.bus.PubInboundAttn(aid)
+		k.bus.PubAttn(aid)
 
 	case aid == consts.ENTER:
-		println(fmt.Sprintf("🐞 %s", aid))
-		k.bus.PubInboundRM(aid)
+		k.bus.PubRM(aid)
 
 	case aid.PAx():
-		println(fmt.Sprintf("🐞 %s", aid))
-		k.bus.PubInboundAttn(aid)
+		k.bus.PubAttn(aid)
 
 	case aid.PFx():
-		println(fmt.Sprintf("🐞 %s", aid))
-		k.bus.PubInboundRM(aid)
+		k.bus.PubRM(aid)
 
 	case key.Code == "ArrowDown":
 		cursorTo = cursorAt + k.cfg.Cols
@@ -104,7 +97,6 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 		}
 
 	case key.Code == "Tab":
-		println(fmt.Sprintf("🐞 tab %s", utils.Ternary(key.SHIFT, "bwd", "fwd")))
 		_, ok := k.buf.Tab(utils.Ternary(key.SHIFT, -1, +1))
 		if ok {
 			cursorTo = k.buf.Addr()

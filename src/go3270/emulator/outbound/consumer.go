@@ -58,12 +58,9 @@ func (c *Consumer) consume(chars []byte) {
 	}
 	// 👇 extract amd process command from each frame
 	for _, out := range streams {
-		char, ok := out.Next()
-		if !ok {
-			c.bus.PubPanic("Unable to extract write command")
-		}
+		char, _ := out.Next()
 		cmd := consts.Command(char)
-		println(fmt.Sprintf("🐞 Command.%s", cmd))
+		println(fmt.Sprintf("🐞 %s commanded", cmd))
 		c.commands(out, cmd)
 	}
 	// 👇 render the buffer
@@ -88,14 +85,10 @@ func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 		c.eau()
 
 	case consts.EW:
-		c.bus.PubReset()
-		c.wcc(out)
-		c.orders(out)
+		c.ew(out)
 
 	case consts.EWA:
-		c.bus.PubReset()
-		c.wcc(out)
-		c.orders(out)
+		c.ewa(out)
 
 	case consts.RB:
 		c.rb()
@@ -107,11 +100,10 @@ func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 		c.rma()
 
 	case consts.W:
-		c.wcc(out)
-		c.orders(out)
+		c.w(out)
 
 	case consts.WSF:
-		c.wsf()
+		c.wsf(out)
 	}
 }
 
@@ -119,23 +111,37 @@ func (c *Consumer) eau() {
 	c.bus.PubPanic("🔥 EAU not handled")
 }
 
+func (c *Consumer) ew(out *stream.Outbound) {
+	c.bus.PubReset()
+	c.wcc(out)
+	c.orders(out)
+}
+
+func (c *Consumer) ewa(out *stream.Outbound) {
+	c.bus.PubReset()
+	c.wcc(out)
+	c.orders(out)
+}
+
 func (c *Consumer) rb() {
 	c.bus.PubPanic("🔥 RB not handled")
 }
 
 func (c *Consumer) rm() {
-	c.bus.PubInboundRM(consts.INBOUND)
+	c.bus.PubRM(consts.INBOUND)
 }
 
 func (c *Consumer) rma() {
 	c.bus.PubPanic("🔥 RMA not handled")
 }
 
+func (c *Consumer) w(out *stream.Outbound) {
+	c.wcc(out)
+	c.orders(out)
+}
+
 func (c *Consumer) wcc(out *stream.Outbound) {
-	char, ok := out.Next()
-	if !ok {
-		c.bus.PubPanic("Unable to extract WCC")
-	}
+	char, _ := out.Next()
 	wcc := wcc.NewWCC(char)
 	println(fmt.Sprintf("🐞 %s", wcc))
 	// 👇 honor WCC instructions
@@ -152,8 +158,20 @@ func (c *Consumer) wcc(out *stream.Outbound) {
 	}
 }
 
-func (c *Consumer) wsf() {
-	c.bus.PubPanic("🔥 WSF not handled")
+func (c *Consumer) wsf(out *stream.Outbound) {
+	sflds := make([]consts.SFld, 0)
+	for out.HasNext() {
+		len, _ := out.Next16()
+		id, _ := out.Next()
+		info, _ := out.NextSlice(int(len) - 1)
+		sfld := consts.SFld{
+			ID:   consts.SFID(id),
+			Info: info,
+		}
+		sflds = append(sflds, sfld)
+	}
+	println(fmt.Sprintf("🔥 WSF %v", sflds))
+	c.bus.PubWSF(sflds)
 }
 
 // 🟦 Orders
