@@ -9,16 +9,16 @@ import (
 type AlphanumericPartitions struct {
 	SFID  consts.SFID
 	QCode consts.QCode
-	Cols  int
-	Rows  int
+	NA    byte
+	M     uint16
 }
 
 func NewAlphanumericPartitions(cols, rows int) AlphanumericPartitions {
 	return AlphanumericPartitions{
 		SFID:  consts.QUERY_REPLY,
-		QCode: consts.SUMMARY,
-		Cols:  cols,
-		Rows:  rows,
+		QCode: consts.ALPHANUMERIC_PARTITIONS,
+		NA:    0x00,
+		M:     uint16(cols * rows),
 	}
 }
 
@@ -27,11 +27,9 @@ func (s AlphanumericPartitions) Bytes() ([]byte, uint16) {
 		byte(s.SFID),
 		byte(s.QCode),
 	}
-	// 👇 max number of partitions
-	bytes = append(bytes, 0x00)
-	// 👇 total storage
-	total := uint16(s.Cols * s.Rows)
-	binary.LittleEndian.AppendUint16(bytes, uint16(total))
+	// 👇 flags and data
+	bytes = append(bytes, s.NA)
+	bytes = binary.BigEndian.AppendUint16(bytes, s.M)
 	return bytes, uint16(len(bytes) + 2)
 }
 

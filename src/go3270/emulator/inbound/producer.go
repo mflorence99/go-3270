@@ -51,10 +51,24 @@ func (p *Producer) q() {
 		consts.SUMMARY,
 		consts.USABLE_AREA,
 		consts.ALPHANUMERIC_PARTITIONS,
+		consts.CHARACTER_SETS,
+		consts.COLOR_SUPPORT,
+		consts.HIGHLIGHTING,
+		consts.REPLY_MODES,
+		consts.RPQ_NAMES,
+		consts.DDM,
+		consts.IMPLICIT_PARTITION,
 	}).Put(in)
 	// 👇 then the rest
 	qr.NewUsableArea(p.cfg.Cols, p.cfg.Rows).Put(in)
 	qr.NewAlphanumericPartitions(p.cfg.Cols, p.cfg.Rows).Put(in)
+	qr.NewCharacterSets().Put(in)
+	qr.NewColorSupport(p.cfg.CLUT).Put(in)
+	qr.NewHighlighting().Put(in)
+	qr.NewReplyModes().Put(in)
+	qr.NewRPQNames().Put(in)
+	qr.NewDDM().Put(in)
+	qr.NewImplicitPartition(p.cfg.Cols, p.cfg.Rows).Put(in)
 	// 👇 frame boundary LT is last
 	in.PutSlice(consts.LT)
 	p.bus.PubInbound(in.Bytes())
