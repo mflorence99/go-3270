@@ -1,6 +1,7 @@
 package pubsub
 
 import (
+	"go3270/emulator/attrs"
 	"go3270/emulator/consts"
 	"go3270/emulator/utils"
 )
@@ -69,8 +70,8 @@ func (b *Bus) PubRender(addrs *utils.Stack[int]) {
 	b.Publish("render", addrs)
 }
 
-func (b *Bus) PubRendered(bytes []byte) {
-	b.Publish("rendered", bytes)
+func (b *Bus) PubRendered(bytes []byte, flds [][]*attrs.Cell) {
+	b.Publish("rendered", bytes, flds)
 }
 
 func (b *Bus) PubRM(aid consts.AID) {
@@ -147,7 +148,7 @@ func (b *Bus) SubRender(fn func(addrs *utils.Stack[int])) {
 	b.Subscribe("render", fn)
 }
 
-func (b *Bus) SubRendered(fn func(bytes []byte)) {
+func (b *Bus) SubRendered(fn func(bytes []byte, flds [][]*attrs.Cell)) {
 	b.Subscribe("rendered", fn)
 }
 
@@ -171,6 +172,12 @@ func (b *Bus) SubWSF(fn func(sflds []consts.SFld)) {
 	b.Subscribe("wsf", fn)
 }
 
+// 🟥 Debug only
+
+func (b *Bus) SubDebug(fn func(topic string, handler interface{})) {
+	b.Subscribe("$$$", fn)
+}
+
 // 🟦 Brute force cleanup
 
 func (b *Bus) UnsubscribeAll() {
@@ -180,14 +187,12 @@ func (b *Bus) UnsubscribeAll() {
 // 🟦 Public, just for test cases
 
 func (b *Bus) Publish(topic string, args ...any) {
-	handlers, ok := b.handlers[topic]
-	if ok {
-		for _, handler := range handlers {
-			// if topic != "tick" {
-			// 	pkg, nm := utils.GetFuncName(handler)
-			// 	println(fmt.Sprintf("🐞 topic %s -> func %s() in %s", topic, nm, pkg))
-			// }
-			utils.Call(handler, args...)
+	debuggers := b.handlers["$$$"]
+	handlers := b.handlers[topic]
+	for _, handler := range handlers {
+		utils.Call(handler, args...)
+		for _, debugger := range debuggers {
+			utils.Call(debugger, topic, handler)
 		}
 	}
 }

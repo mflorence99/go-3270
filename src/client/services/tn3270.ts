@@ -97,9 +97,11 @@ export class Tn3270 {
   }
 
   close(): void {
-    console.log('%cTn3270 closing', 'color: tan');
-    this.#socket?.close(1000);
-    this.#socket = null;
+    if (this.#socket) {
+      this.#socket.close(1000);
+      console.log('🐞 Tn3270 closed');
+      this.#socket = null;
+    }
   }
 
   // 🔥 this class emulates the device and "outbound" data streams flow FROM application code TO the device

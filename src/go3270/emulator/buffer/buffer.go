@@ -13,7 +13,7 @@ import (
 type Buffer struct {
 	addr   int
 	bus    *pubsub.Bus
-	buf    []*Cell
+	buf    []*attrs.Cell
 	cfg    pubsub.Config
 	deltas *utils.Stack[int]
 }
@@ -29,7 +29,7 @@ func NewBuffer(bus *pubsub.Bus) *Buffer {
 
 func (b *Buffer) configure(cfg pubsub.Config) {
 	b.cfg = cfg
-	b.buf = make([]*Cell, cfg.Cols*cfg.Rows)
+	b.buf = make([]*attrs.Cell, cfg.Cols*cfg.Rows)
 	b.deltas = utils.NewStack[int](1)
 }
 
@@ -68,21 +68,21 @@ func (b *Buffer) Deltas() *utils.Stack[int] {
 func (b *Buffer) Erase(char byte) {
 	b.addr = 0
 	for ix := range b.buf {
-		b.buf[ix] = &Cell{Attrs: &attrs.Attrs{Protected: true}, Char: char}
+		b.buf[ix] = &attrs.Cell{Attrs: &attrs.Attrs{Protected: true}, Char: char}
 	}
 	for !b.deltas.Empty() {
 		b.deltas.Pop()
 	}
 }
 
-func (b *Buffer) Flds() [][]*Cell {
-	fld := make([]*Cell, 0)
-	flds := make([][]*Cell, 0)
+func (b *Buffer) Flds() [][]*attrs.Cell {
+	fld := make([]*attrs.Cell, 0)
+	flds := make([][]*attrs.Cell, 0)
 	for _, cell := range b.buf {
 		if cell != nil && cell.FldStart {
 			if len(fld) > 0 {
 				flds = append(flds, fld)
-				fld = make([]*Cell, 0)
+				fld = make([]*attrs.Cell, 0)
 			}
 		}
 		fld = append(fld, cell)
@@ -98,7 +98,7 @@ func (b *Buffer) Len() int {
 	return len(b.buf)
 }
 
-func (b *Buffer) Peek(addr int) (*Cell, bool) {
+func (b *Buffer) Peek(addr int) (*attrs.Cell, bool) {
 	if addr >= len(b.buf) {
 		return nil, false
 	}
@@ -119,11 +119,11 @@ func (b *Buffer) Seek(addr int) (int, bool) {
 //    GetNext() cell at current address + 1, honoring wrap
 //    GetPrev() cell at current address - 1, honoring wrap
 
-func (b *Buffer) Get() (*Cell, int) {
+func (b *Buffer) Get() (*attrs.Cell, int) {
 	return b.buf[b.addr], b.addr
 }
 
-func (b *Buffer) GetNext() (*Cell, int) {
+func (b *Buffer) GetNext() (*attrs.Cell, int) {
 	addr := b.addr + 1
 	if addr >= len(b.buf) {
 		addr = 0
@@ -131,7 +131,7 @@ func (b *Buffer) GetNext() (*Cell, int) {
 	return b.buf[addr], addr
 }
 
-func (b *Buffer) PrevGet() (*Cell, int) {
+func (b *Buffer) PrevGet() (*attrs.Cell, int) {
 	addr := b.addr - 1
 	if addr < 0 {
 		addr = len(b.buf) - 1
@@ -146,13 +146,13 @@ func (b *Buffer) PrevGet() (*Cell, int) {
 //    StartFld() like SetAndNext(), but for a pre-fab'd SF field
 //    PrevAndSet() point to previous cell then replace it
 
-func (b *Buffer) Set(c *Cell) int {
+func (b *Buffer) Set(c *attrs.Cell) int {
 	b.buf[b.addr] = c
 	b.deltas.Push(b.addr)
 	return b.addr
 }
 
-func (b *Buffer) SetAndNext(c *Cell) int {
+func (b *Buffer) SetAndNext(c *attrs.Cell) int {
 	addr := b.Set(c)
 	if b.addr++; b.addr >= len(b.buf) {
 		b.addr = 0
@@ -160,9 +160,9 @@ func (b *Buffer) SetAndNext(c *Cell) int {
 	return addr
 }
 
-func (b *Buffer) StartFld(attrs *attrs.Attrs) int {
-	c := Cell{
-		Attrs:    attrs,
+func (b *Buffer) StartFld(a *attrs.Attrs) int {
+	c := attrs.Cell{
+		Attrs:    a,
 		Char:     byte(consts.SF),
 		FldAddr:  b.addr,
 		FldStart: true,
@@ -170,7 +170,7 @@ func (b *Buffer) StartFld(attrs *attrs.Attrs) int {
 	return b.SetAndNext(&c)
 }
 
-func (b *Buffer) PrevAndSet(c *Cell) int {
+func (b *Buffer) PrevAndSet(c *attrs.Cell) int {
 	if b.addr--; b.addr < 0 {
 		b.addr = len(b.buf) - 1
 	}
@@ -188,7 +188,7 @@ func (b *Buffer) Keyin(char byte) (int, bool) {
 	c, _ := b.Get()
 	// 👇 validate data entry into current cell
 	numlock := c.Attrs.Numeric && !strings.Contains("-0123456789.", string(char))
-	prot := c.FldStart || c.Attrs.Hidden || c.Attrs.Protected
+	prot := c.FldStart || c.Attrs.Protected
 	if numlock || prot {
 		return -1, false
 	}
@@ -207,7 +207,7 @@ func (b *Buffer) Keyin(char byte) (int, bool) {
 func (b *Buffer) Backspace() (int, bool) {
 	// 👇 validate data entry into previous cell
 	c, addr := b.PrevGet()
-	prot := c.FldStart || c.Attrs.Hidden || c.Attrs.Protected
+	prot := c.FldStart || c.Attrs.Protected
 	if prot {
 		return -1, false
 	}

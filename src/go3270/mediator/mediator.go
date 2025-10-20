@@ -63,7 +63,6 @@ func NewMediator(this js.Value, args []js.Value) any {
 func (m *Mediator) close() {
 	m.bus.PubClose()
 	m.bus.UnsubscribeAll()
-	println("🐞 Mediator closed")
 }
 
 func (m *Mediator) configure(args []js.Value) pubsub.Config {
@@ -79,7 +78,6 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 		v := [2]string{obj.Get(k).Index(0).String(), obj.Get(k).Index(1).String()}
 		clut[consts.ColorOf(k)] = v
 	}
-	println(fmt.Sprintf("🎨 %v", clut))
 	fontSize := args[4].Float()
 	cols := args[5].Int()
 	rows := args[6].Int()

@@ -30,10 +30,11 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	e := new(Emulator)
 	e.bus = bus
 	e.cfg = cfg
+	// 👇 logger very first, as we need its logging to precede actions
+	e.log = pubsub.NewLogger(e.bus)
 	// 👇 core components; need these FIRST
 	e.buf = buffer.NewBuffer(e.bus)
 	e.gc = glyph.NewCache(e.bus)
-	e.log = pubsub.NewLogger(e.bus)
 	e.st = state.NewState(e.bus)
 	// 👇 rendering components
 	e.scr = screen.NewScreen(e.bus, e.buf, e.gc, e.st)
@@ -50,5 +51,5 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 }
 
 func (e *Emulator) close() {
-	println("🐞 Emulator closed")
+	// 🔥 placeholder, just in case we need it
 }

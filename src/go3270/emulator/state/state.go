@@ -65,7 +65,6 @@ func (s *State) Patch(p Patch) {
 		s.Stat.Waiting = *p.Waiting
 	}
 	s.bus.PubStatus(s.Stat)
-	// println(fmt.Sprintf("⚙️ %s", s.Stat))
 	// 👇 make sure to reset alarm
 	s.Stat.Alarm = false
 }

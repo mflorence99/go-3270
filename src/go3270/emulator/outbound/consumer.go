@@ -57,7 +57,7 @@ func (c *Consumer) consume(chars []byte) {
 	}
 	// 👇 render the buffer
 	c.bus.PubRender(c.buf.Deltas())
-	c.bus.PubRendered(c.buf.Chars())
+	c.bus.PubRendered(c.buf.Chars(), c.buf.Flds())
 }
 
 // 🟦 Commands
@@ -94,18 +94,23 @@ func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 
 func (c *Consumer) eau() {
 	c.bus.PubPanic("🔥 EAU not handled")
+	// NOTE: EAU doesn't need a WCC
 }
 
 func (c *Consumer) ew(out *stream.Outbound) {
-	c.bus.PubReset()
-	c.wcc(out)
-	c.orders(out)
+	_, ok := c.wcc(out)
+	if ok {
+		c.orders(out)
+		c.normalize()
+	}
 }
 
 func (c *Consumer) ewa(out *stream.Outbound) {
-	c.bus.PubReset()
-	c.wcc(out)
-	c.orders(out)
+	_, ok := c.wcc(out)
+	if ok {
+		c.orders(out)
+		c.normalize()
+	}
 }
 
 func (c *Consumer) rb() {
@@ -125,21 +130,26 @@ func (c *Consumer) w(out *stream.Outbound) {
 	c.orders(out)
 }
 
-func (c *Consumer) wcc(out *stream.Outbound) {
-	char, _ := out.Next()
-	wcc := wcc.NewWCC(char)
-	println(fmt.Sprintf("🐞 %s", wcc))
-	// 👇 honor WCC instructions
-	c.st.Patch(state.Patch{
-		Alarm:  utils.BoolPtr(wcc.Alarm),
-		Locked: utils.BoolPtr(!wcc.Unlock),
-	})
-	// 🔥 not yet handled
-	if wcc.Reset {
-		println("🔥 wcc.Reset not handled")
-	}
-	if wcc.ResetMDT {
-		println("🔥 wcc.ResetMDT not handled")
+func (c *Consumer) wcc(out *stream.Outbound) (*wcc.WCC, bool) {
+	char, ok := out.Next()
+	if ok {
+		wcc := wcc.NewWCC(char)
+		println(fmt.Sprintf("🐞 %s", wcc))
+		// 👇 honor WCC instructions
+		c.st.Patch(state.Patch{
+			Alarm:  utils.BoolPtr(wcc.Alarm),
+			Locked: utils.BoolPtr(!wcc.Unlock),
+		})
+		// 🔥 not yet handled
+		if wcc.Reset {
+			c.bus.PubReset()
+		}
+		if wcc.ResetMDT {
+			println("🔥 WCC ResetMDT not implemented")
+		}
+		return wcc, true
+	} else {
+		return nil, false
 	}
 }
 
@@ -155,7 +165,6 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 		}
 		sflds = append(sflds, sfld)
 	}
-	println(fmt.Sprintf("🔥 WSF %v", sflds))
 	// 👇 there are a million SF types, but we are interested in READ_PARTITION
 	c.bus.PubWSF(sflds)
 	for _, sfld := range sflds {
@@ -232,7 +241,7 @@ func (c *Consumer) orders(out *stream.Outbound) {
 		// 👇 if it isn't an order, it's data
 		default:
 			if char == 0x00 || char >= 0x40 {
-				cell := &buffer.Cell{
+				cell := &attrs.Cell{
 					Attrs:    fldAttrs,
 					Char:     conv.E2A(char),
 					FldAddr:  fldAddr,
@@ -314,9 +323,6 @@ func (c *Consumer) sba(out *stream.Outbound) {
 func (c *Consumer) sf(out *stream.Outbound) (int, *attrs.Attrs) {
 	next, _ := out.Next()
 	fldAttrs := attrs.NewBasic(next)
-	if !fldAttrs.Protected {
-		println(fmt.Sprintf("🐞 SF at %d %s", c.buf.Addr(), fldAttrs))
-	}
 	fldAddr := c.buf.StartFld(fldAttrs)
 	return fldAddr, fldAttrs
 }
@@ -325,9 +331,20 @@ func (c *Consumer) sfe(out *stream.Outbound) (int, *attrs.Attrs) {
 	count, _ := out.Next()
 	next, _ := out.NextSlice(int(count) * 2)
 	fldAttrs := attrs.NewExtended(next)
-	if !fldAttrs.Protected {
-		println(fmt.Sprintf("🐞 SFE at %d %s", c.buf.Addr(), fldAttrs))
-	}
 	fldAddr := c.buf.StartFld(fldAttrs)
 	return fldAddr, fldAttrs
+}
+
+// 🟦 Helpers
+
+func (c *Consumer) normalize() {
+	// 👇 make sure all cells in a field have the same attributes
+	for _, cells := range c.buf.Flds() {
+		fld := cells[0]
+		for ix := 1; ix < len(cells); ix++ {
+			cell := cells[ix]
+			cell.Attrs = fld.Attrs
+			cell.FldAddr = fld.FldAddr
+		}
+	}
 }

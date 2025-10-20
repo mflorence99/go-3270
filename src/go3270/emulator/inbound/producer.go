@@ -5,6 +5,7 @@ import (
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
 	"go3270/emulator/pubsub"
+	"go3270/emulator/sfld/qr"
 	"go3270/emulator/state"
 	"go3270/emulator/stream"
 )
@@ -43,7 +44,20 @@ func (p *Producer) configure(cfg pubsub.Config) {
 }
 
 func (p *Producer) q() {
-	println("🔥 Q not handled")
+	in := stream.NewInbound()
+	in.Put(byte(consts.INBOUND))
+	// 👇 SUMMARY
+	qr.NewSummary([]consts.QCode{
+		consts.SUMMARY,
+		consts.USABLE_AREA,
+		consts.ALPHANUMERIC_PARTITIONS,
+	}).Put(in)
+	// 👇 then the rest
+	qr.NewUsableArea(p.cfg.Cols, p.cfg.Rows).Put(in)
+	qr.NewAlphanumericPartitions(p.cfg.Cols, p.cfg.Rows).Put(in)
+	// 👇 frame boundary LT is last
+	in.PutSlice(consts.LT)
+	p.bus.PubInbound(in.Bytes())
 }
 
 func (p *Producer) rb(aid consts.AID) {
@@ -63,6 +77,10 @@ func (p *Producer) rm(aid consts.AID) {
 			in.Put(byte(consts.SBA))
 			in.PutSlice(conv.AddrToBytes(cells[0].FldAddr + 1))
 			for ix := 1; ix < len(cells); ix++ {
+				char := cells[ix].Char
+				if char == 0x00 {
+					break
+				}
 				in.Put(conv.A2E(cells[ix].Char))
 			}
 		}

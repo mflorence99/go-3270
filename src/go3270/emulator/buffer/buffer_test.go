@@ -26,7 +26,7 @@ func testBuffer() *buffer.Buffer {
 func Test_Smoke(t *testing.T) {
 	b := testBuffer()
 	assert.True(t, b.Len() == 100)
-	c := buffer.Cell{Char: 0x00}
+	c := attrs.Cell{Char: 0x00}
 	assert.True(t, c.Char == 0x00)
 }
 
@@ -82,8 +82,8 @@ func Test_GetPrev(t *testing.T) {
 
 // 🟦 Set methods
 
-func makeCell(num bool) *buffer.Cell {
-	c := &buffer.Cell{
+func makeCell(num bool) *attrs.Cell {
+	c := &attrs.Cell{
 		Attrs:    &attrs.Attrs{Numeric: num},
 		Char:     0x40,
 		FldAddr:  0,
