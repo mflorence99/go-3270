@@ -1,5 +1,9 @@
 package stream
 
+import (
+	"encoding/binary"
+)
+
 // 🔥 "Inbound" data flows from the 3270 ie this code to the application
 
 type Inbound struct {
@@ -22,8 +26,7 @@ func (in *Inbound) Put(char byte) []byte {
 }
 
 func (in *Inbound) Put16(chars uint16) []byte {
-	in.bytes = append(in.bytes, byte(chars>>8))
-	in.bytes = append(in.bytes, byte(chars&0x00ff))
+	in.bytes = binary.BigEndian.AppendUint16(in.bytes, chars)
 	return in.bytes
 }
 

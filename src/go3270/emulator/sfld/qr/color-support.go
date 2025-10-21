@@ -3,47 +3,51 @@ package qr
 import (
 	"go3270/emulator/consts"
 	"go3270/emulator/stream"
+
+	"golang.org/x/exp/maps"
 )
 
 type ColorSupport struct {
 	SFID  consts.SFID
 	QCode consts.QCode
-	CLUT  map[consts.Color][2]string
+	Flags byte
+	NP    byte
+	CAVs  [][]byte
 }
 
 func NewColorSupport(clut map[consts.Color][2]string) ColorSupport {
+	colors := maps.Keys(clut)
+	cavs := make([][]byte, len(colors))
+	for ix, color := range colors {
+		if color == consts.BLACK {
+			// 🔥 approximation to spec: 0x00 color is displayed as "green". In reality, we never use 0x00, but instead supplied defaults
+			cavs[ix] = []byte{0x00, 0xF4}
+		} else {
+			cavs[ix] = []byte{byte(color), byte(color)}
+		}
+	}
 	return ColorSupport{
 		SFID:  consts.QUERY_REPLY,
 		QCode: consts.COLOR_SUPPORT,
-		CLUT:  clut,
+		// 👇 flags appropriate for "not a printer"
+		Flags: 0x00,
+		NP:    byte(len(clut)),
+		CAVs:  cavs,
 	}
 }
 
-func (s ColorSupport) Bytes() ([]byte, uint16) {
+func (s ColorSupport) Put(in *stream.Inbound) {
 	bytes := []byte{
 		byte(s.SFID),
 		byte(s.QCode),
 	}
-	// 👇 flags appropriate for "not a printer"
-	bytes = append(bytes, 0b00000000)
-	// 👇 extract color support from the CLUT
-	bytes = append(bytes, byte(len(s.CLUT)))
-	for k := range s.CLUT {
-		if k == 0xF0 {
-			// 🔥 approximation to spec: 0x00 color is displayed as "green". In reality, we never use 0x00, but instead supplied defaults
-			bytes = append(bytes, 0x00)
-			bytes = append(bytes, byte(consts.GREEN))
-		} else {
-			// 👇 normal case: requested to actual color mapping
-			bytes = append(bytes, byte(k))
-			bytes = append(bytes, byte(k))
-		}
+	// 👇 flags and data
+	bytes = append(bytes, s.Flags)
+	bytes = append(bytes, s.NP)
+	for _, cav := range s.CAVs {
+		bytes = append(bytes, cav...)
 	}
-	return bytes, uint16(len(bytes) + 2)
-}
 
-func (s ColorSupport) Put(in *stream.Inbound) {
-	bytes, len := s.Bytes()
-	in.Put16(len)
+	in.Put16(uint16(len(bytes) + 2))
 	in.PutSlice(bytes)
 }

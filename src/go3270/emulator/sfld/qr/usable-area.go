@@ -28,7 +28,7 @@ func NewUsableArea(cols, rows int) UsableArea {
 	}
 }
 
-func (s UsableArea) Bytes() ([]byte, uint16) {
+func (s UsableArea) Put(in *stream.Inbound) {
 	bytes := []byte{
 		byte(s.SFID),
 		byte(s.QCode),
@@ -38,11 +38,6 @@ func (s UsableArea) Bytes() ([]byte, uint16) {
 	bytes = append(bytes, s.Flags2)
 	bytes = binary.BigEndian.AppendUint16(bytes, s.W)
 	bytes = binary.BigEndian.AppendUint16(bytes, s.H)
-	return bytes, uint16(len(bytes) + 2)
-}
-
-func (s UsableArea) Put(in *stream.Inbound) {
-	bytes, len := s.Bytes()
-	in.Put16(len)
+	in.Put16(uint16(len(bytes) + 2))
 	in.PutSlice(bytes)
 }

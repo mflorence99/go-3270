@@ -22,7 +22,7 @@ func NewAlphanumericPartitions(cols, rows int) AlphanumericPartitions {
 	}
 }
 
-func (s AlphanumericPartitions) Bytes() ([]byte, uint16) {
+func (s AlphanumericPartitions) Put(in *stream.Inbound) {
 	bytes := []byte{
 		byte(s.SFID),
 		byte(s.QCode),
@@ -30,11 +30,6 @@ func (s AlphanumericPartitions) Bytes() ([]byte, uint16) {
 	// 👇 flags and data
 	bytes = append(bytes, s.NA)
 	bytes = binary.BigEndian.AppendUint16(bytes, s.M)
-	return bytes, uint16(len(bytes) + 2)
-}
-
-func (s AlphanumericPartitions) Put(in *stream.Inbound) {
-	bytes, len := s.Bytes()
-	in.Put16(len)
+	in.Put16(uint16(len(bytes) + 2))
 	in.PutSlice(bytes)
 }

@@ -21,7 +21,7 @@ func NewCharacterSets() CharacterSets {
 	}
 }
 
-func (s CharacterSets) Bytes() ([]byte, uint16) {
+func (s CharacterSets) Put(in *stream.Inbound) {
 	bytes := []byte{
 		byte(s.SFID),
 		byte(s.QCode),
@@ -29,11 +29,6 @@ func (s CharacterSets) Bytes() ([]byte, uint16) {
 	// 👇 flags indicating basic support
 	bytes = append(bytes, s.Flag1)
 	bytes = append(bytes, s.Flag2)
-	return bytes, uint16(len(bytes) + 2)
-}
-
-func (s CharacterSets) Put(in *stream.Inbound) {
-	bytes, len := s.Bytes()
-	in.Put16(len)
+	in.Put16(uint16(len(bytes) + 2))
 	in.PutSlice(bytes)
 }

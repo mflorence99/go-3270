@@ -73,7 +73,7 @@ func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 		c.ew(out)
 
 	case consts.EWA:
-		c.ewa(out)
+		c.ew(out)
 
 	case consts.RB:
 		c.rb()
@@ -100,14 +100,7 @@ func (c *Consumer) eau() {
 func (c *Consumer) ew(out *stream.Outbound) {
 	_, ok := c.wcc(out)
 	if ok {
-		c.orders(out)
-		c.normalize()
-	}
-}
-
-func (c *Consumer) ewa(out *stream.Outbound) {
-	_, ok := c.wcc(out)
-	if ok {
+		c.bus.PubReset()
 		c.orders(out)
 		c.normalize()
 	}
@@ -142,7 +135,7 @@ func (c *Consumer) wcc(out *stream.Outbound) (*wcc.WCC, bool) {
 		})
 		// 🔥 not yet handled
 		if wcc.Reset {
-			c.bus.PubReset()
+			println("🔥 WCC Reset not implemented")
 		}
 		if wcc.ResetMDT {
 			println("🔥 WCC ResetMDT not implemented")

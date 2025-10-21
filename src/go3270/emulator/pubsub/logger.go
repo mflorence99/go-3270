@@ -18,7 +18,7 @@ func NewLogger(bus *Bus) *Logger {
 	// 👇 do this in ctor, so logging precedes actions it logs
 	l.bus.SubClose(l.close)
 	l.bus.SubConfig(l.configure)
-	l.bus.SubDebug(l.debug)
+	// l.bus.SubDebug(l.debug)
 	l.bus.SubInbound(l.produce)
 	l.bus.SubOutbound(l.consume)
 	l.bus.SubRendered(l.rendered)
@@ -47,7 +47,7 @@ func (l *Logger) consume(chars []byte) {
 }
 
 func (l *Logger) debug(topic string, handler interface{}) {
-	if topic != "tick" /* 🔥 suppressed ?? && false */ {
+	if topic != "tick" /* 🔥 suppressed ?? */ && false {
 		pkg, nm := utils.GetFuncName(handler)
 		println(fmt.Sprintf("🐞 topic %s -> func %s() in %s", topic, nm, pkg))
 	}

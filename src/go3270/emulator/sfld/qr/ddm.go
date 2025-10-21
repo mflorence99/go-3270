@@ -28,7 +28,7 @@ func NewDDM() DDM {
 	}
 }
 
-func (s DDM) Bytes() ([]byte, uint16) {
+func (s DDM) Put(in *stream.Inbound) {
 	bytes := []byte{
 		byte(s.SFID),
 		byte(s.QCode),
@@ -39,11 +39,6 @@ func (s DDM) Bytes() ([]byte, uint16) {
 	bytes = binary.BigEndian.AppendUint16(bytes, s.LimOut)
 	bytes = append(bytes, s.NSS)
 	bytes = append(bytes, s.DDMSS)
-	return bytes, uint16(len(bytes) + 2)
-}
-
-func (s DDM) Put(in *stream.Inbound) {
-	bytes, len := s.Bytes()
-	in.Put16(len)
+	in.Put16(uint16(len(bytes) + 2))
 	in.PutSlice(bytes)
 }
