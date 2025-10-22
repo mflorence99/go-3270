@@ -31,10 +31,9 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	e := new(Emulator)
 	e.bus = bus
 	e.cfg = cfg
-	// 👇 logger very first, as we need its logging to precede actions
-	e.log = debug.NewLogger(e.bus)
 	// 👇 core components; need these FIRST
 	e.buf = buffer.NewBuffer(e.bus)
+	e.log = debug.NewLogger(e.bus, e.buf)
 	e.gc = glyph.NewCache(e.bus)
 	e.st = state.NewState(e.bus)
 	// 👇 rendering components

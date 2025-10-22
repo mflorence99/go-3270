@@ -1,6 +1,7 @@
 package debug
 
 import (
+	"go3270/emulator/buffer"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/utils"
 	"os"
@@ -9,18 +10,21 @@ import (
 )
 
 type Logger struct {
+	buf *buffer.Buffer
 	bus *pubsub.Bus
 	cfg pubsub.Config
 }
 
-func NewLogger(bus *pubsub.Bus) *Logger {
+func NewLogger(bus *pubsub.Bus, buf *buffer.Buffer) *Logger {
 	l := new(Logger)
+	l.buf = buf
 	l.bus = bus
 	// 👇 do this in ctor, so logging precedes actions it logs
 	l.bus.SubClose(l.close)
 	l.bus.SubConfig(l.configure)
 	l.bus.SubInbound(l.inbound)
 	l.bus.SubOutbound(l.outbound)
+	l.bus.SubRender(l.render)
 	l.bus.SubTrace(l.trace)
 	return l
 }
@@ -42,6 +46,10 @@ func (l *Logger) inbound(chars []byte) {
 
 func (l *Logger) outbound(chars []byte) {
 	LogOutbound(chars)
+}
+
+func (l *Logger) render() {
+	LogBuffer(l.cfg, l.buf)
 }
 
 func (l *Logger) trace(topic string, handler interface{}) {

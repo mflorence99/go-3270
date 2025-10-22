@@ -17,7 +17,7 @@ func LogWCC(wcc *wcc.WCC) {
 		{Number: 5, Align: text.AlignCenter},
 	})
 	t.AppendHeader(table.Row{"", "Alarm", "Reset", "ResetMDT", "Unlock"})
-	t.AppendRows([]table.Row{
-		{"WCC", Bool(wcc.Alarm), Bool(wcc.Reset), Bool(wcc.ResetMDT), Bool(wcc.Unlock)},
+	t.AppendRow(table.Row{
+		"WCC", Bool(wcc.Alarm), Bool(wcc.Reset), Bool(wcc.ResetMDT), Bool(wcc.Unlock),
 	})
 }

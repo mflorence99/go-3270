@@ -11,9 +11,9 @@ func LogConfig(cfg pubsub.Config) {
 	defer t.Render()
 	t.AppendHeader(table.Row{"", "", "Color", "Color", "Color", "Font", "Font", "Font", "Padding", "Padding"})
 	t.AppendHeader(table.Row{"#Rows", "#Cols", "BG", "Normal", "Highlight", "Width", "Height", "Size", "Width", "Height"})
-	t.AppendRows([]table.Row{
-		{cfg.Rows, cfg.Cols, cfg.BgColor, cfg.Color[0], cfg.Color[1], cfg.FontWidth, cfg.FontHeight, cfg.FontSize, cfg.PaddedWidth, cfg.PaddedHeight},
-	})
+	t.AppendRow(table.Row{
+		cfg.Rows, cfg.Cols, cfg.BgColor, cfg.Color[0], cfg.Color[1], cfg.FontWidth, cfg.FontHeight, cfg.FontSize, cfg.PaddedWidth, cfg.PaddedHeight},
+	)
 }
 
 func LogCLUT(cfg pubsub.Config) {
@@ -22,6 +22,6 @@ func LogCLUT(cfg pubsub.Config) {
 	t.AppendHeader(table.Row{"", "Color", "Color"})
 	t.AppendHeader(table.Row{"", "Normal", "Highlight"})
 	for k, v := range cfg.CLUT {
-		t.AppendRows([]table.Row{{k, v[0], v[1]}})
+		t.AppendRow(table.Row{k, v[0], v[1]})
 	}
 }
