@@ -2,9 +2,10 @@ package pubsub
 
 import (
 	"fmt"
-	"go3270/emulator/attrs"
-	"go3270/emulator/consts"
 	"go3270/emulator/utils"
+	"os"
+
+	"github.com/jedib0t/go-pretty/v6/table"
 )
 
 type Logger struct {
@@ -18,12 +19,9 @@ func NewLogger(bus *Bus) *Logger {
 	// 👇 do this in ctor, so logging precedes actions it logs
 	l.bus.SubClose(l.close)
 	l.bus.SubConfig(l.configure)
-	// l.bus.SubDebug(l.debug)
-	l.bus.SubInbound(l.produce)
-	l.bus.SubOutbound(l.consume)
-	l.bus.SubRendered(l.rendered)
-	l.bus.SubStatus(l.status)
-	l.bus.SubWSF(l.wsf)
+	l.bus.SubDebug(l.debug)
+	l.bus.SubInbound(l.inbound)
+	l.bus.SubOutbound(l.outbound)
 	return l
 }
 
@@ -34,16 +32,18 @@ func (l *Logger) close() {
 func (l *Logger) configure(cfg Config) {
 	println("🐞 Emulator initialized")
 	l.cfg = cfg
-}
-
-func (l *Logger) consume(chars []byte) {
-	dmp := Dump{
-		Bytes:  chars,
-		Color:  "yellow",
-		EBCDIC: true,
-		Title:  "Outbound",
-	}
-	l.bus.PubDump(dmp)
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"#", "First Name", "Last Name", "Salary"})
+	t.AppendRows([]table.Row{
+		{1, "Arya", "Stark", 3000},
+		{20, "Jon", "Snow", 2000, "You know nothing, Jon Snow!"},
+	})
+	t.AppendSeparator()
+	t.AppendRow([]interface{}{300, "Tyrion", "Lannister", 5000})
+	t.AppendFooter(table.Row{"", "", "Total", 10000})
+	t.SetStyle(table.StyleLight)
+	t.Render()
 }
 
 func (l *Logger) debug(topic string, handler interface{}) {
@@ -53,35 +53,8 @@ func (l *Logger) debug(topic string, handler interface{}) {
 	}
 }
 
-func (l *Logger) produce(chars []byte) {
-	dmp := Dump{
-		Bytes:  chars,
-		Color:  "palegreen",
-		EBCDIC: true,
-		Title:  "Inbound",
-	}
-	l.bus.PubDump(dmp)
+func (l *Logger) inbound(chars []byte) {
 }
 
-func (l *Logger) rendered(chars []byte, flds [][]*attrs.Cell) {
-	dmp := Dump{
-		Bytes:  chars,
-		Color:  "plum",
-		EBCDIC: false,
-		Title:  "Rendered Buffer",
-	}
-	l.bus.PubDump(dmp)
-	// 👇 log each field in the buffer
-	for _, cells := range flds {
-		cell := cells[0]
-		println(fmt.Sprintf("🐞 SF at %d %s", cell.FldAddr, cell.Attrs))
-	}
-}
-
-func (l *Logger) status(stat *Status) {
-	println(fmt.Sprintf("⚙️ %s", stat))
-}
-
-func (l *Logger) wsf(sflds []consts.SFld) {
-	println(fmt.Sprintf("🔥 WSF %v", sflds))
+func (l *Logger) outbound(chars []byte) {
 }

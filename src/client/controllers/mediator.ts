@@ -2,8 +2,6 @@ import { ReactiveController } from 'lit';
 import { Root } from '$client/pages/root';
 import { Status } from '$client/state/state';
 
-import { dumpBytes } from '$lib/dump';
-
 export const Pages = {
   connector: 0,
   emulator: 1,
@@ -43,13 +41,6 @@ export class Mediator implements ReactiveController {
 
   async go3270Message(evt: Event): Promise<void> {
     switch ((evt as CustomEvent).detail.eventType) {
-      case 'dump':
-        {
-          const { bytes, title, ebcdic, color } = (evt as CustomEvent)
-            .detail;
-          dumpBytes(bytes, title, ebcdic, color);
-        }
-        break;
       case 'panic':
         {
           const { args } = (evt as CustomEvent).detail;

@@ -51,7 +51,6 @@ func NewMediator(this js.Value, args []js.Value) any {
 	m := new(Mediator)
 	m.bus = pubsub.NewBus()
 	// 🔥 must subscribe BEFORE we create the emulator
-	m.bus.SubDump(m.dump)
 	m.bus.SubInbound(m.inbound)
 	m.bus.SubPanic(m.panic)
 	m.bus.SubStatus(m.status)
@@ -170,19 +169,6 @@ func (m *Mediator) dispatchEvent(params map[string]any) {
 		"detail": params,
 	})
 	js.Global().Get("window").Call("dispatchEvent", event)
-}
-
-func (m *Mediator) dump(dmp pubsub.Dump) {
-	u8s := js.Global().Get("Uint8ClampedArray").New(len(dmp.Bytes))
-	js.CopyBytesToJS(u8s, dmp.Bytes)
-	params := map[string]any{
-		"eventType": "dump",
-		"bytes":     u8s,
-		"color":     dmp.Color,
-		"ebcdic":    dmp.EBCDIC,
-		"title":     dmp.Title,
-	}
-	m.dispatchEvent(params)
 }
 
 func (m *Mediator) inbound(bytes []byte) {

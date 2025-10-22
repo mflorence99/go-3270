@@ -22,3 +22,13 @@ type Config struct {
 	RGBA         *image.RGBA
 	Rows         int
 }
+
+func (c Config) Addr2RC(addr int) (int, int) {
+	row := int(addr/c.Cols) + 1
+	col := (addr % c.Cols) + 1
+	return row, col
+}
+
+func (c Config) RC2Addr(row, col int) int {
+	return (row-1)*c.Cols + c.Cols - 1
+}

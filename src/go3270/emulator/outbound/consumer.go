@@ -57,7 +57,6 @@ func (c *Consumer) consume(chars []byte) {
 	}
 	// 👇 render the buffer
 	c.bus.PubRender(c.buf.Deltas())
-	c.bus.PubRendered(c.buf.Chars(), c.buf.Flds())
 }
 
 // 🟦 Commands
@@ -159,7 +158,6 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 		sflds = append(sflds, sfld)
 	}
 	// 👇 there are a million SF types, but we are interested in READ_PARTITION
-	c.bus.PubWSF(sflds)
 	for _, sfld := range sflds {
 		if sfld.ID == consts.READ_PARTITION {
 			pid := sfld.Info[0]

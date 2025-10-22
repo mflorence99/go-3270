@@ -1,7 +1,6 @@
 package pubsub
 
 import (
-	"go3270/emulator/attrs"
 	"go3270/emulator/consts"
 	"go3270/emulator/utils"
 )
@@ -28,10 +27,6 @@ func (b *Bus) PubClose() {
 
 func (b *Bus) PubConfig(cfg Config) {
 	b.Publish("config", cfg)
-}
-
-func (b *Bus) PubDump(dmp Dump) {
-	b.Publish("dump", dmp)
 }
 
 func (b *Bus) PubFocus(focus bool) {
@@ -70,10 +65,6 @@ func (b *Bus) PubRender(addrs *utils.Stack[int]) {
 	b.Publish("render", addrs)
 }
 
-func (b *Bus) PubRendered(bytes []byte, flds [][]*attrs.Cell) {
-	b.Publish("rendered", bytes, flds)
-}
-
 func (b *Bus) PubRM(aid consts.AID) {
 	b.Publish("rm", aid)
 }
@@ -90,10 +81,6 @@ func (b *Bus) PubTick(counter int) {
 	b.Publish("tick", counter)
 }
 
-func (b *Bus) PubWSF(sflds []consts.SFld) {
-	b.Publish("wsf", sflds)
-}
-
 // 🟦 Type-safe subscribers
 
 func (b *Bus) SubAttn(fn func(aid consts.AID)) {
@@ -106,10 +93,6 @@ func (b *Bus) SubClose(fn func()) {
 
 func (b *Bus) SubConfig(fn func(cfg Config)) {
 	b.Subscribe("config", fn)
-}
-
-func (b *Bus) SubDump(fn func(dmp Dump)) {
-	b.Subscribe("dump", fn)
 }
 
 func (b *Bus) SubFocus(fn func(focus bool)) {
@@ -148,10 +131,6 @@ func (b *Bus) SubRender(fn func(addrs *utils.Stack[int])) {
 	b.Subscribe("render", fn)
 }
 
-func (b *Bus) SubRendered(fn func(bytes []byte, flds [][]*attrs.Cell)) {
-	b.Subscribe("rendered", fn)
-}
-
 func (b *Bus) SubRM(fn func(aid consts.AID)) {
 	b.Subscribe("rm", fn)
 }
@@ -166,10 +145,6 @@ func (b *Bus) SubStatus(fn func(stat *Status)) {
 
 func (b *Bus) SubTick(fn func(counter int)) {
 	b.Subscribe("tick", fn)
-}
-
-func (b *Bus) SubWSF(fn func(sflds []consts.SFld)) {
-	b.Subscribe("wsf", fn)
 }
 
 // 🟥 Debug only
