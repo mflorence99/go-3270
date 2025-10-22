@@ -7,11 +7,11 @@ import (
 // 🔥 "Outbound" data flows from the application to the 3270 ie this code
 
 type Outbound struct {
-	bytes *[]byte
+	bytes []byte
 	ix    int
 }
 
-func NewOutbound(bytes *[]byte) *Outbound {
+func NewOutbound(bytes []byte) *Outbound {
 	out := new(Outbound)
 	out.bytes = bytes
 	out.ix = 0
@@ -19,11 +19,11 @@ func NewOutbound(bytes *[]byte) *Outbound {
 }
 
 func (out *Outbound) HasEnough(count int) bool {
-	return out.ix+count-1 < len(*out.bytes)
+	return out.ix+count-1 < len(out.bytes)
 }
 
 func (out *Outbound) HasNext() bool {
-	return out.ix < len(*out.bytes)
+	return out.ix < len(out.bytes)
 }
 
 func (out *Outbound) Next() (byte, bool) {
@@ -70,7 +70,7 @@ func (out *Outbound) Skip(count int) {
 
 func (out *Outbound) nextImpl(peek bool) (byte, bool) {
 	if out.HasNext() {
-		byte := (*out.bytes)[out.ix]
+		byte := out.bytes[out.ix]
 		if !peek {
 			out.ix++
 		}
@@ -83,19 +83,19 @@ func (out *Outbound) nextImpl(peek bool) (byte, bool) {
 func (out *Outbound) nextSliceImpl(count int, peek bool) ([]byte, bool) {
 	if out.HasEnough(count) {
 		end := out.ix + count
-		slice := (*out.bytes)[out.ix:end]
+		slice := out.bytes[out.ix:end]
 		if !peek {
 			out.ix = end
 		}
 		return slice, true
 	} else {
-		rem := (*out.bytes)[out.ix:]
+		rem := out.bytes[out.ix:]
 		return rem, false
 	}
 }
 
 func (out *Outbound) nextSliceUntilImpl(matches []byte, peek bool) ([]byte, bool) {
-	rem := (*out.bytes)[out.ix:]
+	rem := out.bytes[out.ix:]
 	ix := bytes.Index(rem, matches)
 	if ix == -1 {
 		return rem, false

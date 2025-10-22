@@ -128,6 +128,6 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 	}
 	// 👇 render any changes
 	if !deltas.Empty() {
-		k.bus.PubRender(deltas)
+		k.bus.PubRenderDeltas(deltas)
 	}
 }

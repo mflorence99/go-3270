@@ -4,18 +4,16 @@ import (
 	"go3270/emulator/attrs"
 	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
-	"go3270/emulator/utils"
 	"strings"
 )
 
 // 🔥 NOTE: the buffer will always hold ASCII characters
 
 type Buffer struct {
-	addr   int
-	bus    *pubsub.Bus
-	buf    []*attrs.Cell
-	cfg    pubsub.Config
-	deltas *utils.Stack[int]
+	addr int
+	bus  *pubsub.Bus
+	buf  []*attrs.Cell
+	cfg  pubsub.Config
 }
 
 func NewBuffer(bus *pubsub.Bus) *Buffer {
@@ -30,7 +28,6 @@ func NewBuffer(bus *pubsub.Bus) *Buffer {
 func (b *Buffer) configure(cfg pubsub.Config) {
 	b.cfg = cfg
 	b.buf = make([]*attrs.Cell, cfg.Cols*cfg.Rows)
-	b.deltas = utils.NewStack[int](1)
 }
 
 func (b *Buffer) reset() {
@@ -61,17 +58,10 @@ func (b *Buffer) Chars() []byte {
 	return chars
 }
 
-func (b *Buffer) Deltas() *utils.Stack[int] {
-	return b.deltas
-}
-
 func (b *Buffer) Erase(char byte) {
 	b.addr = 0
 	for ix := range b.buf {
 		b.buf[ix] = &attrs.Cell{Attrs: &attrs.Attrs{Protected: true}, Char: char}
-	}
-	for !b.deltas.Empty() {
-		b.deltas.Pop()
 	}
 }
 
@@ -148,7 +138,6 @@ func (b *Buffer) PrevGet() (*attrs.Cell, int) {
 
 func (b *Buffer) Set(c *attrs.Cell) int {
 	b.buf[b.addr] = c
-	b.deltas.Push(b.addr)
 	return b.addr
 }
 

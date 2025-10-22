@@ -14,16 +14,35 @@ type Attrs struct {
 	Underscore bool
 }
 
-func NewBasic(basic byte) *Attrs {
+func NewBasic(char byte) *Attrs {
 	a := new(Attrs)
-	a.fromByte(basic)
+	a.fromByte(char)
 	return a
 }
 
-func NewExtended(bytes []byte) *Attrs {
+func NewExtended(chars []byte) *Attrs {
 	a := new(Attrs)
-	for ix := 0; ix < len(bytes)-1; ix += 2 {
-		chunk := bytes[ix : ix+2]
+	a.fromBytes(chars)
+	return a
+}
+
+func NewModified(attrs *Attrs, chars []byte) *Attrs {
+	a := *attrs
+	a.fromBytes(chars)
+	return &a
+}
+
+func (a *Attrs) fromByte(char byte) {
+	a.Hidden = ((char & 0b00001000) != 0) && ((char & 0b00000100) != 0)
+	a.Highlight = ((char & 0b00001000) != 0) && ((char & 0b00000100) == 0)
+	a.Modified = (char & 0b00000001) != 0
+	a.Numeric = (char & 0b00010000) != 0
+	a.Protected = (char & 0b00100000) != 0
+}
+
+func (a *Attrs) fromBytes(chars []byte) {
+	for ix := 0; ix < len(chars)-1; ix += 2 {
+		chunk := chars[ix : ix+2]
 		typecode := consts.Typecode(chunk[0])
 		basic := chunk[1]
 		color := consts.Color(chunk[1])
@@ -44,15 +63,6 @@ func NewExtended(bytes []byte) *Attrs {
 			a.Color = color
 		}
 	}
-	return a
-}
-
-func (a *Attrs) fromByte(char byte) {
-	a.Hidden = ((char & 0b00001000) != 0) && ((char & 0b00000100) != 0)
-	a.Highlight = ((char & 0b00001000) != 0) && ((char & 0b00000100) == 0)
-	a.Modified = (char & 0b00000001) != 0
-	a.Numeric = (char & 0b00010000) != 0
-	a.Protected = (char & 0b00100000) != 0
 }
 
 func (a *Attrs) Byte() byte {

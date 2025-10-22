@@ -1,7 +1,6 @@
 package outbound
 
 import (
-	"bytes"
 	"fmt"
 	"go3270/emulator/attrs"
 	"go3270/emulator/buffer"
@@ -39,24 +38,14 @@ func (c *Consumer) configure(cfg pubsub.Config) {
 
 func (c *Consumer) consume(chars []byte) {
 	defer utils.ElapsedTime(time.Now())
-	// 👇 data can be split into multiple frames
-	slices := bytes.Split(chars, consts.LT)
-	streams := make([]*stream.Outbound, 0)
-	for ix := range slices {
-		if len(slices[ix]) > 0 {
-			stream := stream.NewOutbound(&slices[ix])
-			streams = append(streams, stream)
-		}
-	}
-	// 👇 extract amd process command from each frame
-	for _, out := range streams {
-		char, _ := out.Next()
-		cmd := consts.Command(char)
-		println(fmt.Sprintf("🐞 %s commanded", cmd))
-		c.commands(out, cmd)
-	}
+	// 👇 process the commands in the stream
+	out := stream.NewOutbound(chars)
+	char, _ := out.Next()
+	cmd := consts.Command(char)
+	println(fmt.Sprintf("🐞 %s commanded", cmd))
+	c.commands(out, cmd)
 	// 👇 render the buffer
-	c.bus.PubRender(c.buf.Deltas())
+	c.bus.PubRender()
 }
 
 // 🟦 Commands
@@ -218,7 +207,7 @@ func (c *Consumer) orders(out *stream.Outbound) {
 			c.ra(out)
 
 		case consts.SA:
-			c.sa(out)
+			fldAttrs = c.sa(out, fldAttrs)
 
 		case consts.SBA:
 			c.sba(out)
@@ -298,9 +287,9 @@ func (c *Consumer) ra(out *stream.Outbound) {
 	}
 }
 
-func (c *Consumer) sa(out *stream.Outbound) {
-	println("🔥 SA not handled")
-	out.NextSlice(2)
+func (c *Consumer) sa(out *stream.Outbound, fldAttrs *attrs.Attrs) *attrs.Attrs {
+	bytes, _ := out.NextSlice(2)
+	return attrs.NewModified(fldAttrs, bytes)
 }
 
 func (c *Consumer) sba(out *stream.Outbound) {

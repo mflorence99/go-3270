@@ -57,12 +57,16 @@ func (b *Bus) PubRB(aid consts.AID) {
 	b.Publish("rb", aid)
 }
 
-func (b *Bus) PubReset() {
-	b.Publish("reset")
+func (b *Bus) PubRender() {
+	b.Publish("render")
 }
 
-func (b *Bus) PubRender(addrs *utils.Stack[int]) {
-	b.Publish("render", addrs)
+func (b *Bus) PubRenderDeltas(deltas *utils.Stack[int]) {
+	b.Publish("render-deltas", deltas)
+}
+
+func (b *Bus) PubReset() {
+	b.Publish("reset")
 }
 
 func (b *Bus) PubRM(aid consts.AID) {
@@ -123,12 +127,16 @@ func (b *Bus) SubRB(fn func(aid consts.AID)) {
 	b.Subscribe("rb", fn)
 }
 
-func (b *Bus) SubReset(fn func()) {
-	b.Subscribe("reset", fn)
+func (b *Bus) SubRender(fn func()) {
+	b.Subscribe("render", fn)
 }
 
-func (b *Bus) SubRender(fn func(addrs *utils.Stack[int])) {
-	b.Subscribe("render", fn)
+func (b *Bus) SubRenderDeltas(fn func(deltas *utils.Stack[int])) {
+	b.Subscribe("render-deltas", fn)
+}
+
+func (b *Bus) SubReset(fn func()) {
+	b.Subscribe("reset", fn)
 }
 
 func (b *Bus) SubRM(fn func(aid consts.AID)) {

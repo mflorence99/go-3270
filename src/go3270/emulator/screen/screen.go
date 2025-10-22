@@ -17,6 +17,8 @@ type Screen struct {
 	cps []pubsub.Box
 	gc  *glyph.Cache
 	st  *state.State
+
+	clean bool
 }
 
 func NewScreen(bus *pubsub.Bus, buf *buffer.Buffer, gc *glyph.Cache, st *state.State) *Screen {
@@ -29,6 +31,8 @@ func NewScreen(bus *pubsub.Bus, buf *buffer.Buffer, gc *glyph.Cache, st *state.S
 	s.bus.SubTick(s.blink)
 	s.bus.SubConfig(s.configure)
 	s.bus.SubRender(s.render)
+	// 🔥 curry the general function with the right parameters
+	s.bus.SubRenderDeltas(func(deltas *utils.Stack[int]) { s.renderDeltas(deltas, false, false) })
 	s.bus.SubReset(s.reset)
 	return s
 }
@@ -48,7 +52,7 @@ func (s *Screen) blink(counter int) {
 		blinkers.Push(s.st.Stat.CursorAt)
 	}
 	// 👇 now we can render
-	s.renderImpl(blinkers, true, blinkOn)
+	s.renderDeltas(blinkers, true, blinkOn)
 }
 
 func (s *Screen) configure(cfg pubsub.Config) {
@@ -61,29 +65,42 @@ func (s *Screen) configure(cfg pubsub.Config) {
 	}
 }
 
-func (s *Screen) render(addrs *utils.Stack[int]) {
-	s.renderImpl(addrs, false, false)
+func (s *Screen) render() {
+	dc := gg.NewContextForRGBA(s.cfg.RGBA)
+	// 👇 iterate over all requested cells
+	for addr := 0; addr < s.buf.Len(); addr++ {
+		s.renderImpl(dc, addr, false, false)
+	}
+	s.clean = false
 }
 
-func (s *Screen) renderImpl(addrs *utils.Stack[int], doBlink bool, blinkOn bool) {
-	// defer utils.ElapsedTime(time.Now())
+func (s *Screen) renderDeltas(addrs *utils.Stack[int], doBlink bool, blinkOn bool) {
 	dc := gg.NewContextForRGBA(s.cfg.RGBA)
 	// 👇 iterate over all requested cells
 	for !addrs.Empty() {
 		addr, _ := addrs.Pop()
-		// 👇 gather related data
-		box := s.cps[addr]
-		cell, _ := s.buf.Peek(addr)
-		attrs := cell.Attrs
-		invisible := cell.Char == 0x00 || cell.FldStart || attrs.Hidden
-		// 👇 different color if highlighted
-		color := utils.Ternary(attrs.Color == 0, s.cfg.Color, s.cfg.CLUT[attrs.Color])
-		ix := utils.Ternary(attrs.Highlight, 1, 0)
-		// 🔥 != here is the Go idion for XOR
-		reverse := utils.Ternary(doBlink, attrs.Reverse != blinkOn, attrs.Reverse != (addr == s.st.Stat.CursorAt))
+		s.renderImpl(dc, addr, doBlink, blinkOn)
+	}
+	s.clean = false
+}
+
+func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool) {
+	// 👇 gather related data
+	box := s.cps[addr]
+	cell, _ := s.buf.Peek(addr)
+	attrs := cell.Attrs
+	invisible := cell.Char == 0x00 || cell.FldStart || attrs.Hidden
+	// 👇 different color if highlighted
+	color := utils.Ternary(attrs.Color == 0, s.cfg.Color, s.cfg.CLUT[attrs.Color])
+	ix := utils.Ternary(attrs.Highlight, 1, 0)
+	// 🔥 != here is the Go idiom for XOR
+	reverse := utils.Ternary(doBlink, attrs.Reverse != blinkOn, attrs.Reverse != (addr == s.st.Stat.CursorAt))
+	char := utils.Ternary(invisible, ' ', cell.Char)
+	// 🔥 optimization: if the screen is clean and the char blank, skip
+	if !s.clean || char > ' ' || reverse {
 		// 👇 the cache will find us the glyph iself
 		g := glyph.Glyph{
-			Char:       utils.Ternary(invisible, ' ', cell.Char),
+			Char:       char,
 			Color:      color[ix],
 			Highlight:  attrs.Highlight,
 			Reverse:    reverse,
@@ -98,4 +115,5 @@ func (s *Screen) reset() {
 	dc := gg.NewContextForRGBA(s.cfg.RGBA)
 	dc.SetHexColor(s.cfg.BgColor)
 	dc.Clear()
+	s.clean = true
 }

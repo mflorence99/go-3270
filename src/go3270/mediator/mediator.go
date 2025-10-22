@@ -1,6 +1,7 @@
 package mediator
 
 import (
+	"bytes"
 	_ "embed"
 	"fmt"
 	"image"
@@ -153,9 +154,15 @@ func (m *Mediator) jsInterface() js.Value {
 			return nil
 		}),
 		"outbound": js.FuncOf(func(this js.Value, args []js.Value) any {
-			bytes := make([]byte, args[0].Get("length").Int())
-			js.CopyBytesToGo(bytes, args[0])
-			m.bus.PubOutbound(bytes)
+			chars := make([]byte, args[0].Get("length").Int())
+			js.CopyBytesToGo(chars, args[0])
+			// 👇 data can be split into multiple frames
+			slices := bytes.Split(chars, consts.LT)
+			for _, slice := range slices {
+				if len(slice) > 0 {
+					m.bus.PubOutbound(slice)
+				}
+			}
 			return nil
 		}),
 	}
@@ -171,12 +178,12 @@ func (m *Mediator) dispatchEvent(params map[string]any) {
 	js.Global().Get("window").Call("dispatchEvent", event)
 }
 
-func (m *Mediator) inbound(bytes []byte) {
-	u8s := js.Global().Get("Uint8ClampedArray").New(len(bytes))
-	js.CopyBytesToJS(u8s, bytes)
+func (m *Mediator) inbound(chars []byte) {
+	bytes := js.Global().Get("Uint8ClampedArray").New(len(chars))
+	js.CopyBytesToJS(bytes, chars)
 	params := map[string]any{
 		"eventType": "inbound",
-		"bytes":     u8s,
+		"bytes":     bytes,
 	}
 	m.dispatchEvent(params)
 }
