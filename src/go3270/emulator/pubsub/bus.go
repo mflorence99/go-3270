@@ -157,7 +157,7 @@ func (b *Bus) SubTick(fn func(counter int)) {
 
 // 🟥 Debug only
 
-func (b *Bus) SubDebug(fn func(topic string, handler interface{})) {
+func (b *Bus) SubTrace(fn func(topic string, handler interface{})) {
 	b.Subscribe("$$$", fn)
 }
 

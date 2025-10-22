@@ -2,6 +2,7 @@ package emulator
 
 import (
 	"go3270/emulator/buffer"
+	"go3270/emulator/debug"
 	"go3270/emulator/glyph"
 	"go3270/emulator/inbound"
 	"go3270/emulator/keyboard"
@@ -18,7 +19,7 @@ type Emulator struct {
 	buf *buffer.Buffer
 	cfg pubsub.Config
 	gc  *glyph.Cache
-	log *pubsub.Logger
+	log *debug.Logger
 	in  *inbound.Producer
 	key *keyboard.Keyboard
 	out *outbound.Consumer
@@ -31,7 +32,7 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	e.bus = bus
 	e.cfg = cfg
 	// 👇 logger very first, as we need its logging to precede actions
-	e.log = pubsub.NewLogger(e.bus)
+	e.log = debug.NewLogger(e.bus)
 	// 👇 core components; need these FIRST
 	e.buf = buffer.NewBuffer(e.bus)
 	e.gc = glyph.NewCache(e.bus)

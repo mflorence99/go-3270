@@ -6,6 +6,7 @@ import (
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
+	"go3270/emulator/debug"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/state"
 	"go3270/emulator/stream"
@@ -115,7 +116,7 @@ func (c *Consumer) wcc(out *stream.Outbound) (*wcc.WCC, bool) {
 	char, ok := out.Next()
 	if ok {
 		wcc := wcc.NewWCC(char)
-		println(fmt.Sprintf("🐞 %s", wcc))
+		debug.LogWCC(wcc)
 		// 👇 honor WCC instructions
 		c.st.Patch(state.Patch{
 			Alarm:  utils.BoolPtr(wcc.Alarm),
