@@ -3,6 +3,7 @@ package pubsub
 import (
 	"go3270/emulator/consts"
 	"go3270/emulator/utils"
+	"go3270/emulator/wcc"
 )
 
 type Bus struct {
@@ -85,6 +86,10 @@ func (b *Bus) PubTick(counter int) {
 	b.Publish("tick", counter)
 }
 
+func (b *Bus) PubWCC(wcc wcc.WCC) {
+	b.Publish("wcc", wcc)
+}
+
 // 🟦 Type-safe subscribers
 
 func (b *Bus) SubAttn(fn func(aid consts.AID)) {
@@ -153,6 +158,10 @@ func (b *Bus) SubStatus(fn func(stat *Status)) {
 
 func (b *Bus) SubTick(fn func(counter int)) {
 	b.Subscribe("tick", fn)
+}
+
+func (b *Bus) SubWCC(fn func(wcc wcc.WCC)) {
+	b.Subscribe("wcc", fn)
 }
 
 // 🟥 Debug only
