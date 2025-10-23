@@ -42,8 +42,6 @@ func (c *Consumer) consume(chars []byte) {
 	char, _ := out.Next()
 	cmd := consts.Command(char)
 	c.commands(out, cmd)
-	// 👇 render the buffer
-	c.bus.PubRender()
 }
 
 // 🟦 Commands
@@ -81,6 +79,7 @@ func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 func (c *Consumer) eau() {
 	c.bus.PubPanic("🔥 EAU not handled")
 	// NOTE: EAU doesn't need a WCC
+	c.bus.PubRender()
 }
 
 func (c *Consumer) ew(out *stream.Outbound) {
@@ -89,6 +88,7 @@ func (c *Consumer) ew(out *stream.Outbound) {
 		c.bus.PubReset()
 		c.orders(out)
 		c.normalize()
+		c.bus.PubRender()
 	}
 }
 
@@ -107,13 +107,14 @@ func (c *Consumer) rma() {
 func (c *Consumer) w(out *stream.Outbound) {
 	c.wcc(out)
 	c.orders(out)
+	c.bus.PubRender()
 }
 
 func (c *Consumer) wcc(out *stream.Outbound) (wcc.WCC, bool) {
 	char, ok := out.Next()
 	if ok {
 		wcc := wcc.NewWCC(char)
-		// 🔥 not yet handled
+		// TODO 🔥 not yet handled
 		if wcc.Reset {
 			println("🔥 WCC Reset not implemented")
 		}
@@ -128,30 +129,26 @@ func (c *Consumer) wcc(out *stream.Outbound) (wcc.WCC, bool) {
 }
 
 func (c *Consumer) wsf(out *stream.Outbound) {
-	sflds := make([]consts.SFld, 0)
-	for out.HasNext() {
-		len, _ := out.Next16()
-		id, _ := out.Next()
-		info, _ := out.NextSlice(int(len) - 1)
-		sfld := consts.SFld{
-			ID:   consts.SFID(id),
-			Info: info,
-		}
-		sflds = append(sflds, sfld)
-	}
 	// 👇 there are a million SF types, but we are interested in READ_PARTITION
+	sflds := consts.FromStream(out)
 	for _, sfld := range sflds {
 		if sfld.ID == consts.READ_PARTITION {
 			pid := sfld.Info[0]
 			if pid == 0xFF {
 				cmd := sfld.Info[1]
-				// 🔥 the manual appears to differ with observed behavior and an extra 0xFF apears in the WSF
-				if cmd == 0xFF && len(sfld.Info) > 2 {
-					cmd = sfld.Info[2]
+
+				// TODO 🔥 we observe 0xFF when Q is intended!
+				if cmd == 0xFF {
+					cmd = byte(consts.Q)
 				}
+
 				switch consts.Command(cmd) {
 
 				case consts.Q:
+					c.bus.PubQ()
+
+				// TODO 🔥 we THINK we can safely return everything
+				case consts.QL:
 					c.bus.PubQ()
 
 				case consts.RB:

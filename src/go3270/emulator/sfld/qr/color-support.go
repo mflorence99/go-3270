@@ -20,7 +20,7 @@ func NewColorSupport(clut map[consts.Color][2]string) ColorSupport {
 	cavs := make([][]byte, len(colors))
 	for ix, color := range colors {
 		if color == consts.BLACK {
-			// 🔥 approximation to spec: 0x00 color is displayed as "green". In reality, we never use 0x00, but instead supplied defaults
+			// TODO 🔥 approximation to spec: 0x00 color is displayed as "green". In reality, we never use 0x00, but instead supplied defaults
 			cavs[ix] = []byte{0x00, 0xF4}
 		} else {
 			cavs[ix] = []byte{byte(color), byte(color)}

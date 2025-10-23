@@ -1,6 +1,9 @@
 package consts
 
-import "fmt"
+import (
+	"fmt"
+	"go3270/emulator/stream"
+)
 
 type SFID byte
 
@@ -23,8 +26,31 @@ var sfids = map[SFID]string{
 	0x01: "READ_PARTITION",
 }
 
+func FromStream(out *stream.Outbound) []SFld {
+	sflds := make([]SFld, 0)
+	for out.HasNext() {
+		len, _ := out.Next16()
+		id, _ := out.Next()
+		if len > 0 {
+			info, _ := out.NextSlice(int(len) - 3)
+			sfld := SFld{
+				ID:   SFID(id),
+				Info: info,
+			}
+			sflds = append(sflds, sfld)
+		}
+	}
+	return sflds
+}
+
 func SFIDFor(s SFID) string {
-	return sfids[s]
+	// 🔥 because we have not codified all of them, by a long shot!
+	str, ok := sfids[s]
+	if ok {
+		return str
+	} else {
+		return fmt.Sprintf("%#02x", byte(s))
+	}
 }
 
 func (s SFID) String() string {

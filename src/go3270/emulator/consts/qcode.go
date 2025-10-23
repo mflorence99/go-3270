@@ -7,6 +7,8 @@ const (
 	CHARACTER_SETS          QCode = 0x85
 	COLOR_SUPPORT           QCode = 0x86
 	DDM                     QCode = 0x95
+	FIELD_OUTLINING         QCode = 0x8C
+	FIELD_VALIDATION        QCode = 0x8A
 	HIGHLIGHTING            QCode = 0x87
 	IMPLICIT_PARTITION      QCode = 0xA6
 	REPLY_MODES             QCode = 0x88
@@ -20,6 +22,8 @@ var qcodes = map[QCode]string{
 	0x85: "CHARACTER_SETS",
 	0x86: "COLOR_SUPPORT",
 	0x95: "DDM",
+	0x8C: "FIELD_OUTLINING",
+	0x8A: "FIELD_VALIDATION",
 	0x87: "HIGHLIGHTING",
 	0xA6: "IMPLICIT_PARTITION",
 	0x88: "REPLY_MODES",

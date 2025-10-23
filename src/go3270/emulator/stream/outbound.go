@@ -18,6 +18,10 @@ func NewOutbound(bytes []byte) *Outbound {
 	return out
 }
 
+func (out *Outbound) Bytes() []byte {
+	return out.bytes
+}
+
 func (out *Outbound) HasEnough(count int) bool {
 	return out.ix+count-1 < len(out.bytes)
 }

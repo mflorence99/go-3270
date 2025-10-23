@@ -24,7 +24,7 @@ func (s Summary) Put(in *stream.Inbound) {
 		byte(s.SFID),
 		byte(s.QCode),
 	}
-	for qcode := range s.List {
+	for _, qcode := range s.List {
 		bytes = append(bytes, byte(qcode))
 	}
 	in.Put16(uint16(len(bytes) + 2))

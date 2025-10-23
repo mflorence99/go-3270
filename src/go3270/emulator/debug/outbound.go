@@ -17,16 +17,32 @@ func (l *Logger) logOutbound(chars []byte) {
 	char, _ := out.Next()
 	cmd := consts.Command(char)
 	println(fmt.Sprintf("🐞 %s commanded", cmd))
-	// 👇 if there's a hyte that follows, it's the WCC which we can ignore
-	_, ok := out.Next()
-	if ok {
-		// 👇 now we can analyze commands with data
-		switch cmd {
-		case consts.WSF:
-			l.logWSF(out)
-		default:
+	// 👇 now we can analyze commands with data
+	switch cmd {
+
+	case consts.EW:
+		_, ok := out.Next() // 👈 eat thw WCC
+		if ok {
 			l.logOrders(out)
 		}
+
+	case consts.EWA:
+		_, ok := out.Next() // 👈 eat thw WCC
+		if ok {
+			l.logOrders(out)
+		}
+
+	case consts.W:
+		_, ok := out.Next() // 👈 eat thw WCC
+		if ok {
+			l.logOrders(out)
+		}
+
+	case consts.WSF:
+		l.logWSF(out)
+
+	default:
+		l.logOrders(out)
 	}
 }
 
@@ -87,7 +103,15 @@ func (l *Logger) logOrders(out *stream.Outbound) {
 	}
 }
 
-func (l *Logger) logWSF(out *stream.Outbound) {}
+func (l *Logger) logWSF(out *stream.Outbound) {
+	t := NewTable()
+	defer t.Render()
+	t.AppendHeader(table.Row{"ID", "Info"})
+	sflds := consts.FromStream(out)
+	for _, sfld := range sflds {
+		t.AppendRow(table.Row{sfld.ID, fmt.Sprintf("% #v", sfld.Info)})
+	}
+}
 
 // 🟧 Helpers
 
@@ -95,8 +119,8 @@ func (l *Logger) withAttrs(t table.Writer, order consts.Order, addr int, a *attr
 	row, col := l.cfg.Addr2RC(addr)
 	t.AppendRow(table.Row{
 		order,
-		fmt.Sprintf("%d", row),
-		fmt.Sprintf("%d", col),
+		row,
+		col,
 		utils.Ternary(a.Blink, "BLINK", ""),
 		utils.Ternary(a.Color != 0x00, consts.ColorFor(a.Color), ""),
 		utils.Ternary(a.Hidden, "HIDDEN", ""),
@@ -113,16 +137,7 @@ func (l *Logger) withoutAttrs(t table.Writer, order consts.Order, addr int) {
 	row, col := l.cfg.Addr2RC(addr)
 	t.AppendRow(table.Row{
 		order,
-		fmt.Sprintf("%d", row),
-		fmt.Sprintf("%d", col),
-		// utils.Ternary(a.Blink, "BLINK", ""),
-		// utils.Ternary(a.Color != 0x00, consts.ColorFor(a.Color), ""),
-		// utils.Ternary(a.Hidden, "HIDDEN", ""),
-		// utils.Ternary(a.Highlight, "HILITE", ""),
-		// utils.Ternary(a.Modified, "MDT", ""),
-		// utils.Ternary(a.Numeric, "NUM", ""),
-		// utils.Ternary(a.Protected, "PROT", ""),
-		// utils.Ternary(a.Reverse, "REV", ""),
-		// utils.Ternary(a.Underscore, "USCORE", ""),
+		row,
+		col,
 	})
 }

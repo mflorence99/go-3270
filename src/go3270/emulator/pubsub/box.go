@@ -18,7 +18,7 @@ func NewBox(row, col int, cfg Config) Box {
 	h := math.Round(cfg.FontHeight * cfg.PaddedHeight)
 	x := math.Round(float64(col) * w)
 	y := math.Round(float64(row) * h)
-	// 🔥 we could do better calculating the baseline - this is just a WAG, because an em is drawn with a significantly different height than that returned by MeasureString()
+	// TODO 🔥 we could do better calculating the baseline - this is just a WAG, because an em is drawn with a significantly different height than that returned by MeasureString()
 	baseline := y + h - (cfg.FontSize / 2)
 	return Box{x, y, w, h, baseline}
 }

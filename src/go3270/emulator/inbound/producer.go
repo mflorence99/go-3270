@@ -58,6 +58,8 @@ func (p *Producer) q() {
 		consts.RPQ_NAMES,
 		consts.DDM,
 		consts.IMPLICIT_PARTITION,
+		consts.FIELD_VALIDATION,
+		consts.FIELD_OUTLINING,
 	}).Put(in)
 	// 👇 then the rest
 	qr.NewUsableArea(p.cfg.Cols, p.cfg.Rows).Put(in)
@@ -69,6 +71,8 @@ func (p *Producer) q() {
 	qr.NewRPQNames().Put(in)
 	qr.NewDDM().Put(in)
 	qr.NewImplicitPartition(p.cfg.Cols, p.cfg.Rows).Put(in)
+	qr.NewFieldValidation().Put(in)
+	qr.NewFieldOutlining().Put(in)
 	// 👇 frame boundary LT is last
 	in.PutSlice(consts.LT)
 	p.bus.PubInbound(in.Bytes())
