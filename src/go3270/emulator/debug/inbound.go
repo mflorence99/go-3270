@@ -1,4 +1,4 @@
 package debug
 
-func LogInbound(chars []byte) {
+func (l *Logger) logInbound(chars []byte) {
 }

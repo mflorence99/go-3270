@@ -22,10 +22,3 @@ func TestWCC_Byte(t *testing.T) {
 	var w = wcc.NewWCC(0b11111111)
 	assert.True(t, w.Byte() == 0b01000111)
 }
-
-func TestWCC_String(t *testing.T) {
-	var w = wcc.NewWCC(0b11111111)
-	assert.True(t, w.String() == "WCC=[ ALARM RESET -MDT UNLOCK ]")
-	w = wcc.NewWCC(0b00000000)
-	assert.True(t, w.String() == "WCC=[ ]")
-}

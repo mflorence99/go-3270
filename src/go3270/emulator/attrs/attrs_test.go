@@ -42,5 +42,5 @@ func Test_Byte(t *testing.T) {
 func Test_String(t *testing.T) {
 	a := attrs.NewExtended(extended)
 	str := a.String()
-	assert.True(t, str == "ATTR=[ BLINK HILITE MDT NUM PROT REV USCORE ]")
+	assert.True(t, str == "BLINK HILITE MDT NUM PROT REV USCORE ")
 }

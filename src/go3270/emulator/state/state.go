@@ -3,6 +3,7 @@ package state
 import (
 	"go3270/emulator/pubsub"
 	"go3270/emulator/utils"
+	"go3270/emulator/wcc"
 )
 
 type State struct {
@@ -18,6 +19,7 @@ func NewState(bus *pubsub.Bus) *State {
 	// 👇 subscriptions
 	s.bus.SubConfig(s.configure)
 	s.bus.SubReset(s.reset)
+	s.bus.SubWCC(s.wcc)
 	return s
 }
 
@@ -36,6 +38,14 @@ func (s *State) reset() {
 		Numeric:   utils.BoolPtr(false),
 		Protected: utils.BoolPtr(false),
 		Waiting:   utils.BoolPtr(false),
+	})
+}
+
+func (s *State) wcc(wcc wcc.WCC) {
+	// 👇 honor WCC instructions
+	s.Patch(Patch{
+		Alarm:  utils.BoolPtr(wcc.Alarm),
+		Locked: utils.BoolPtr(!wcc.Unlock),
 	})
 }
 

@@ -4,6 +4,7 @@ import (
 	"go3270/emulator/buffer"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/utils"
+	"go3270/emulator/wcc"
 	"os"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -26,6 +27,7 @@ func NewLogger(bus *pubsub.Bus, buf *buffer.Buffer) *Logger {
 	l.bus.SubOutbound(l.outbound)
 	l.bus.SubRender(l.render)
 	l.bus.SubTrace(l.trace)
+	l.bus.SubWCC(l.wcc)
 	return l
 }
 
@@ -36,24 +38,28 @@ func (l *Logger) close() {
 func (l *Logger) configure(cfg pubsub.Config) {
 	l.cfg = cfg
 	println("🐞 Emulator initialized")
-	LogConfig(l.cfg)
-	LogCLUT(l.cfg)
+	l.logConfig(l.cfg)
+	l.logCLUT(l.cfg)
 }
 
 func (l *Logger) inbound(chars []byte) {
-	LogInbound(chars)
+	l.logInbound(chars)
 }
 
 func (l *Logger) outbound(chars []byte) {
-	LogOutbound(chars)
+	l.logOutbound(chars)
 }
 
 func (l *Logger) render() {
-	LogBuffer(l.cfg, l.buf)
+	l.logBuffer(l.cfg, l.buf)
 }
 
 func (l *Logger) trace(topic string, handler interface{}) {
-	LogTrace(topic, handler)
+	l.logTrace(topic, handler)
+}
+
+func (l *Logger) wcc(wcc wcc.WCC) {
+	l.logWCC(wcc)
 }
 
 // 🟧 Helpers

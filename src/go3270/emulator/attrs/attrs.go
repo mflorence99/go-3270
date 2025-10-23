@@ -86,7 +86,7 @@ func (a *Attrs) Byte() byte {
 }
 
 func (a *Attrs) String() string {
-	str := "ATTR=[ "
+	str := ""
 	if a.Blink {
 		str += "BLINK "
 	}
@@ -111,6 +111,5 @@ func (a *Attrs) String() string {
 	if a.Underscore {
 		str += "USCORE "
 	}
-	str += "]"
 	return str
 }

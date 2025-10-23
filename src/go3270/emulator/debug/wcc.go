@@ -7,7 +7,7 @@ import (
 	"github.com/jedib0t/go-pretty/v6/text"
 )
 
-func LogWCC(wcc *wcc.WCC) {
+func (l *Logger) logWCC(wcc wcc.WCC) {
 	t := NewTable()
 	defer t.Render()
 	t.SetColumnConfigs([]table.ColumnConfig{

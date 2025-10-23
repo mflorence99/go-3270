@@ -9,7 +9,7 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
-func LogBuffer(cfg pubsub.Config, buf *buffer.Buffer) {
+func (l *Logger) logBuffer(cfg pubsub.Config, buf *buffer.Buffer) {
 	t := NewTable()
 	defer t.Render()
 	// 👇 header rows

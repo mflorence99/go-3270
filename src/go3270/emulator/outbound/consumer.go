@@ -1,12 +1,10 @@
 package outbound
 
 import (
-	"fmt"
 	"go3270/emulator/attrs"
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
-	"go3270/emulator/debug"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/state"
 	"go3270/emulator/stream"
@@ -43,7 +41,6 @@ func (c *Consumer) consume(chars []byte) {
 	out := stream.NewOutbound(chars)
 	char, _ := out.Next()
 	cmd := consts.Command(char)
-	println(fmt.Sprintf("🐞 %s commanded", cmd))
 	c.commands(out, cmd)
 	// 👇 render the buffer
 	c.bus.PubRender()
@@ -112,16 +109,10 @@ func (c *Consumer) w(out *stream.Outbound) {
 	c.orders(out)
 }
 
-func (c *Consumer) wcc(out *stream.Outbound) (*wcc.WCC, bool) {
+func (c *Consumer) wcc(out *stream.Outbound) (wcc.WCC, bool) {
 	char, ok := out.Next()
 	if ok {
 		wcc := wcc.NewWCC(char)
-		debug.LogWCC(wcc)
-		// 👇 honor WCC instructions
-		c.st.Patch(state.Patch{
-			Alarm:  utils.BoolPtr(wcc.Alarm),
-			Locked: utils.BoolPtr(!wcc.Unlock),
-		})
 		// 🔥 not yet handled
 		if wcc.Reset {
 			println("🔥 WCC Reset not implemented")
@@ -129,9 +120,10 @@ func (c *Consumer) wcc(out *stream.Outbound) (*wcc.WCC, bool) {
 		if wcc.ResetMDT {
 			println("🔥 WCC ResetMDT not implemented")
 		}
+		c.bus.PubWCC(wcc)
 		return wcc, true
 	} else {
-		return nil, false
+		return wcc.WCC{}, false
 	}
 }
 

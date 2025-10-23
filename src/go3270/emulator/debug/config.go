@@ -6,7 +6,7 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
-func LogConfig(cfg pubsub.Config) {
+func (l *Logger) logConfig(cfg pubsub.Config) {
 	t := NewTable()
 	defer t.Render()
 	t.AppendHeader(table.Row{"", "", "Color", "Color", "Color", "Font", "Font", "Font", "Padding", "Padding"})
@@ -16,7 +16,7 @@ func LogConfig(cfg pubsub.Config) {
 	)
 }
 
-func LogCLUT(cfg pubsub.Config) {
+func (l *Logger) logCLUT(cfg pubsub.Config) {
 	t := NewTable()
 	defer t.Render()
 	t.AppendHeader(table.Row{"", "Color", "Color"})
