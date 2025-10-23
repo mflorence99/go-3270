@@ -71,6 +71,6 @@ func Bool(flag bool) string {
 func NewTable() table.Writer {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleLight)
+	t.SetStyle(table.StyleBold)
 	return t
 }

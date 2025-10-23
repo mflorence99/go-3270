@@ -84,32 +84,3 @@ func (a *Attrs) Byte() byte {
 	}
 	return char
 }
-
-func (a *Attrs) String() string {
-	str := ""
-	if a.Blink {
-		str += "BLINK "
-	}
-	if a.Hidden {
-		str += "HIDDEN "
-	}
-	if a.Highlight {
-		str += "HILITE "
-	}
-	if a.Modified {
-		str += "MDT "
-	}
-	if a.Numeric {
-		str += "NUM "
-	}
-	if a.Protected {
-		str += "PROT "
-	}
-	if a.Reverse {
-		str += "REV "
-	}
-	if a.Underscore {
-		str += "USCORE "
-	}
-	return str
-}

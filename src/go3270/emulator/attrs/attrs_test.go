@@ -38,9 +38,3 @@ func Test_Byte(t *testing.T) {
 	byte := a.Byte()
 	assert.True(t, byte == 0b00111001)
 }
-
-func Test_String(t *testing.T) {
-	a := attrs.NewExtended(extended)
-	str := a.String()
-	assert.True(t, str == "BLINK HILITE MDT NUM PROT REV USCORE ")
-}
