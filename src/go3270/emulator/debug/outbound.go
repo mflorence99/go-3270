@@ -47,8 +47,9 @@ func (l *Logger) logOutbound(chars []byte) {
 }
 
 func (l *Logger) logOrders(out *stream.Outbound) {
-	t := NewTable()
+	t := l.newTable()
 	defer t.Render()
+	// 👇 table rows
 	t.AppendHeader(table.Row{"Cmd", "Row", "Col", "Blink", "Color", "Hidden", "Hilite", "MDT", "Num", "Prot", "Rev", "Uscore"})
 	addr := 0
 	a := &attrs.Attrs{Protected: true}
@@ -104,8 +105,9 @@ func (l *Logger) logOrders(out *stream.Outbound) {
 }
 
 func (l *Logger) logWSF(out *stream.Outbound) {
-	t := NewTable()
+	t := l.newTable()
 	defer t.Render()
+	// 👇 table rows
 	t.AppendHeader(table.Row{"ID", "Info"})
 	sflds := consts.FromStream(out)
 	for _, sfld := range sflds {

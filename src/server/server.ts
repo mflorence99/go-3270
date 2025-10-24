@@ -183,10 +183,10 @@ const tcpSocketImpl = (ctx: Context): void => {
   ctx.tcpSocket.on('end', () => {
     log({
       important: `#${ctx.sessionID} APP \uea99 PROXY`,
-      text: 'disconnected'
+      text: 'Application restarting'
     });
     ctx.tcpSocket = undefined;
-    ctx.webSocket?.close(1000);
+    ctx.webSocket?.close(1012);
   });
 };
 
@@ -208,7 +208,6 @@ const webSocketImpl = {
         important: `#${ctx.sessionID} EMULATOR \uea99 PROXY`,
         text: 'forward message to application'
       });
-      console.log(message);
       ctx.tcpSocket?.write(message);
     }
   },

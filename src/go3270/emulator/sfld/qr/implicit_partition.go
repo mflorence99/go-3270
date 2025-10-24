@@ -6,6 +6,8 @@ import (
 	"go3270/emulator/stream"
 )
 
+// TODO 🔥 this breaks the TERMTEST
+
 type ImplicitPartition struct {
 	SFID   consts.SFID
 	QCode  consts.QCode

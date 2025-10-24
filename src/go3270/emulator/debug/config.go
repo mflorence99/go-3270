@@ -7,8 +7,9 @@ import (
 )
 
 func (l *Logger) logConfig(cfg pubsub.Config) {
-	t := NewTable()
+	t := l.newTable()
 	defer t.Render()
+	// 👇 table rows
 	t.AppendHeader(table.Row{"", "", "", "Color", "Color", "Color", "Font", "Font", "Font", "Padding", "Padding"})
 	t.AppendHeader(table.Row{"", "#Rows", "#Cols", "BG", "Normal", "Highlight", "Width", "Height", "Size", "Width", "Height"})
 	t.AppendRow(table.Row{
@@ -17,8 +18,9 @@ func (l *Logger) logConfig(cfg pubsub.Config) {
 }
 
 func (l *Logger) logCLUT(cfg pubsub.Config) {
-	t := NewTable()
+	t := l.newTable()
 	defer t.Render()
+	// 👇 table rows
 	t.AppendHeader(table.Row{"", "Color", "Color"})
 	t.AppendHeader(table.Row{"", "Normal", "Highlight"})
 	for k, v := range cfg.CLUT {

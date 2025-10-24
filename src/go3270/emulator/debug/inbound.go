@@ -32,14 +32,15 @@ func (l *Logger) logInbound(chars []byte) {
 }
 
 func (l *Logger) logRead(out *stream.Outbound) {
-	// 👇 short reads only copntain the AID
+	// 👇 short reads only contain the AID
 	raw, ok := out.NextSlice(2)
 	if ok {
-		t := NewTable()
+		t := l.newTable()
 		defer t.Render()
+		// 👇 table rows
 		t.AppendHeader(table.Row{"Row", "Col", "Data"})
 		t.SetColumnConfigs([]table.ColumnConfig{
-			{Number: 3, Transformer: wrap(80), WidthMax: 80},
+			{Number: 3, Transformer: l.wrap(80), WidthMax: 80},
 		})
 		// 👇 one row just for the cursor
 		cursorAt := conv.AddrFromBytes(raw)
@@ -75,8 +76,9 @@ func (l *Logger) logRead(out *stream.Outbound) {
 }
 
 func (l *Logger) logSFlds(out *stream.Outbound) {
-	t := NewTable()
+	t := l.newTable()
 	defer t.Render()
+	// 👇 table rows
 	t.AppendHeader(table.Row{"ID", "QCode", "Info"})
 	sflds := consts.FromStream(out)
 	for _, sfld := range sflds {
@@ -95,7 +97,7 @@ func (l *Logger) logSFlds(out *stream.Outbound) {
 
 // 🟧 Helpers
 
-func wrap(w int) text.Transformer {
+func (l *Logger) wrap(w int) text.Transformer {
 	return func(val interface{}) string {
 		return text.WrapText(fmt.Sprint(val), w)
 	}

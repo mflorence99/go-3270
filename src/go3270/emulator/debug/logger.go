@@ -65,11 +65,11 @@ func (l *Logger) wcc(wcc wcc.WCC) {
 
 // 🟧 Helpers
 
-func Bool(flag bool) string {
+func (l *Logger) boolean(flag bool) string {
 	return utils.Ternary(flag, "\u2022", "")
 }
 
-func NewTable() table.Writer {
+func (l *Logger) newTable() table.Writer {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	style := table.StyleBold

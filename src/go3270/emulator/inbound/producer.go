@@ -57,7 +57,8 @@ func (p *Producer) q() {
 		consts.REPLY_MODES,
 		consts.RPQ_NAMES,
 		consts.DDM,
-		consts.IMPLICIT_PARTITION,
+		// TODO 🔥 this breaks the TERMTEST
+		// consts.IMPLICIT_PARTITION,
 		consts.FIELD_VALIDATION,
 		consts.FIELD_OUTLINING,
 	}).Put(in)
@@ -70,7 +71,8 @@ func (p *Producer) q() {
 	qr.NewReplyModes().Put(in)
 	qr.NewRPQNames().Put(in)
 	qr.NewDDM().Put(in)
-	qr.NewImplicitPartition(p.cfg.Cols, p.cfg.Rows).Put(in)
+	// TODO 🔥 this breaks the TERMTEST
+	// qr.NewImplicitPartition(p.cfg.Cols, p.cfg.Rows).Put(in)
 	qr.NewFieldValidation().Put(in)
 	qr.NewFieldOutlining().Put(in)
 	// 👇 frame boundary LT is last

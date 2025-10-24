@@ -8,8 +8,9 @@ import (
 )
 
 func (l *Logger) logWCC(wcc wcc.WCC) {
-	t := NewTable()
+	t := l.newTable()
 	defer t.Render()
+	// 👇 table rows
 	t.SetColumnConfigs([]table.ColumnConfig{
 		{Number: 2, Align: text.AlignCenter},
 		{Number: 3, Align: text.AlignCenter},
@@ -18,6 +19,6 @@ func (l *Logger) logWCC(wcc wcc.WCC) {
 	})
 	t.AppendHeader(table.Row{"", "Alarm", "Reset", "ResetMDT", "Unlock"})
 	t.AppendRow(table.Row{
-		"WCC", Bool(wcc.Alarm), Bool(wcc.Reset), Bool(wcc.ResetMDT), Bool(wcc.Unlock),
+		"WCC", l.boolean(wcc.Alarm), l.boolean(wcc.Reset), l.boolean(wcc.ResetMDT), l.boolean(wcc.Unlock),
 	})
 }

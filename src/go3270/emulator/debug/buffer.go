@@ -10,7 +10,7 @@ import (
 )
 
 func (l *Logger) logBuffer(cfg pubsub.Config, buf *buffer.Buffer) {
-	t := NewTable()
+	t := l.newTable()
 	defer t.Render()
 	// 👇 header rows
 	row1 := ""
