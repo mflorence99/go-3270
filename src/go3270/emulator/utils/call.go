@@ -11,14 +11,14 @@ func Call(fn any, args ...any) []any {
 	}
 	// 👇 convert args to []reflect.Value
 	in := make([]reflect.Value, len(args))
-	for i, arg := range args {
-		in[i] = reflect.ValueOf(arg)
+	for ix, arg := range args {
+		in[ix] = reflect.ValueOf(arg)
 	}
 	// 👇  call and collect results
 	outValues := v.Call(in)
 	out := make([]any, len(outValues))
-	for i, val := range outValues {
-		out[i] = val.Interface()
+	for ix, val := range outValues {
+		out[ix] = val.Interface()
 	}
 	return out
 }

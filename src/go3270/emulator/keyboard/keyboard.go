@@ -6,6 +6,8 @@ import (
 	"go3270/emulator/pubsub"
 	"go3270/emulator/state"
 	"go3270/emulator/utils"
+
+	"strings"
 )
 
 type Keyboard struct {
@@ -82,6 +84,7 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 		if cursorTo >= cursorMax {
 			cursorTo = 0
 		}
+
 	case key.Code == "ArrowUp":
 		cursorTo = cursorAt - k.cfg.Cols
 		if cursorTo < 0 {
@@ -111,6 +114,11 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 		} else {
 			k.st.Patch(state.Patch{Alarm: utils.BoolPtr(true)})
 		}
+	}
+
+	// 👇 probe cursor position for debugging
+	if key.CTRL && strings.HasPrefix(key.Code, "Arrow") {
+		k.bus.PubProbe(cursorTo)
 	}
 
 	// 👇 only if the cursor has moved!

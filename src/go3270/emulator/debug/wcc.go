@@ -8,7 +8,7 @@ import (
 )
 
 func (l *Logger) logWCC(wcc wcc.WCC) {
-	t := l.newTable()
+	t := l.newTable(text.FgHiBlue)
 	defer t.Render()
 	// 👇 table rows
 	t.SetColumnConfigs([]table.ColumnConfig{

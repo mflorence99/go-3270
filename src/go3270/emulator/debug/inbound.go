@@ -18,7 +18,7 @@ func (l *Logger) logInbound(chars []byte) {
 	out := stream.NewOutbound(utils.Ternary(ok, slice, chars))
 	char, _ := out.Next()
 	aid := consts.AID(char)
-	println(fmt.Sprintf("🐞 %s submitted", aid))
+	println(fmt.Sprintf("🐞 %s INBOUND", aid))
 	// 👇 now we can analyze the AID
 	switch aid {
 
@@ -35,7 +35,7 @@ func (l *Logger) logRead(out *stream.Outbound) {
 	// 👇 short reads only contain the AID
 	raw, ok := out.NextSlice(2)
 	if ok {
-		t := l.newTable()
+		t := l.newTable(text.FgHiGreen)
 		defer t.Render()
 		// 👇 table rows
 		t.AppendHeader(table.Row{"Row", "Col", "Data"})
@@ -76,7 +76,7 @@ func (l *Logger) logRead(out *stream.Outbound) {
 }
 
 func (l *Logger) logSFlds(out *stream.Outbound) {
-	t := l.newTable()
+	t := l.newTable(text.FgHiGreen)
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"ID", "QCode", "Info"})
@@ -92,13 +92,5 @@ func (l *Logger) logSFlds(out *stream.Outbound) {
 			t.AppendRow(table.Row{sfld.ID, "", fmt.Sprintf("% 02x", sfld.Info)})
 
 		}
-	}
-}
-
-// 🟧 Helpers
-
-func (l *Logger) wrap(w int) text.Transformer {
-	return func(val interface{}) string {
-		return text.WrapText(fmt.Sprint(val), w)
 	}
 }

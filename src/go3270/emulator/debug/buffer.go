@@ -7,10 +7,11 @@ import (
 	"go3270/emulator/utils"
 
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 )
 
 func (l *Logger) logBuffer(cfg pubsub.Config, buf *buffer.Buffer) {
-	t := l.newTable()
+	t := l.newTable(text.FgHiCyan)
 	defer t.Render()
 	// 👇 header rows
 	row1 := ""

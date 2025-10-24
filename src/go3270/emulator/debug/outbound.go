@@ -6,9 +6,9 @@ import (
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
 	"go3270/emulator/stream"
-	"go3270/emulator/utils"
 
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 )
 
 func (l *Logger) logOutbound(chars []byte) {
@@ -16,7 +16,7 @@ func (l *Logger) logOutbound(chars []byte) {
 	out := stream.NewOutbound(chars)
 	char, _ := out.Next()
 	cmd := consts.Command(char)
-	println(fmt.Sprintf("🐞 %s commanded", cmd))
+	println(fmt.Sprintf("🐞 %s OUTBOUND", cmd))
 	// 👇 now we can analyze commands with data
 	switch cmd {
 
@@ -47,10 +47,10 @@ func (l *Logger) logOutbound(chars []byte) {
 }
 
 func (l *Logger) logOrders(out *stream.Outbound) {
-	t := l.newTable()
+	t := l.newTable(text.FgHiYellow)
 	defer t.Render()
 	// 👇 table rows
-	t.AppendHeader(table.Row{"Cmd", "Row", "Col", "Blink", "Color", "Hidden", "Hilite", "MDT", "Num", "Prot", "Rev", "Uscore"})
+	t.AppendHeader(table.Row{"Cmd", "Row", "Col", "SF", "Blink", "Color", "Hidden", "Hilite", "MDT", "Num", "Prot", "Rev", "Uscore"})
 	addr := 0
 	a := &attrs.Attrs{Protected: true}
 	// 👇 look at each byte to see if it is an order
@@ -78,7 +78,7 @@ func (l *Logger) logOrders(out *stream.Outbound) {
 		case consts.SA:
 			bytes, _ := out.NextSlice(2)
 			a = attrs.NewModified(a, bytes)
-			l.withAttrs(t, order, addr, a)
+			l.withAttrs(t, order, addr, a, false)
 
 		case consts.SBA:
 			raw, _ := out.NextSlice(2)
@@ -87,14 +87,14 @@ func (l *Logger) logOrders(out *stream.Outbound) {
 		case consts.SF:
 			next, _ := out.Next()
 			a = attrs.NewBasic(next)
-			l.withAttrs(t, order, addr, a)
+			l.withAttrs(t, order, addr, a, true)
 			addr++
 
 		case consts.SFE:
 			count, _ := out.Next()
 			next, _ := out.NextSlice(int(count) * 2)
 			a = attrs.NewExtended(next)
-			l.withAttrs(t, order, addr, a)
+			l.withAttrs(t, order, addr, a, true)
 			addr++
 
 		default:
@@ -105,7 +105,7 @@ func (l *Logger) logOrders(out *stream.Outbound) {
 }
 
 func (l *Logger) logWSF(out *stream.Outbound) {
-	t := l.newTable()
+	t := l.newTable(text.FgHiYellow)
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"ID", "Info"})
@@ -113,33 +113,4 @@ func (l *Logger) logWSF(out *stream.Outbound) {
 	for _, sfld := range sflds {
 		t.AppendRow(table.Row{sfld.ID, fmt.Sprintf("% #v", sfld.Info)})
 	}
-}
-
-// 🟧 Helpers
-
-func (l *Logger) withAttrs(t table.Writer, order consts.Order, addr int, a *attrs.Attrs) {
-	row, col := l.cfg.Addr2RC(addr)
-	t.AppendRow(table.Row{
-		order,
-		row,
-		col,
-		utils.Ternary(a.Blink, "BLINK", ""),
-		utils.Ternary(a.Color != 0x00, consts.ColorFor(a.Color), ""),
-		utils.Ternary(a.Hidden, "HIDDEN", ""),
-		utils.Ternary(a.Highlight, "HILITE", ""),
-		utils.Ternary(a.Modified, "MDT", ""),
-		utils.Ternary(a.Numeric, "NUM", ""),
-		utils.Ternary(a.Protected, "PROT", ""),
-		utils.Ternary(a.Reverse, "REV", ""),
-		utils.Ternary(a.Underscore, "USCORE", ""),
-	})
-}
-
-func (l *Logger) withoutAttrs(t table.Writer, order consts.Order, addr int) {
-	row, col := l.cfg.Addr2RC(addr)
-	t.AppendRow(table.Row{
-		order,
-		row,
-		col,
-	})
 }

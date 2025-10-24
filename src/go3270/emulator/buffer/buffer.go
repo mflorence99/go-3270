@@ -231,8 +231,16 @@ func (b *Buffer) Tab(dir int) (int, bool) {
 		// 👇 see if we've hit an unprotected field start
 		cell, _ := b.Peek(addr)
 		if cell.FldStart && !cell.Attrs.Protected {
+			// 👇 if going backwards, and we hit in the first try, it doesn't count
+			if dir < 0 && ix == 0 {
+				continue
+			}
 			b.Seek(addr) // 👈 go to FldStart
-			_, addr := b.GetNext()
+			cell, addr := b.GetNext()
+			// 👇 if the next cell is also a field start (two contiguous SFs) it also doesn't count
+			if cell.FldStart {
+				continue
+			}
 			b.Seek(addr) // 👈 now to first char
 			return addr, true
 		}

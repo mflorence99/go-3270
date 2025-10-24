@@ -4,10 +4,11 @@ import (
 	"go3270/emulator/pubsub"
 
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 )
 
 func (l *Logger) logConfig(cfg pubsub.Config) {
-	t := l.newTable()
+	t := l.newTable(text.FgHiBlue)
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"", "", "", "Color", "Color", "Color", "Font", "Font", "Font", "Padding", "Padding"})
@@ -18,7 +19,7 @@ func (l *Logger) logConfig(cfg pubsub.Config) {
 }
 
 func (l *Logger) logCLUT(cfg pubsub.Config) {
-	t := l.newTable()
+	t := l.newTable(text.FgHiBlue)
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"", "Color", "Color"})
