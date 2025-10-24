@@ -80,6 +80,9 @@ func (l *Logger) logSFlds(out *stream.Outbound) {
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"ID", "QCode", "Info"})
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 3, Transformer: l.wrap(60), WidthMax: 60},
+	})
 	sflds := consts.FromStream(out)
 	for _, sfld := range sflds {
 		switch {

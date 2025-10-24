@@ -7,7 +7,6 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/jedib0t/go-pretty/v6 v6.6.8
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/exp v0.0.0-20251017212417-90e834f514db
 	golang.org/x/image v0.32.0
 )
 

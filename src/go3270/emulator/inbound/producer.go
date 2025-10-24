@@ -66,7 +66,7 @@ func (p *Producer) q() {
 	qr.NewUsableArea(p.cfg.Cols, p.cfg.Rows).Put(in)
 	qr.NewAlphanumericPartitions(p.cfg.Cols, p.cfg.Rows).Put(in)
 	qr.NewCharacterSets().Put(in)
-	qr.NewColorSupport(p.cfg.CLUT).Put(in)
+	qr.NewColorSupport().Put(in)
 	qr.NewHighlighting().Put(in)
 	qr.NewReplyModes().Put(in)
 	qr.NewRPQNames().Put(in)

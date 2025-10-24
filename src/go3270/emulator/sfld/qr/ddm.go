@@ -21,8 +21,8 @@ func NewDDM() DDM {
 		SFID:   consts.QUERY_REPLY,
 		QCode:  consts.DDM,
 		Flags:  []byte{0x00, 0x00},
-		LimIn:  uint16(4096),
-		LimOut: uint16(4096),
+		LimIn:  uint16(4096 * 4),
+		LimOut: uint16(4096 * 4),
 		NSS:    1,
 		DDMSS:  1,
 	}

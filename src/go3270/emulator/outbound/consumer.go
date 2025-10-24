@@ -274,6 +274,7 @@ func (c *Consumer) ra(out *stream.Outbound) {
 			cell.FldStart = false
 			cell, addr = c.buf.GetNext()
 			if addr == stop {
+				c.buf.Seek(stop)
 				break
 			}
 			c.buf.Seek(addr)
