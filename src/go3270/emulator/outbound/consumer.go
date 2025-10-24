@@ -119,7 +119,11 @@ func (c *Consumer) wcc(out *stream.Outbound) (wcc.WCC, bool) {
 			println("🔥 WCC Reset not implemented")
 		}
 		if wcc.ResetMDT {
-			println("🔥 WCC ResetMDT not implemented")
+			flds := c.buf.Flds()
+			for _, cells := range flds {
+				cells[0].Attrs.Modified = false
+			}
+
 		}
 		c.bus.PubWCC(wcc)
 		return wcc, true

@@ -9,10 +9,10 @@ import (
 func (l *Logger) logConfig(cfg pubsub.Config) {
 	t := NewTable()
 	defer t.Render()
-	t.AppendHeader(table.Row{"", "", "Color", "Color", "Color", "Font", "Font", "Font", "Padding", "Padding"})
-	t.AppendHeader(table.Row{"#Rows", "#Cols", "BG", "Normal", "Highlight", "Width", "Height", "Size", "Width", "Height"})
+	t.AppendHeader(table.Row{"", "", "", "Color", "Color", "Color", "Font", "Font", "Font", "Padding", "Padding"})
+	t.AppendHeader(table.Row{"", "#Rows", "#Cols", "BG", "Normal", "Highlight", "Width", "Height", "Size", "Width", "Height"})
 	t.AppendRow(table.Row{
-		cfg.Rows, cfg.Cols, cfg.BgColor, cfg.Color[0], cfg.Color[1], cfg.FontWidth, cfg.FontHeight, cfg.FontSize, cfg.PaddedWidth, cfg.PaddedHeight},
+		"CFG", cfg.Rows, cfg.Cols, cfg.BgColor, cfg.Color[0], cfg.Color[1], cfg.FontWidth, cfg.FontHeight, cfg.FontSize, cfg.PaddedWidth, cfg.PaddedHeight},
 	)
 }
 

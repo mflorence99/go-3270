@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 )
 
 type Logger struct {
@@ -71,6 +72,19 @@ func Bool(flag bool) string {
 func NewTable() table.Writer {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleBold)
+	style := table.StyleBold
+	style.Color = table.ColorOptions{
+		Border:    text.Colors{text.FgHiBlue, text.Bold},
+		Separator: text.Colors{text.FgHiBlue, text.Bold},
+		Header:    text.Colors{text.FgHiBlue, text.Bold},
+		Row:       text.Colors{text.Reset},
+	}
+	t.SetStyle(style)
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{
+			Number: 1,
+			Colors: text.Colors{text.FgHiBlue, text.Bold},
+		},
+	})
 	return t
 }
