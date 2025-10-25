@@ -80,6 +80,7 @@ func (p *Producer) q() {
 	p.bus.PubInbound(in.Bytes())
 }
 
+// TODO 🔥 RB not handled
 func (p *Producer) rb(aid consts.AID) {
 	p.bus.PubPanic("🔥 RB not handled")
 }
@@ -110,6 +111,7 @@ func (p *Producer) rm(aid consts.AID) {
 	p.bus.PubInbound(in.Bytes())
 }
 
+// TODO 🔥 RMA not handled
 func (p *Producer) rma(aid consts.AID) {
 	p.bus.PubPanic("🔥 RMA not handled")
 }

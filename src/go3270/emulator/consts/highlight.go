@@ -7,7 +7,7 @@ const (
 	BLINK      Highlight = 0xF1
 	REVERSE    Highlight = 0xF2
 	UNDERSCORE Highlight = 0xF4
-	INTENSITY  Highlight = 0xF8
+	INTENSIFY  Highlight = 0xF8
 )
 
 var highlights = map[Highlight]string{

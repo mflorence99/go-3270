@@ -18,7 +18,7 @@ func NewHighlighting() Highlighting {
 	havs[1] = []byte{0xF1, byte(consts.BLINK)}
 	havs[2] = []byte{0xF2, byte(consts.REVERSE)}
 	havs[3] = []byte{0xF3, byte(consts.UNDERSCORE)}
-	havs[4] = []byte{0xF4, byte(consts.INTENSITY)}
+	havs[4] = []byte{0xF4, byte(consts.INTENSIFY)}
 	return Highlighting{
 		SFID:  consts.QUERY_REPLY,
 		QCode: consts.HIGHLIGHTING,

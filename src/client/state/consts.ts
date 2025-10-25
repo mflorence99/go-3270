@@ -11,7 +11,7 @@ export const Dimensions: Record<string, [number, number]> = {
 
 export const Emulators: Record<string, string> = {
   '1': 'IBM-3278-1-E',
-  '2': 'IBM-3278-2-E',
+  '2': 'IBM-3279-2-E',
   '3': 'IBM-3278-3-E',
   '4': 'IBM-3278-4-E',
   '5': 'IBM-3278-5-E'

@@ -151,9 +151,9 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 				case consts.Q:
 					c.bus.PubQ()
 
-				// TODO 🔥 we THINK we can safely return everything
+					// TODO 🔥 QL not handled
 				case consts.QL:
-					c.bus.PubQ()
+					c.bus.PubPanic("🔥 QL not handled")
 
 				case consts.RB:
 					c.bus.PubRM(consts.INBOUND)
@@ -227,13 +227,15 @@ func (c *Consumer) orders(out *stream.Outbound) {
 	}
 }
 
+// TODO 🔥 EUA not handled
 func (c *Consumer) eua(out *stream.Outbound) {
-	println("🔥 EUA not handled")
+	c.bus.PubPanic("🔥 EUA not handled")
 	out.NextSlice(2)
 }
 
+// TODO 🔥 GE not handled
 func (c *Consumer) ge(out *stream.Outbound) {
-	println("🔥 GE not handled")
+	c.bus.PubPanic("🔥 GE not handled")
 	out.Next()
 }
 
@@ -243,14 +245,16 @@ func (c *Consumer) ic() {
 	})
 }
 
+// TODO 🔥 MF not handled
 func (c *Consumer) mf(out *stream.Outbound) {
-	println("🔥 MF not handled")
+	c.bus.PubPanic("🔥 MF not handled")
 	count, _ := out.Next()
 	out.NextSlice(int(count) * 2)
 }
 
+// TODO 🔥 PT not handled
 func (c *Consumer) pt() {
-	println("🔥 PT not handled")
+	c.bus.PubPanic("🔥 PT not handled")
 }
 
 func (c *Consumer) ra(out *stream.Outbound) {
