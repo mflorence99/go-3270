@@ -69,7 +69,7 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 	// 👇 from the args
 	canvas := args[0]
 	bgColor := args[1].String()
-	color := [2]string{args[2].Index(0).String(), args[2].Index(1).String()}
+	monochrome := args[2].Bool()
 	obj := args[3]
 	clut := make(map[consts.Color][2]string)
 	keys := js.Global().Get("Object").Call("keys", obj)
@@ -114,11 +114,11 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 		BgColor:      bgColor,
 		BoldFace:     &boldFace,
 		CLUT:         clut,
-		Color:        color,
 		Cols:         cols,
 		FontHeight:   fontHeight,
 		FontSize:     fontSize,
 		FontWidth:    fontWidth,
+		Monochrome:   monochrome,
 		NormalFace:   &normalFace,
 		PaddedHeight: paddedHeight,
 		PaddedWidth:  paddedWidth,

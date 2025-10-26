@@ -5,7 +5,7 @@ import { Status } from '$client/state/state';
 export const Pages = {
   connector: 0,
   emulator: 1,
-  palette: 2
+  setup: 2
 };
 
 // 📘 Mediate between Go code and the UI

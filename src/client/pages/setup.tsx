@@ -1,4 +1,3 @@
-import { Config } from '$client/state/state';
 import { LitElement } from 'lit';
 import { SignalWatcher } from '@lit-labs/signals';
 import { State } from '$client/state/state';
@@ -17,14 +16,14 @@ import { styleMap } from 'lit/directives/style-map.js';
 
 declare global {
   interface HTMLElementTagNameMap {
-    'app-palette': Palette;
+    'app-setup': Setup;
   }
 }
 
-// 📘 define palette for 3270 emulation
+// 📘 327x Setup options
 
-@customElement('app-palette')
-export class Palette extends SignalWatcher(LitElement) {
+@customElement('app-setup')
+export class Setup extends SignalWatcher(LitElement) {
   static override styles = [
     globals,
     css`
@@ -73,6 +72,9 @@ export class Palette extends SignalWatcher(LitElement) {
                 padding: 0.25rem;
                 text-transform: capitalize;
               }
+              .monochrome {
+                color: #808080;
+              }
             }
 
             .controls {
@@ -108,7 +110,7 @@ export class Palette extends SignalWatcher(LitElement) {
     const form = evt.target as HTMLFormElement;
     if (form) {
       const formData = new FormData(form);
-      const config = Object.fromEntries(formData.entries()) as Config;
+      const config = Object.fromEntries(formData.entries());
       this.state.updateConfig(config);
       // 👇 now extract all the colors from the clut
       const inputs: HTMLInputElement[] = Array.from(
@@ -139,9 +141,10 @@ export class Palette extends SignalWatcher(LitElement) {
       'yellow',
       'white'
     ];
+    const device = this.state.model.get().config.device;
     return html`
       <main class="stretcher">
-        <header class="header">Customize 3270 Appearance</header>
+        <header class="header">Customize ${device} Appearance</header>
         <form @submit=${this.config} name="config">
           <section class="palette">
             <article class="settings">
@@ -160,12 +163,22 @@ export class Palette extends SignalWatcher(LitElement) {
                     (color) => color,
                     (color) => html`
                       <tr>
-                        <td>${color}</td>
+                        <td
+                          style=${styleMap({
+                            color:
+                              color !== 'green' && device === '3278'
+                                ? '#808080'
+                                : 'inherit'
+                          })}>
+                          ${color}
+                        </td>
                         <td>
                           <input
                             data-color=${color}
                             data-color-index="0"
                             type="color"
+                            ?disabled=${color !== 'green' &&
+                            device === '3278'}
                             .value=${clut[color]![0]} />
                         </td>
                         <td>
@@ -173,6 +186,8 @@ export class Palette extends SignalWatcher(LitElement) {
                             data-color=${color}
                             data-color-ix="1"
                             type="color"
+                            ?disabled=${color !== 'green' &&
+                            device === '3278'}
                             .value=${clut[color]![1]} />
                         </td>
                       </tr>
@@ -220,7 +235,7 @@ export class Palette extends SignalWatcher(LitElement) {
                   'font-size': `${this.state.model.get().config.fontSize}px`
                 })}>
                 ${repeat(
-                  colors,
+                  device === '3278' ? ['green'] : colors,
                   (color) => color,
                   (color) => html`
                     <tr
@@ -228,7 +243,7 @@ export class Palette extends SignalWatcher(LitElement) {
                         color: `${clut[color]![0]}`
                       })}>
                       <td>Employee ID :&nbsp;</td>
-                      <td style="color: white">04921</td>
+                      <td>04921</td>
                       <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
                       <td>Status :&nbsp;</td>
                       <td

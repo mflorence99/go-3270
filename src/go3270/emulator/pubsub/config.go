@@ -11,11 +11,11 @@ type Config struct {
 	BgColor      string
 	BoldFace     *font.Face
 	CLUT         map[consts.Color][2]string
-	Color        [2]string
 	Cols         int
 	FontHeight   float64
 	FontSize     float64
 	FontWidth    float64
+	Monochrome   bool
 	NormalFace   *font.Face
 	PaddedHeight float64
 	PaddedWidth  float64

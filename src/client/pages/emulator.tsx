@@ -157,7 +157,7 @@ export class Emulator extends SignalWatcher(LitElement) {
             })}>
             <article class="left">
               <app-icon icon="computer">
-                ${this.state.emulator.get()}
+                ${this.state.model.get().config.device}
               </app-icon>
 
               <app-icon
@@ -215,23 +215,22 @@ export class Emulator extends SignalWatcher(LitElement) {
       // 👇 construct a new device with its new attributes
       const bgColor =
         '#111318'; /* 👈 it'd be super nice not to hardcode */
-      const color = this.state.color.get();
-      const clut = this.state.model.get().clut;
-      const dims = this.state.dims.get();
+      const model = this.state.model.get();
       const dpi = this.dpi.offsetWidth * window.devicePixelRatio;
       const fontSize = Math.round(
         // TODO 🔥 Go "gg" seems to interpret font size differently
-        Number(this.state.model.get().config.fontSize) * 0.725
+        Number(model.config.fontSize) * 0.725
       );
+      const monochrome = model.config.device === '3278';
       // 👇 construct a new device with its new attributes
       this.#go3270 = window.NewGo3270?.(
         this.terminal,
         bgColor,
-        color,
-        clut,
+        monochrome,
+        model.clut,
         fontSize,
-        dims[0],
-        dims[1],
+        model.config.dims[0],
+        model.config.dims[1],
         dpi
       );
     }

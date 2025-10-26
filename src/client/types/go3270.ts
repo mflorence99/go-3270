@@ -19,7 +19,7 @@ declare global {
     NewGo3270: (
       canvas: HTMLCanvasElement,
       bgColor: string,
-      color: string[],
+      monochrome: boolean,
       clut: CLUT,
       fontSize: number,
       cols: number,
