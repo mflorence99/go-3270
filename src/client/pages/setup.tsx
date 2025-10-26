@@ -72,9 +72,6 @@ export class Setup extends SignalWatcher(LitElement) {
                 padding: 0.25rem;
                 text-transform: capitalize;
               }
-              .monochrome {
-                color: #808080;
-              }
             }
 
             .controls {
