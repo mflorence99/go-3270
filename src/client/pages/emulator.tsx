@@ -231,7 +231,8 @@ export class Emulator extends SignalWatcher(LitElement) {
         fontSize,
         model.config.dims[0],
         model.config.dims[1],
-        dpi
+        dpi,
+        model.config.screenshot
       );
     }
   }

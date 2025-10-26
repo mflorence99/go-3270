@@ -103,6 +103,7 @@ export type Config = {
   host: string;
   model: string;
   port: string;
+  screenshot: string;
 };
 
 export const defaultConfig: Config = {
@@ -113,7 +114,8 @@ export const defaultConfig: Config = {
   fontSize: '14',
   host: 'localhost',
   model: '2',
-  port: '3270'
+  port: '3270',
+  screenshot: ''
 };
 
 export type Status = {
@@ -153,9 +155,9 @@ const defaultState: StateModel = {
 export class State extends Base<StateModel> {
   color = computed((): string[] => {
     const clut = this.model.get().clut;
-    const model = this.model.get().config.model;
+    const device = this.model.get().config.device;
     // @ts-ignore 🔥 we know this is always valid
-    return model === '3278' ? clut['green'] : clut['white'];
+    return device === '3278' ? clut['green'] : clut['white'];
   });
 
   cursorAt = computed(() => {

@@ -41,12 +41,14 @@ type Mediator struct {
 
 // args[0] canvas
 // args[1] bgColor
-// args[2] color [normal, highlight]
+// args[2] monochrome
 // args[3] clut [map color -> [normal, highlight]]
 // args[4] fontSize
-// args[5] cols
-// args[6] rows
+// args[5] rows
+// args[6] cols
 // args[7] dpi
+// 👇 for testing
+// args[8] screenshot
 
 func NewMediator(this js.Value, args []js.Value) any {
 	m := new(Mediator)
@@ -79,9 +81,10 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 		clut[consts.ColorOf(k)] = v
 	}
 	fontSize := args[4].Float()
-	cols := args[5].Int()
-	rows := args[6].Int()
+	rows := args[5].Int()
+	cols := args[6].Int()
 	dpi := args[7].Float()
+	screenshot := args[8].String()
 	// 👇 constants
 	maxFPS := 30.0
 	paddedHeight := 1.5
@@ -124,6 +127,7 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 		PaddedWidth:  paddedWidth,
 		RGBA:         rgba,
 		Rows:         rows,
+		Screenshot:   screenshot,
 	}
 	return cfg
 

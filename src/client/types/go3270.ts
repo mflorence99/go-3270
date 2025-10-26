@@ -22,9 +22,10 @@ declare global {
       monochrome: boolean,
       clut: CLUT,
       fontSize: number,
-      cols: number,
       rows: number,
-      dpi: number
+      cols: number,
+      dpi: number,
+      screenshot: string
     ) => Go3270;
   }
 }

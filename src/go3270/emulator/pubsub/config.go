@@ -21,6 +21,7 @@ type Config struct {
 	PaddedWidth  float64
 	RGBA         *image.RGBA
 	Rows         int
+	Screenshot   string
 }
 
 func (c Config) Addr2RC(addr int) (int, int) {

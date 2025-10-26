@@ -3,6 +3,7 @@ package qr
 import (
 	"go3270/emulator/consts"
 	"go3270/emulator/stream"
+	"go3270/emulator/utils"
 )
 
 type ColorSupport struct {
@@ -13,26 +14,14 @@ type ColorSupport struct {
 	CAVs  [][]byte
 }
 
-// 🔥 we just support every color, aliassing "black" to the default green, and we left the CLUT sort out what color is actually displayed
+// 🔥 we just support the basic 7 colors, aliassing "black" to the default green, and we left the CLUT sort out what color is actually displayed
 
-func NewColorSupport() ColorSupport {
-	cavs := make([][]byte, 16)
+func NewColorSupport(monochrome bool) ColorSupport {
+	cavs := make([][]byte, 8)
 	cavs[0] = []byte{0x00, 0xF4}
-	cavs[1] = []byte{0xF1, 0xF1}
-	cavs[2] = []byte{0xF2, 0xF2}
-	cavs[3] = []byte{0xF3, 0xF3}
-	cavs[4] = []byte{0xF4, 0xF4}
-	cavs[5] = []byte{0xF5, 0xF5}
-	cavs[6] = []byte{0xF6, 0xF6}
-	cavs[7] = []byte{0xF7, 0xF7}
-	cavs[8] = []byte{0xF8, 0xF8}
-	cavs[9] = []byte{0xF9, 0xF9}
-	cavs[10] = []byte{0xFA, 0xFA}
-	cavs[11] = []byte{0xFB, 0xFB}
-	cavs[12] = []byte{0xFC, 0xFC}
-	cavs[13] = []byte{0xFD, 0xFD}
-	cavs[14] = []byte{0xFE, 0xFE}
-	cavs[15] = []byte{0xFF, 0xFF}
+	for ix := 1; ix < 8; ix++ {
+		cavs[ix] = []byte{byte(ix + 240), utils.Ternary(monochrome, 0x00, byte(ix+240))}
+	}
 	return ColorSupport{
 		SFID:  consts.QUERY_REPLY,
 		QCode: consts.COLOR_SUPPORT,

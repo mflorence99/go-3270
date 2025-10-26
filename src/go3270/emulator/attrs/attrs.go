@@ -38,6 +38,17 @@ func (a *Attrs) fromByte(char byte) {
 	a.Modified = (char & 0b00000001) != 0
 	a.Numeric = (char & 0b00010000) != 0
 	a.Protected = (char & 0b00100000) != 0
+	// 👇 set the default color attributes - ignored if monochrome
+	switch {
+	case !a.Protected && !a.Highlight:
+		a.Color = 0xF4
+	case !a.Protected && a.Highlight:
+		a.Color = 0xF2
+	case a.Protected && !a.Highlight:
+		a.Color = 0xF1
+	case a.Protected && a.Highlight:
+		a.Color = 0xF7
+	}
 }
 
 func (a *Attrs) fromBytes(chars []byte) {

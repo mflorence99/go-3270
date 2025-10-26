@@ -9,6 +9,7 @@ import (
 	"go3270/emulator/outbound"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/screen"
+	"go3270/emulator/screenshots"
 	"go3270/emulator/state"
 )
 
@@ -47,6 +48,10 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	// 👇 now configure all components
 	e.bus.PubConfig(cfg)
 	e.bus.PubReset()
+	// 👇 if debugging, show screenshot
+	if e.cfg.Screenshot != "" {
+		e.bus.PubOutbound(screenshots.Index[e.cfg.Screenshot])
+	}
 	return e
 }
 

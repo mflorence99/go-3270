@@ -119,16 +119,16 @@ export class Connector extends SignalWatcher(LitElement) {
 
   #tn3270: Tn3270 | null = null;
 
-  connect(evt: Event): void {
+  async connect(evt: Event): Promise<void> {
     evt.preventDefault();
-    this.#save();
+    const config = this.save();
     // 👇 now we can connect
-    // await this.connectImpl(config);
+    await this.connectImpl(config);
   }
 
   // 👁️ https://dev.to/blikblum/dry-form-handling-with-lit-19f
   // 👇 "connected" here means socket connection
-  async connectImpl(config: Partial<Config>): Promise<void> {
+  async connectImpl(config: Config): Promise<void> {
     try {
       this.connecting = true;
       this.#tn3270?.close();
@@ -179,6 +179,12 @@ export class Connector extends SignalWatcher(LitElement) {
       this.dispatchEvent(new CustomEvent('disconnected'));
       this.#tn3270 = null;
     }
+  }
+
+  debug(): void {
+    // TODO 🔥 generalize to multiple test screenshots
+    this.save('termtest');
+    this.dispatchEvent(new CustomEvent('connected'));
   }
 
   disconnect(): void {
@@ -238,11 +244,12 @@ export class Connector extends SignalWatcher(LitElement) {
                     slot="icon"></app-icon>
                 </md-filled-button>
 
-                <md-outlined-button
-                  @click=${this.setup}
-                  style="align-self: center"
-                  type="button">
+                <md-outlined-button @click=${this.setup} type="button">
                   Setup
+                </md-outlined-button>
+
+                <md-outlined-button @click=${this.debug} type="button">
+                  Debug
                 </md-outlined-button>
               </div>
             </article>
@@ -317,21 +324,23 @@ export class Connector extends SignalWatcher(LitElement) {
     `;
   }
 
-  sendToApp(bytes: Uint8ClampedArray): void {
-    this.#tn3270?.sendToApp(bytes);
-  }
-
-  setup(): void {
-    this.#save();
-    this.dispatchEvent(new CustomEvent('setup'));
-  }
-
-  #save(): void {
+  save(screenshot = ''): Config {
     const formData = new FormData(this.form);
     const config = Object.fromEntries(
       formData.entries()
     ) as Partial<Config>;
     config.dims = this.#dims[config.model as string];
+    config.screenshot = screenshot;
     this.state.updateConfig(config);
+    return this.state.model.get().config;
+  }
+
+  sendToApp(bytes: Uint8ClampedArray): void {
+    this.#tn3270?.sendToApp(bytes);
+  }
+
+  setup(): void {
+    this.save();
+    this.dispatchEvent(new CustomEvent('setup'));
   }
 }
