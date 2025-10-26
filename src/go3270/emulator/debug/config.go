@@ -1,6 +1,7 @@
 package debug
 
 import (
+	"fmt"
 	"go3270/emulator/pubsub"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -22,9 +23,8 @@ func (l *Logger) logCLUT(cfg pubsub.Config) {
 	t := l.newTable(text.FgHiBlue)
 	defer t.Render()
 	// 👇 table rows
-	t.AppendHeader(table.Row{"", "Color", "Color"})
-	t.AppendHeader(table.Row{"", "Normal", "Highlight"})
+	t.AppendHeader(table.Row{"", "Attr", "Color"})
 	for k, v := range cfg.CLUT {
-		t.AppendRow(table.Row{k, v[0], v[1]})
+		t.AppendRow(table.Row{k, fmt.Sprintf("%#02x", byte(k)), v})
 	}
 }

@@ -41,13 +41,8 @@ func Test_PFx(t *testing.T) {
 
 func Test_ColorFor(t *testing.T) {
 	assert.True(t, consts.ColorFor(0xF2) == "RED")
-	assert.True(t, consts.ColorFor(0xF7) == "WHITE")
-	assert.True(t, consts.ColorFor(0xFF) == "")
-}
-
-func Test_ColorOf(t *testing.T) {
-	assert.True(t, consts.ColorOf("RED") == 0xF2)
-	assert.True(t, consts.ColorOf("WHITE") == 0xF7)
+	assert.True(t, consts.ColorFor(0xF7) == "FOREGROUND")
+	assert.True(t, consts.ColorFor(0xFF) == "WHITE")
 }
 
 func Test_CommandFor(t *testing.T) {

@@ -160,7 +160,7 @@ export class Emulator extends SignalWatcher(LitElement) {
           <footer
             class="status"
             style=${styleMap({
-              'color': `${this.state.color.get()[1]}`,
+              'color': `${this.state.model.get().config.device === '3278' ? '#00AA00' : '#FFFFFF'}`,
               'font-size': `${this.state.model.get().config.fontSize}`
             })}>
             <article class="left">

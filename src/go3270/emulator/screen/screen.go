@@ -94,10 +94,9 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 	cell, _ := s.buf.Peek(addr)
 	attrs := cell.Attrs
 	invisible := cell.Char == 0x00 || cell.FldStart || attrs.Hidden
-	// 👇 different color if highlighted
+	// 👇 ignore color if monochrome
 	ix := utils.Ternary(attrs.Color == 0 || s.cfg.Monochrome, 0xF4, attrs.Color)
 	color := s.cfg.CLUT[ix]
-	iy := utils.Ternary(attrs.Highlight, 1, 0)
 	// 🔥 != here is the Go idiom for XOR
 	reverse := utils.Ternary(doBlink, attrs.Reverse != blinkOn, attrs.Reverse != (addr == s.st.Stat.CursorAt))
 	char := utils.Ternary(invisible, ' ', cell.Char)
@@ -106,7 +105,7 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 		// 👇 the cache will find us the glyph iself
 		g := glyph.Glyph{
 			Char:       char,
-			Color:      color[iy],
+			Color:      color,
 			Highlight:  attrs.Highlight,
 			Reverse:    reverse,
 			Underscore: attrs.Underscore,

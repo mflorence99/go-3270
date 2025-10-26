@@ -10,7 +10,7 @@ import (
 type Config struct {
 	BgColor      string
 	BoldFace     *font.Face
-	CLUT         map[consts.Color][2]string
+	CLUT         map[consts.Color]string
 	Cols         int
 	FontHeight   float64
 	FontSize     float64

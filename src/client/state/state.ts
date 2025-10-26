@@ -81,22 +81,28 @@ abstract class Base<T> {
 
 // 📘 the entire state of the app
 
-export type CLUT = Record<string, [string, string]>;
+export type CLUT = Record<number, [string, string]>;
 
 export const defaultCLUT: CLUT = {
-  // 👇 [normal, highlight]
-  black: ['#505050', '#111138'],
-  blue: ['#3366CC', '#0078FF'],
-  red: ['#E06666', '#D40000'],
-  pink: ['#FFB3DA', '#FF69B4'],
-  green: ['#88DD88', '#00AA00'],
-  turquoise: ['#99E8DD', '#00C8AA'],
-  yellow: ['#F0F080', '#FFB266'],
-  white: ['#888888', '#FFFFFF']
+  0xf0: ['#000000', 'Background'],
+  0xf1: ['#4169E1', 'Blue'],
+  0xf2: ['#FF0000', 'Red'],
+  0xf3: ['#EE82EE', 'Pink'],
+  0xf4: ['#008000', 'Green'],
+  0xf5: ['#40E0D0', 'Turquiose'],
+  0xf6: ['#FFFF00', 'Yellow'],
+  0xf7: ['#FFFFFF', 'Foreground'],
+  0xf8: ['#000000', 'Black'],
+  0xf9: ['#0000CD', 'Deep Blue'],
+  0xfa: ['#FFA500', 'Orange'],
+  0xfb: ['#800080', 'Purple'],
+  0xfc: ['#90EE90', 'Pale Green'],
+  0xfd: ['#AFEEEE', 'Pale Turquoise'],
+  0xfe: ['#C0C0C0', 'Grey'],
+  0xff: ['#FFFFFF', 'White']
 };
 
 export type Config = {
-  color: string;
   device: string;
   dims: [number, number];
   fontSize: string;
@@ -107,7 +113,6 @@ export type Config = {
 };
 
 export const defaultConfig: Config = {
-  color: 'green',
   device: '3279',
   // 👇 [rows, cols]
   dims: [24, 80],
@@ -153,13 +158,6 @@ const defaultState: StateModel = {
 };
 
 export class State extends Base<StateModel> {
-  color = computed((): string[] => {
-    const clut = this.model.get().clut;
-    const device = this.model.get().config.device;
-    // @ts-ignore 🔥 we know this is always valid
-    return device === '3278' ? clut['green'] : clut['white'];
-  });
-
   cursorAt = computed(() => {
     const cursorAt = this.model.get().status.cursorAt;
     if (cursorAt >= 0) {

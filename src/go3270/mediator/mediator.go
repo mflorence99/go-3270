@@ -7,6 +7,7 @@ import (
 	"image"
 	"math"
 	"slices"
+	"strconv"
 
 	"github.com/fogleman/gg"
 	"github.com/golang/freetype/truetype"
@@ -42,7 +43,7 @@ type Mediator struct {
 // args[0] canvas
 // args[1] bgColor
 // args[2] monochrome
-// args[3] clut [map color -> [normal, highlight]]
+// args[3] clut [map attr -> [color, name]]
 // args[4] fontSize
 // args[5] rows
 // args[6] cols
@@ -73,12 +74,13 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 	bgColor := args[1].String()
 	monochrome := args[2].Bool()
 	obj := args[3]
-	clut := make(map[consts.Color][2]string)
+	clut := make(map[consts.Color]string)
 	keys := js.Global().Get("Object").Call("keys", obj)
-	for i := 0; i < keys.Length(); i++ {
-		k := keys.Index(i).String()
-		v := [2]string{obj.Get(k).Index(0).String(), obj.Get(k).Index(1).String()}
-		clut[consts.ColorOf(k)] = v
+	for ix := 0; ix < keys.Length(); ix++ {
+		k := keys.Index(ix).String()
+		v := obj.Get(k).Index(0).String()
+		c, _ := strconv.ParseUint(k, 10, 8)
+		clut[consts.Color(c)] = v
 	}
 	fontSize := args[4].Float()
 	rows := args[5].Int()

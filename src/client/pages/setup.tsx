@@ -9,6 +9,7 @@ import { customElement } from 'lit/decorators.js';
 import { defaultCLUT } from '$client/state/state';
 import { globals } from '$client/css/globals/shadow-dom';
 import { html } from 'lit';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { query } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { stateContext } from '$client/state/state';
@@ -36,61 +37,59 @@ export class Setup extends SignalWatcher(LitElement) {
         justify-content: center;
         min-width: 800px /* 👈 to prevent wrapping */;
 
-        .header {
-          font-size: 2rem;
-          font-weight: bold;
-          text-align: center;
-          text-transform: uppercase;
-        }
-
-        .palette {
-          align-items: stretch;
+        .setup {
           display: flex;
-          flex-direction: row;
+          flex-direction: column;
           gap: 2rem;
+          justify-content: stretch;
 
-          .settings {
+          .header {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+          }
+
+          .config {
+            align-items: stretch;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             gap: 1rem;
-            justify-content: space-between;
+            justify-content: center;
 
-            .buttons {
-              display: flex;
-              flex-direction: row;
-              gap: 1rem;
-              justify-content: center;
-            }
-
-            .clut {
-              input[type='color'] {
-                height: 2rem;
-                width: 5rem;
-              }
-              td {
-                font-weight: bold;
-                padding: 0.25rem;
-                text-transform: capitalize;
-              }
-            }
-
-            .controls {
+            .settings {
               display: flex;
               flex-direction: column;
-              justify-content: center;
-            }
+              gap: 1rem;
+              justify-content: space-between;
 
-            .instructions {
-              font-weight: bold;
-            }
+              .buttons {
+                display: flex;
+                flex-direction: row;
+                gap: 1rem;
+                justify-content: center;
+              }
 
-            .preview {
-              border: 1px solid var(--md-sys-color-on-surface);
-              font-family: Terminal;
-              letter-spacing: 0.125ch;
-              padding: 1rem;
-              td {
-                padding: 0;
+              .clut {
+                input[type='color'] {
+                  height: 2rem;
+                  width: 5rem;
+                }
+                td {
+                  font-weight: bold;
+                  padding: 0.25rem;
+                  text-transform: capitalize;
+                }
+              }
+
+              .controls {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+              }
+
+              .instructions {
+                font-weight: bold;
               }
             }
           }
@@ -114,9 +113,8 @@ export class Setup extends SignalWatcher(LitElement) {
         this.clut.querySelectorAll('input[type=color]')
       );
       const clut = inputs.reduce((acc, input) => {
-        const color = input.getAttribute('data-color') as string;
-        const ix = Number(input.getAttribute('data-color-ix'));
-        acc[color]![ix] = input.value;
+        const color = Number(input.getAttribute('data-color'));
+        acc[color]![0] = input.value;
         return acc;
       }, structuredClone(this.state.model.get().clut));
       this.state.updateCLUT(clut);
@@ -130,30 +128,28 @@ export class Setup extends SignalWatcher(LitElement) {
   override render(): TemplateResult {
     const clut = this.state.model.get().clut;
     const colors = [
-      'blue',
-      'red',
-      'pink',
-      'green',
-      'turquoise',
-      'yellow',
-      'white'
+      [0xf7, 0xf0], // 👈 FG, BG
+      [0xf1, 0xf9], // 👈 blue, deep blue
+      [0xf2, 0xfa], // 👈 red, orange
+      [0xf3, 0xfb], // 👈 pink, purple
+      [0xf4, 0xfc], // 👈 green, pale green
+      [0xf5, 0xfd], // 👈 turquoise, pale turquoise
+      [0xf6, 0xfe], // 👈 yellow, gray
+      [0xf8, 0xff] // 👈 black, white
     ];
+    const colorOf = (color: any): string => clut[color]![0];
+    const nameOf = (color: any): string => clut[color]![1];
     const device = this.state.model.get().config.device;
     return html`
       <main class="stretcher">
-        <header class="header">Customize ${device} Appearance</header>
-        <form @submit=${this.config} name="config">
-          <section class="palette">
+        <section class="setup">
+          <header class="header">Customize ${device} Appearance</header>
+
+          <hr />
+
+          <form @submit=${this.config} class="config" name="config">
             <article class="settings">
               <table class="clut">
-                <thead>
-                  <tr>
-                    <td></td>
-                    <td>Normal</td>
-                    <td>Highlight</td>
-                  </tr>
-                </thead>
-
                 <tbody>
                   ${repeat(
                     colors,
@@ -162,37 +158,41 @@ export class Setup extends SignalWatcher(LitElement) {
                       <tr>
                         <td
                           style=${styleMap({
-                            color:
-                              color !== 'green' && device === '3278'
-                                ? '#808080'
-                                : 'inherit'
+                            'color':
+                              device === '3278' ? '#808080' : 'inherit',
+                            'text-align': 'right'
                           })}>
-                          ${color}
+                          ${nameOf(color[0])}
                         </td>
                         <td>
                           <input
-                            data-color=${color}
-                            data-color-index="0"
+                            data-color=${ifDefined(color[0])}
                             type="color"
-                            ?disabled=${color !== 'green' &&
-                            device === '3278'}
-                            .value=${clut[color]![0]} />
+                            ?disabled=${device === '3278'}
+                            .value=${colorOf(color[0])} />
                         </td>
                         <td>
                           <input
-                            data-color=${color}
-                            data-color-ix="1"
+                            data-color=${ifDefined(color[1])}
                             type="color"
-                            ?disabled=${color !== 'green' &&
-                            device === '3278'}
-                            .value=${clut[color]![1]} />
+                            ?disabled=${device === '3278'}
+                            .value=${colorOf(color[1])} />
+                        </td>
+                        <td
+                          style=${styleMap({
+                            color:
+                              device === '3278' ? '#808080' : 'inherit'
+                          })}>
+                          ${nameOf(color[1])}
                         </td>
                       </tr>
                     `
                   )}
                 </tbody>
               </table>
+            </article>
 
+            <article class="settings">
               <div class="controls">
                 <p class="instructions">Select Font Size</p>
 
@@ -223,55 +223,6 @@ export class Setup extends SignalWatcher(LitElement) {
                   )}
                 </md-filled-select>
               </div>
-            </article>
-
-            <article class="settings">
-              <table
-                class="preview"
-                style=${styleMap({
-                  'font-size': `${this.state.model.get().config.fontSize}px`
-                })}>
-                ${repeat(
-                  device === '3278' ? ['green'] : colors,
-                  (color) => color,
-                  (color) => html`
-                    <tr
-                      style=${styleMap({
-                        color: `${clut[color]![0]}`
-                      })}>
-                      <td>Employee ID :&nbsp;</td>
-                      <td>04921</td>
-                      <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                      <td>Status :&nbsp;</td>
-                      <td
-                        style=${styleMap({
-                          'background-color': `${clut[color]![1]}`,
-                          'color': 'black'
-                        })}>
-                        <b>ACTIVE</b>
-                      </td>
-                    </tr>
-                    <tr
-                      style=${styleMap({
-                        color: `${clut[color]![0]}`
-                      })}>
-                      <td
-                        style=${styleMap({
-                          color: `${clut[color]![1]}`
-                        })}>
-                        <b>Last Name&nbsp;&nbsp;&nbsp;:&nbsp;</b>
-                      </td>
-                      <td
-                        colspan="3"
-                        style=${styleMap({
-                          color: `${clut[color]![1]}`
-                        })}>
-                        Smith
-                      </td>
-                    </tr>
-                  `
-                )}
-              </table>
 
               <div class="buttons">
                 <md-filled-button>Save</md-filled-button>
@@ -285,8 +236,8 @@ export class Setup extends SignalWatcher(LitElement) {
                 </md-outlined-button>
               </div>
             </article>
-          </section>
-        </form>
+          </form>
+        </section>
       </main>
     `;
   }
