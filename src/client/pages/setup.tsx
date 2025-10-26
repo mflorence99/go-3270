@@ -91,6 +91,16 @@ export class Setup extends SignalWatcher(LitElement) {
               .instructions {
                 font-weight: bold;
               }
+
+              .preview {
+                border: 1px solid var(--md-sys-color-on-surface);
+                font-family: Terminal;
+                letter-spacing: 0.125ch;
+                padding: 0.5rem;
+                td {
+                  padding: 0;
+                }
+              }
             }
           }
         }
@@ -194,6 +204,50 @@ export class Setup extends SignalWatcher(LitElement) {
 
             <article class="settings">
               <div class="controls">
+                <p class="instructions">Sample Fields</p>
+
+                <div
+                  class="preview"
+                  style=${styleMap({
+                    'font-size': `${this.state.model.get().config.fontSize}px`
+                  })}>
+                  <p style=${styleMap({ color: colorOf(0xf4) })}>
+                    Unprotected field
+                  </p>
+
+                  <p
+                    style=${styleMap({
+                      color:
+                        device === '3278'
+                          ? colorOf(0xf4)
+                          : colorOf(0xf2)
+                    })}>
+                    <b>Unprotected field - highlighted</b>
+                  </p>
+
+                  <p
+                    style=${styleMap({
+                      color:
+                        device === '3278'
+                          ? colorOf(0xf4)
+                          : colorOf(0xf1)
+                    })}>
+                    Protected field
+                  </p>
+
+                  <p
+                    style=${styleMap({
+                      color:
+                        device === '3278'
+                          ? colorOf(0xf4)
+                          : colorOf(0xf7)
+                    })}>
+                    <b>Protected field - highlighted</b>
+                  </p>
+                </div>
+
+                <br />
+
                 <p class="instructions">Select Font Size</p>
 
                 <md-filled-select name="fontSize">

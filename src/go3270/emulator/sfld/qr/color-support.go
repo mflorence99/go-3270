@@ -17,9 +17,9 @@ type ColorSupport struct {
 // 🔥 we just support the basic 7 colors, aliassing "black" to the default green, and we left the CLUT sort out what color is actually displayed
 
 func NewColorSupport(monochrome bool) ColorSupport {
-	cavs := make([][]byte, 8)
+	cavs := make([][]byte, 16)
 	cavs[0] = []byte{0x00, 0xF4}
-	for ix := 1; ix < 8; ix++ {
+	for ix := 1; ix < 16; ix++ {
 		cavs[ix] = []byte{byte(ix + 240), utils.Ternary(monochrome, 0x00, byte(ix+240))}
 	}
 	return ColorSupport{
