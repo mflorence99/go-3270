@@ -7,7 +7,6 @@ export * from '$client/components/icon';
 
 import '@material/web/button/filled-button.js';
 import '@material/web/button/outlined-button.js';
-import '@material/web/dialog/dialog.js';
 import '@material/web/iconbutton/icon-button.js';
 import '@material/web/radio/radio.js';
 import '@material/web/select/filled-select.js';

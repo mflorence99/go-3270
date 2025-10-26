@@ -1,6 +1,5 @@
 import { Config } from '$client/state/state';
 import { LitElement } from 'lit';
-import { MdDialog } from '@material/web/dialog/dialog.js';
 import { SignalWatcher } from '@lit-labs/signals';
 import { State } from '$client/state/state';
 import { TemplateResult } from 'lit';
@@ -105,9 +104,7 @@ export class Connector extends SignalWatcher(LitElement) {
   ];
 
   @state() connecting!: boolean;
-  @query('#dialog') dialog!: MdDialog;
   @query('#form') form!: HTMLFormElement;
-  @state() message!: string;
   @consume({ context: stateContext }) state!: State;
 
   #dims: Record<string, [number, number]> = {
@@ -150,11 +147,12 @@ export class Connector extends SignalWatcher(LitElement) {
         },
 
         // 🔥 WebSocket connection established, but that failed
-        error: async (e: any) => {
+        error: (e: any) => {
           console.error(e);
           this.connecting = false;
-          this.message = e.reason;
-          await this.dialog.show();
+          window.alert(
+            `A connection error occured. Please take any necessary corrective action and retry.\n\n${e.reason}`
+          );
           this.dispatchEvent(new CustomEvent('disconnected'));
           this.#tn3270 = null;
         },
@@ -174,8 +172,9 @@ export class Connector extends SignalWatcher(LitElement) {
       // 🔥 tried to upgrade to WebSocket, but that failed
       console.error(e);
       this.connecting = false;
-      this.message = `Unable to reach proxy server ${location.hostname}:${location.port}`;
-      await this.dialog.show();
+      window.alert(
+        `Unable to reach proxy server ${location.hostname}:${location.port}. Please take any corrective action and retry.`
+      );
       this.dispatchEvent(new CustomEvent('disconnected'));
       this.#tn3270 = null;
     }
@@ -192,8 +191,7 @@ export class Connector extends SignalWatcher(LitElement) {
   }
 
   panic(message: string): void {
-    this.message = message;
-    this.dialog.show();
+    window.alert(message);
     this.#tn3270?.close();
   }
 
@@ -303,24 +301,6 @@ export class Connector extends SignalWatcher(LitElement) {
           </form>
         </section>
       </main>
-
-      <md-dialog id="dialog">
-        <header slot="headline">3270 Connection Error</header>
-        <section slot="content">
-          <p>
-            An error occured while connecting to the terminal device at
-            ${this.state.model.get().config
-              .host}:${this.state.model.get().config.port}.
-            Please take any necessary corrective action and retry.
-            <br />
-            <br />
-            ${this.message}
-          </p>
-        </section>
-        <form slot="actions" method="dialog">
-          <md-outlined-button>OK</md-outlined-button>
-        </form>
-      </md-dialog>
     `;
   }
 

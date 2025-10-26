@@ -98,11 +98,20 @@ export class Emulator extends SignalWatcher(LitElement) {
     `
   ];
 
-  @query('.dpi') dpi!: HTMLDivElement;
+  @query('#dpi') dpi!: HTMLDivElement;
   @consume({ context: stateContext }) state!: State;
-  @query('.terminal') terminal!: HTMLCanvasElement;
+  @query('#terminal') terminal!: HTMLCanvasElement;
 
   #go3270: Go3270 | null = null;
+
+  confirm(): void {
+    if (
+      window.confirm(
+        'Are you sre you want to terminate the 3270 session?'
+      )
+    )
+      window.dispatchEvent(new CustomEvent('disconnect'));
+  }
 
   disconnect(): void {
     this.#go3270?.close();
@@ -132,8 +141,7 @@ export class Emulator extends SignalWatcher(LitElement) {
         <section class="emulator">
           <header class="header">
             <md-icon-button
-              @click=${(): any =>
-                window.dispatchEvent(new CustomEvent('disconnect'))}
+              @click=${(): void => this.confirm()}
               title="Disconnect from 3270">
               <app-icon icon="power_settings_new"></app-icon>
             </md-icon-button>
@@ -146,7 +154,7 @@ export class Emulator extends SignalWatcher(LitElement) {
           </header>
 
           <article class="wrapper">
-            <canvas class="terminal"></canvas>
+            <canvas class="terminal" id="terminal"></canvas>
           </article>
 
           <footer
@@ -203,7 +211,7 @@ export class Emulator extends SignalWatcher(LitElement) {
         </section>
       </main>
 
-      <div class="dpi"></div>
+      <div class="dpi" id="dpi"></div>
     `;
   }
 
