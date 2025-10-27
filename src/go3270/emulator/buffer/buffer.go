@@ -66,16 +66,38 @@ func (b *Buffer) Erase(char byte) {
 }
 
 func (b *Buffer) Flds() [][]*attrs.Cell {
-	fld := make([]*attrs.Cell, 0)
 	flds := make([][]*attrs.Cell, 0)
-	for _, cell := range b.buf {
-		if cell != nil && cell.FldStart {
+	// 👇 find the first SF - note that fields can wrap the buffer!
+	first := -1
+	for ix, cell := range b.buf {
+		if cell.FldStart {
+			first = ix
+			break
+		}
+	}
+	// 👇 there may be no real fields at all!
+	if first == -1 {
+		return flds
+	}
+	// 👇 now search for fields, starting with first
+	ix := first
+	fld := make([]*attrs.Cell, 0)
+	for {
+		cell, _ := b.Peek(ix)
+		if cell.FldStart {
 			if len(fld) > 0 {
 				flds = append(flds, fld)
 				fld = make([]*attrs.Cell, 0)
 			}
 		}
 		fld = append(fld, cell)
+		// 👇 wrap around as nercessary
+		if ix++; ix >= b.Len() {
+			ix = 0
+		}
+		if ix == first {
+			break
+		}
 	}
 	// 👇 don't forget the last field
 	if len(fld) > 0 {

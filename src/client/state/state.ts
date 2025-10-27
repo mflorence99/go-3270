@@ -84,22 +84,22 @@ abstract class Base<T> {
 export type CLUT = Record<number, [string, string]>;
 
 export const defaultCLUT: CLUT = {
-  0xf0: ['#000000', 'Background'],
+  0xf0: ['#111318', 'Background'],
   0xf1: ['#4169E1', 'Blue'],
   0xf2: ['#FF0000', 'Red'],
   0xf3: ['#EE82EE', 'Pink'],
-  0xf4: ['#008000', 'Green'],
+  0xf4: ['#04c304', 'Green'],
   0xf5: ['#40E0D0', 'Turquiose'],
   0xf6: ['#FFFF00', 'Yellow'],
   0xf7: ['#FFFFFF', 'Foreground'],
-  0xf8: ['#000000', 'Black'],
+  0xf8: ['#111318', 'Black'],
   0xf9: ['#0000CD', 'Deep Blue'],
   0xfa: ['#FFA500', 'Orange'],
   0xfb: ['#800080', 'Purple'],
   0xfc: ['#90EE90', 'Pale Green'],
   0xfd: ['#AFEEEE', 'Pale Turquoise'],
   0xfe: ['#C0C0C0', 'Grey'],
-  0xff: ['#FFFFFF', 'White']
+  0xff: ['#E2E2E9', 'White']
 };
 
 export type Config = {
@@ -163,7 +163,7 @@ export class State extends Base<StateModel> {
     if (cursorAt >= 0) {
       const dims = this.model.get().config.dims;
       // @ts-ignore 🔥 we know this is always valid
-      return `${String(Math.trunc(cursorAt / dims[0]) + 1).padStart(3, '0')}/${String((cursorAt % dims[0]) + 1).padStart(3, '0')}`;
+      return `${String(Math.trunc(cursorAt / dims[1]) + 1).padStart(3, '0')}/${String((cursorAt % dims[1]) + 1).padStart(3, '0')}`;
     } else return '';
   });
 

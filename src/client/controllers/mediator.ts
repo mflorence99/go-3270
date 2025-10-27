@@ -44,7 +44,9 @@ export class Mediator implements ReactiveController {
       case 'panic':
         {
           const { args } = (evt as CustomEvent).detail;
-          this.host.connector.panic(args);
+          this.#alarm.play();
+          window.alert(args);
+          this.disconnect();
         }
         break;
       case 'inbound':

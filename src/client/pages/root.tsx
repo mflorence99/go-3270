@@ -63,9 +63,9 @@ export class Root extends SignalWatcher(LitElement) {
       <app-connector
         @connected=${(): any => (this.pageNum = Pages.emulator)}
         @disconnected=${(): any => (this.pageNum = Pages.connector)}
-        @setup=${(): any => (this.pageNum = Pages.setup)}
         @outbound=${(evt: CustomEvent): any =>
           this.emulator.outbound(evt.detail.bytes)}
+        @setup=${(): any => (this.pageNum = Pages.setup)}
         class="connector"
         data-page-num="${Pages.connector}"
         style=${styleMap({
@@ -74,6 +74,7 @@ export class Root extends SignalWatcher(LitElement) {
         })}></app-connector>
 
       <app-emulator
+        @done=${(): any => (this.pageNum = Pages.connector)}
         class="emulator"
         data-page-num="${Pages.emulator}"
         style=${styleMap({

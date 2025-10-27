@@ -131,10 +131,6 @@ export class Setup extends SignalWatcher(LitElement) {
     }
   }
 
-  done(): void {
-    this.dispatchEvent(new CustomEvent('done'));
-  }
-
   override render(): TemplateResult {
     const clut = this.state.model.get().clut;
     const colors = [
@@ -169,7 +165,9 @@ export class Setup extends SignalWatcher(LitElement) {
                         <td
                           style=${styleMap({
                             'color':
-                              device === '3278' ? '#808080' : 'inherit',
+                              device === '3278' && color[0] !== 0xf4
+                                ? '#808080'
+                                : 'inherit',
                             'text-align': 'right'
                           })}>
                           ${nameOf(color[0])}
@@ -178,20 +176,24 @@ export class Setup extends SignalWatcher(LitElement) {
                           <input
                             data-color=${ifDefined(color[0])}
                             type="color"
-                            ?disabled=${device === '3278'}
+                            ?disabled=${device === '3278' &&
+                            color[0] !== 0xf4}
                             .value=${colorOf(color[0])} />
                         </td>
                         <td>
                           <input
                             data-color=${ifDefined(color[1])}
                             type="color"
-                            ?disabled=${device === '3278'}
+                            ?disabled=${device === '3278' &&
+                            color[1] !== 0xf4}
                             .value=${colorOf(color[1])} />
                         </td>
                         <td
                           style=${styleMap({
                             color:
-                              device === '3278' ? '#808080' : 'inherit'
+                              device === '3278' && color[1] !== 0xf4
+                                ? '#808080'
+                                : 'inherit'
                           })}>
                           ${nameOf(color[1])}
                         </td>
@@ -285,7 +287,10 @@ export class Setup extends SignalWatcher(LitElement) {
                   type="button">
                   Restore
                 </md-outlined-button>
-                <md-outlined-button @click=${this.done} type="button">
+                <md-outlined-button
+                  @click=${(): any =>
+                    this.dispatchEvent(new CustomEvent('done'))}
+                  type="button">
                   Done
                 </md-outlined-button>
               </div>

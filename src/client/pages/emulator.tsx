@@ -105,7 +105,9 @@ export class Emulator extends SignalWatcher(LitElement) {
   #go3270: Go3270 | null = null;
 
   confirm(): void {
-    if (
+    if (this.state.model.get().config.screenshot)
+      this.dispatchEvent(new CustomEvent('done'));
+    else if (
       window.confirm(
         'Are you sre you want to terminate the 3270 session?'
       )
@@ -160,7 +162,7 @@ export class Emulator extends SignalWatcher(LitElement) {
           <footer
             class="status"
             style=${styleMap({
-              'color': `${this.state.model.get().config.device === '3278' ? '#00AA00' : '#FFFFFF'}`,
+              'color': `${this.state.model.get().config.device === '3278' ? this.state.model.get().clut[0xf4]![0] : this.state.model.get().clut[0xff]![0]}`,
               'font-size': `${this.state.model.get().config.fontSize}`
             })}>
             <article class="left">
@@ -221,9 +223,8 @@ export class Emulator extends SignalWatcher(LitElement) {
       // 👇 close any prior handler
       this.#go3270?.close();
       // 👇 construct a new device with its new attributes
-      const bgColor =
-        '#111318'; /* 👈 it'd be super nice not to hardcode */
       const model = this.state.model.get();
+      const bgColor = model.clut[0xf0]![0];
       const dpi = this.dpi.offsetWidth * window.devicePixelRatio;
       const fontSize = Math.round(
         // TODO 🔥 Go "gg" seems to interpret font size differently

@@ -150,8 +150,13 @@ export class Connector extends SignalWatcher(LitElement) {
         error: (e: any) => {
           console.error(e);
           this.connecting = false;
-          window.alert(
-            `A connection error occured. Please take any necessary corrective action and retry.\n\n${e.reason}`
+          window.dispatchEvent(
+            new CustomEvent('go3270', {
+              detail: {
+                args: `A connection error occured. Please take any necessary corrective action and retry.\n\n${e.reason}`,
+                eventType: 'panic'
+              }
+            })
           );
           this.dispatchEvent(new CustomEvent('disconnected'));
           this.#tn3270 = null;
@@ -172,8 +177,13 @@ export class Connector extends SignalWatcher(LitElement) {
       // 🔥 tried to upgrade to WebSocket, but that failed
       console.error(e);
       this.connecting = false;
-      window.alert(
-        `Unable to reach proxy server ${location.hostname}:${location.port}. Please take any corrective action and retry.`
+      window.dispatchEvent(
+        new CustomEvent('go3270', {
+          detail: {
+            args: `Unable to reach proxy server ${location.hostname}:${location.port}. Please take any corrective action and retry.`,
+            eventType: 'panic'
+          }
+        })
       );
       this.dispatchEvent(new CustomEvent('disconnected'));
       this.#tn3270 = null;
@@ -187,11 +197,6 @@ export class Connector extends SignalWatcher(LitElement) {
   }
 
   disconnect(): void {
-    this.#tn3270?.close();
-  }
-
-  panic(message: string): void {
-    window.alert(message);
     this.#tn3270?.close();
   }
 
@@ -216,7 +221,7 @@ export class Connector extends SignalWatcher(LitElement) {
                 <md-filled-text-field
                   label="Hostname or IP"
                   name="host"
-                  style="width: 10rem"
+                  style="flex-grow: 2"
                   value=${this.state.model.get().config
                     .host}></md-filled-text-field>
                 <md-filled-text-field
