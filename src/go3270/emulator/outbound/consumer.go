@@ -14,16 +14,18 @@ import (
 )
 
 type Consumer struct {
-	buf *buffer.Buffer
-	bus *pubsub.Bus
-	cfg pubsub.Config
-	st  *state.State
+	buf  *buffer.Buffer
+	bus  *pubsub.Bus
+	cfg  pubsub.Config
+	flds *buffer.Flds
+	st   *state.State
 }
 
-func NewConsumer(bus *pubsub.Bus, buf *buffer.Buffer, st *state.State) *Consumer {
+func NewConsumer(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds, st *state.State) *Consumer {
 	c := new(Consumer)
 	c.bus = bus
 	c.buf = buf
+	c.flds = flds
 	c.st = st
 	// 👇 subscriptions
 	c.bus.SubConfig(c.configure)
@@ -86,7 +88,7 @@ func (c *Consumer) ew(out *stream.Outbound) {
 	if ok {
 		c.bus.PubReset()
 		c.orders(out)
-		c.finalize()
+		c.flds.Reset()
 		c.bus.PubRender()
 	}
 }
@@ -106,7 +108,7 @@ func (c *Consumer) rma() {
 func (c *Consumer) w(out *stream.Outbound) {
 	c.wcc(out)
 	c.orders(out)
-	c.finalize()
+	c.flds.Reset()
 	c.bus.PubRender()
 }
 
@@ -119,11 +121,7 @@ func (c *Consumer) wcc(out *stream.Outbound) (wcc.WCC, bool) {
 			println("🔥 WCC Reset not implemented")
 		}
 		if wcc.ResetMDT {
-			flds := c.buf.GetFlds()
-			for _, cells := range flds {
-				cells[0].Attrs.Modified = false
-			}
-
+			c.flds.ResetMDT()
 		}
 		c.bus.PubWCC(wcc)
 		return wcc, true
@@ -170,60 +168,6 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 	}
 }
 
-// 🟦 Finalize write commands by organizing cells into fields
-
-func (c *Consumer) finalize() {
-	flds := make([][]*attrs.Cell, 0)
-	// 👇 find the first SF - note that fields can wrap the buffer!
-	first := -1
-	for addr := 0; addr < c.buf.Len(); addr++ {
-		cell, _ := c.buf.Peek(addr)
-		if cell != nil && cell.FldStart {
-			first = addr
-			break
-		}
-	}
-	// 👇 there may be no real fields at all!
-	if first > -1 {
-		addr := first
-		fld := make([]*attrs.Cell, 0)
-		for {
-			cell, _ := c.buf.Peek(addr)
-			// 👇 a field is delimited by the next field
-			if cell != nil && cell.FldStart {
-				if len(fld) > 0 {
-					flds = append(flds, fld)
-					fld = make([]*attrs.Cell, 0)
-					fld = append(fld, cell)
-				}
-			} else if cell == nil {
-				// 👇 the cell might be missing, so inherit from the SF
-				cell = &attrs.Cell{Attrs: fld[0].Attrs, Char: 0x00, FldAddr: fld[0].FldAddr}
-				c.buf.Replace(cell, addr)
-			} else if cell.FldAddr != fld[0].FldAddr {
-				// 👇 the cell might be a residue of an earlier field after a W command
-				cell.Attrs = fld[0].Attrs
-				// cell.Char = 0x00
-				cell.FldAddr = fld[0].FldAddr
-			}
-			// 👇 finally, just add this cell to the list of cells
-			fld = append(fld, cell)
-			// 👇 wrap around as necessary
-			if addr++; addr >= c.buf.Len() {
-				addr = 0
-			}
-			if addr == first {
-				break
-			}
-		}
-		// 👇 don't forget the last field
-		if len(fld) > 0 {
-			flds = append(flds, fld)
-		}
-	}
-	c.buf.SetFlds(flds)
-}
-
 // 🟦 Orders
 
 func (c *Consumer) orders(out *stream.Outbound) {
@@ -252,7 +196,7 @@ func (c *Consumer) orders(out *stream.Outbound) {
 			c.pt()
 
 		case consts.RA:
-			c.ra(out)
+			c.ra(out, fldAddr, fldAttrs)
 
 		case consts.SA:
 			fldAttrs = c.sa(out, fldAttrs)
@@ -269,7 +213,7 @@ func (c *Consumer) orders(out *stream.Outbound) {
 		// 👇 if it isn't an order, it's data
 		default:
 			if char == 0x00 || char >= 0x40 {
-				cell := &attrs.Cell{
+				cell := &buffer.Cell{
 					Attrs:   fldAttrs,
 					Char:    conv.E2A(char),
 					FldAddr: fldAddr,
@@ -310,22 +254,21 @@ func (c *Consumer) pt() {
 	c.bus.PubPanic("🔥 PT not handled")
 }
 
-func (c *Consumer) ra(out *stream.Outbound) {
+func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) {
 	raw, _ := out.NextSlice(2)
 	stop := conv.AddrFromBytes(raw)
 	ebcdic, _ := out.Next()
 	ascii := conv.E2A(ebcdic)
-	// 👇 foundation of what will be repeated
 	cell, addr := c.buf.Get()
-	/* 🔥 ugh! */ _ = addr
-	attrs := cell.Attrs
-	fldAddr := cell.FldAddr
-	// 👇 watch for wrap around as we blast through to stop
 	for {
-		cell.Attrs = attrs
+		if cell == nil {
+			cell = buffer.NewCell()
+			c.buf.Replace(cell, addr)
+		}
+		cell.Attrs = fldAttrs
 		cell.Char = ascii
 		cell.FldAddr = fldAddr
-		cell.FldStart = false
+		// 👇 watch for wrap around as we blast through to stop
 		cell, addr = c.buf.GetNext()
 		if addr == stop {
 			c.buf.Seek(stop)

@@ -16,16 +16,17 @@ import (
 // 🟧 3270 emulator itself, in pure go test-able code
 
 type Emulator struct {
-	bus *pubsub.Bus
-	buf *buffer.Buffer
-	cfg pubsub.Config
-	gc  *glyph.Cache
-	log *debug.Logger
-	in  *inbound.Producer
-	key *keyboard.Keyboard
-	out *outbound.Consumer
-	scr *screen.Screen
-	st  *state.State
+	bus  *pubsub.Bus
+	buf  *buffer.Buffer
+	cfg  pubsub.Config
+	flds *buffer.Flds
+	gc   *glyph.Cache
+	log  *debug.Logger
+	in   *inbound.Producer
+	key  *keyboard.Keyboard
+	out  *outbound.Consumer
+	scr  *screen.Screen
+	st   *state.State
 }
 
 func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
@@ -34,6 +35,7 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	e.cfg = cfg
 	// 👇 core components; need these FIRST
 	e.buf = buffer.NewBuffer(e.bus)
+	e.flds = buffer.NewFlds(e.bus, e.buf)
 	e.log = debug.NewLogger(e.bus, e.buf)
 	e.gc = glyph.NewCache(e.bus)
 	e.st = state.NewState(e.bus)
@@ -41,8 +43,8 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	e.scr = screen.NewScreen(e.bus, e.buf, e.gc, e.st)
 	// 👇 i/o components
 	e.key = keyboard.NewKeyboard(e.bus, e.buf, e.st)
-	e.in = inbound.NewProducer(e.bus, e.buf, e.st)
-	e.out = outbound.NewConsumer(e.bus, e.buf, e.st)
+	e.in = inbound.NewProducer(e.bus, e.buf, e.flds, e.st)
+	e.out = outbound.NewConsumer(e.bus, e.buf, e.flds, e.st)
 	// 👇 subscriptions
 	e.bus.SubClose(e.close)
 	// 👇 now configure all components

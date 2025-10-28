@@ -11,16 +11,18 @@ import (
 )
 
 type Producer struct {
-	buf *buffer.Buffer
-	bus *pubsub.Bus
-	cfg pubsub.Config
-	st  *state.State
+	buf  *buffer.Buffer
+	bus  *pubsub.Bus
+	cfg  pubsub.Config
+	flds *buffer.Flds
+	st   *state.State
 }
 
-func NewProducer(bus *pubsub.Bus, buf *buffer.Buffer, st *state.State) *Producer {
+func NewProducer(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds, st *state.State) *Producer {
 	p := new(Producer)
 	p.buf = buf
 	p.bus = bus
+	p.flds = flds
 	p.st = st
 	// 👇 subscriptions
 	p.bus.SubConfig(p.configure)
@@ -91,21 +93,7 @@ func (p *Producer) rm(aid consts.AID) {
 	in.Put(byte(aid))
 	cursorAt := p.st.Stat.CursorAt
 	in.PutSlice(conv.AddrToBytes(cursorAt))
-	// 👇 SBA | addr + 1 | data for each modified field
-	flds := p.buf.GetFlds()
-	for _, cells := range flds {
-		if cells[0].Attrs.Modified {
-			in.Put(byte(consts.SBA))
-			in.PutSlice(conv.AddrToBytes(cells[0].FldAddr + 1))
-			for ix := 1; ix < len(cells); ix++ {
-				char := cells[ix].Char
-				if char == 0x00 {
-					break
-				}
-				in.Put(conv.A2E(cells[ix].Char))
-			}
-		}
-	}
+	in.PutSlice(p.flds.ReadMDT())
 	// 👇 frame boundary LT is last
 	in.PutSlice(consts.LT)
 	p.bus.PubInbound(in.Bytes())

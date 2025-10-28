@@ -1,7 +1,11 @@
-package attrs
+package buffer
+
+import (
+	"go3270/emulator/attrs"
+)
 
 type Cell struct {
-	Attrs    *Attrs
+	Attrs    *attrs.Attrs
 	Char     byte
 	FldAddr  int
 	FldStart bool

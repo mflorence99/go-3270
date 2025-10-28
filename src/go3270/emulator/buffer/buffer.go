@@ -12,9 +12,8 @@ import (
 type Buffer struct {
 	addr int
 	bus  *pubsub.Bus
-	buf  []*attrs.Cell
+	buf  []*Cell
 	cfg  pubsub.Config
-	flds [][]*attrs.Cell
 }
 
 func NewBuffer(bus *pubsub.Bus) *Buffer {
@@ -32,8 +31,7 @@ func (b *Buffer) configure(cfg pubsub.Config) {
 }
 
 func (b *Buffer) reset() {
-	b.buf = make([]*attrs.Cell, b.cfg.Cols*b.cfg.Rows)
-	b.flds = make([][]*attrs.Cell, 0)
+	b.buf = make([]*Cell, b.cfg.Cols*b.cfg.Rows)
 }
 
 func (b *Buffer) setFldMDT(fldAddr int) bool {
@@ -74,14 +72,14 @@ func (b *Buffer) Len() int {
 	return len(b.buf)
 }
 
-func (b *Buffer) Peek(addr int) (*attrs.Cell, bool) {
+func (b *Buffer) Peek(addr int) (*Cell, bool) {
 	if addr >= len(b.buf) {
 		return nil, false
 	}
 	return b.buf[addr], true
 }
 
-func (b *Buffer) Replace(cell *attrs.Cell, addr int) {
+func (b *Buffer) Replace(cell *Cell, addr int) {
 	b.buf[addr] = cell
 }
 
@@ -96,19 +94,14 @@ func (b *Buffer) Seek(addr int) (int, bool) {
 // 🟦 Get methods
 
 //    Get() cell at current address, no side effects
-//    GetFlds() all the cells organized as fields
 //    GetNext() cell at current address + 1, honoring wrap
 //    GetPrev() cell at current address - 1, honoring wrap
 
-func (b *Buffer) Get() (*attrs.Cell, int) {
+func (b *Buffer) Get() (*Cell, int) {
 	return b.buf[b.addr], b.addr
 }
 
-func (b *Buffer) GetFlds() [][]*attrs.Cell {
-	return b.flds
-}
-
-func (b *Buffer) GetNext() (*attrs.Cell, int) {
+func (b *Buffer) GetNext() (*Cell, int) {
 	addr := b.addr + 1
 	if addr >= len(b.buf) {
 		addr = 0
@@ -116,7 +109,7 @@ func (b *Buffer) GetNext() (*attrs.Cell, int) {
 	return b.buf[addr], addr
 }
 
-func (b *Buffer) PrevGet() (*attrs.Cell, int) {
+func (b *Buffer) PrevGet() (*Cell, int) {
 	addr := b.addr - 1
 	if addr < 0 {
 		addr = len(b.buf) - 1
@@ -131,12 +124,12 @@ func (b *Buffer) PrevGet() (*attrs.Cell, int) {
 //    StartFld() like SetAndNext(), but for a pre-fab'd SF field
 //    PrevAndSet() point to previous cell then replace it
 
-func (b *Buffer) Set(c *attrs.Cell) int {
+func (b *Buffer) Set(c *Cell) int {
 	b.buf[b.addr] = c
 	return b.addr
 }
 
-func (b *Buffer) SetAndNext(c *attrs.Cell) int {
+func (b *Buffer) SetAndNext(c *Cell) int {
 	addr := b.Set(c)
 	if b.addr++; b.addr >= len(b.buf) {
 		b.addr = 0
@@ -144,12 +137,8 @@ func (b *Buffer) SetAndNext(c *attrs.Cell) int {
 	return addr
 }
 
-func (b *Buffer) SetFlds(flds [][]*attrs.Cell) {
-	b.flds = flds
-}
-
 func (b *Buffer) StartFld(a *attrs.Attrs) int {
-	c := attrs.Cell{
+	c := Cell{
 		Attrs:    a,
 		Char:     byte(consts.SF),
 		FldAddr:  b.addr,
@@ -158,7 +147,7 @@ func (b *Buffer) StartFld(a *attrs.Attrs) int {
 	return b.SetAndNext(&c)
 }
 
-func (b *Buffer) PrevAndSet(c *attrs.Cell) int {
+func (b *Buffer) PrevAndSet(c *Cell) int {
 	if b.addr--; b.addr < 0 {
 		b.addr = len(b.buf) - 1
 	}
