@@ -44,7 +44,7 @@ func (s *Screen) blink(counter int) {
 	blinkers := utils.NewStack[int](1)
 	for addr := 0; addr < s.buf.Len(); addr++ {
 		cell, _ := s.buf.Peek(addr)
-		if !cell.FldStart && cell.Attrs.Blink {
+		if cell != nil && !cell.FldStart && cell.Attrs.Blink {
 			blinkers.Push(addr)
 		}
 	}

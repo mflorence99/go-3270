@@ -48,10 +48,9 @@ func (f *Flds) ReadMDT() []byte {
 			for ix := 1; ix < len(fld); ix++ {
 				cell := fld[ix]
 				char := cell.Char
-				if char == 0x00 {
-					break
+				if char != 0x00 {
+					bytes = append(bytes, conv.A2E(char))
 				}
-				bytes = append(bytes, conv.A2E(char))
 			}
 		}
 	}
@@ -66,7 +65,8 @@ func (f *Flds) Reset() {
 	// 👇 start with an arbitrary cell
 	cell, addr := f.buf.Get()
 	start := addr
-	for {
+	// 🔥 watch out for an endless loop if no fields at all
+	for ix := 0; ix < f.buf.Len()*2; ix++ {
 		// 👇 a field is delimited by the next field
 		if cell != nil && cell.FldStart {
 			if len(fld) > 0 {
