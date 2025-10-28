@@ -36,7 +36,7 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	// 👇 core components; need these FIRST
 	e.buf = buffer.NewBuffer(e.bus)
 	e.flds = buffer.NewFlds(e.bus, e.buf)
-	e.log = debug.NewLogger(e.bus, e.buf)
+	e.log = debug.NewLogger(e.bus, e.buf, e.flds)
 	e.gc = glyph.NewCache(e.bus)
 	e.st = state.NewState(e.bus)
 	// 👇 rendering components

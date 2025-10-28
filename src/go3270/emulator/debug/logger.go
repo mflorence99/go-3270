@@ -15,15 +15,17 @@ import (
 )
 
 type Logger struct {
-	buf *buffer.Buffer
-	bus *pubsub.Bus
-	cfg pubsub.Config
+	buf  *buffer.Buffer
+	bus  *pubsub.Bus
+	cfg  pubsub.Config
+	flds *buffer.Flds
 }
 
-func NewLogger(bus *pubsub.Bus, buf *buffer.Buffer) *Logger {
+func NewLogger(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds) *Logger {
 	l := new(Logger)
 	l.buf = buf
 	l.bus = bus
+	l.flds = flds
 	// 👇 do this in ctor, so logging precedes actions it logs
 	l.bus.SubClose(l.close)
 	l.bus.SubConfig(l.configure)
@@ -60,7 +62,8 @@ func (l *Logger) probe(addr int) {
 }
 
 func (l *Logger) render() {
-	l.logBuffer(l.cfg, l.buf)
+	l.logBuffer(l.buf)
+	l.logFlds(l.flds)
 }
 
 func (l *Logger) trace(topic string, handler interface{}) {
@@ -77,7 +80,7 @@ func (l *Logger) boolean(flag bool) string {
 	return utils.Ternary(flag, "\u2022", "")
 }
 
-func (l *Logger) newTable(color text.Color) table.Writer {
+func (l *Logger) newTable(color text.Color, title string) table.Writer {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	style := table.StyleBold
@@ -94,6 +97,11 @@ func (l *Logger) newTable(color text.Color) table.Writer {
 			Colors: text.Colors{color, text.Bold},
 		},
 	})
+	if title != "" {
+		t.Style().Title.Align = text.AlignCenter
+		t.Style().Title.Colors = text.Colors{color, text.Bold}
+		t.SetTitle(title)
+	}
 	return t
 }
 

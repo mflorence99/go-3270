@@ -18,24 +18,23 @@ func (l *Logger) logInbound(chars []byte) {
 	out := stream.NewOutbound(utils.Ternary(ok, slice, chars))
 	char, _ := out.Next()
 	aid := consts.AID(char)
-	println(fmt.Sprintf("🐞 %s INBOUND", aid))
 	// 👇 now we can analyze the AID
 	switch aid {
 
 	case consts.INBOUND:
-		l.logSFlds(out)
+		l.logSFlds(out, aid)
 
 	default:
-		l.logRead(out)
+		l.logRead(out, aid)
 
 	}
 }
 
-func (l *Logger) logRead(out *stream.Outbound) {
+func (l *Logger) logRead(out *stream.Outbound, aid consts.AID) {
 	// 👇 short reads only contain the AID
 	raw, ok := out.NextSlice(2)
 	if ok {
-		t := l.newTable(text.FgHiGreen)
+		t := l.newTable(text.FgHiGreen, fmt.Sprintf("%s Inbound (3270 -> App)", aid))
 		defer t.Render()
 		// 👇 table rows
 		t.AppendHeader(table.Row{"Row", "Col", "Data"})
@@ -75,8 +74,8 @@ func (l *Logger) logRead(out *stream.Outbound) {
 	}
 }
 
-func (l *Logger) logSFlds(out *stream.Outbound) {
-	t := l.newTable(text.FgHiGreen)
+func (l *Logger) logSFlds(out *stream.Outbound, aid consts.AID) {
+	t := l.newTable(text.FgHiGreen, fmt.Sprintf("%s Query Reply (3270 -> App)", aid))
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"ID", "QCode", "Info"})

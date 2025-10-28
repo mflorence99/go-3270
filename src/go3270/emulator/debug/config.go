@@ -9,7 +9,7 @@ import (
 )
 
 func (l *Logger) logConfig(cfg pubsub.Config) {
-	t := l.newTable(text.FgHiBlue)
+	t := l.newTable(text.FgHiBlue, "Config")
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"", "", "", "BG", "", "Font", "Font", "Font", "Padding", "Padding"})
@@ -20,7 +20,7 @@ func (l *Logger) logConfig(cfg pubsub.Config) {
 }
 
 func (l *Logger) logCLUT(cfg pubsub.Config) {
-	t := l.newTable(text.FgHiBlue)
+	t := l.newTable(text.FgHiBlue, "CLUT")
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"", "Attr", "Color"})

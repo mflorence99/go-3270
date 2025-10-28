@@ -16,41 +16,40 @@ func (l *Logger) logOutbound(chars []byte) {
 	out := stream.NewOutbound(chars)
 	char, _ := out.Next()
 	cmd := consts.Command(char)
-	println(fmt.Sprintf("🐞 %s OUTBOUND", cmd))
 	// 👇 now we can analyze commands with data
 	switch cmd {
 
 	case consts.EW:
 		_, ok := out.Next() // 👈 eat thw WCC
 		if ok {
-			l.logOrders(out)
+			l.logOrders(out, cmd)
 		}
 
 	case consts.EWA:
 		_, ok := out.Next() // 👈 eat thw WCC
 		if ok {
-			l.logOrders(out)
+			l.logOrders(out, cmd)
 		}
 
 	case consts.W:
 		_, ok := out.Next() // 👈 eat thw WCC
 		if ok {
-			l.logOrders(out)
+			l.logOrders(out, cmd)
 		}
 
 	case consts.WSF:
-		l.logWSF(out)
+		l.logWSF(out, cmd)
 
 	default:
-		l.logOrders(out)
+		l.logOrders(out, cmd)
 	}
 }
 
-func (l *Logger) logOrders(out *stream.Outbound) {
-	t := l.newTable(text.FgHiYellow)
+func (l *Logger) logOrders(out *stream.Outbound, cmd consts.Command) {
+	t := l.newTable(text.FgHiYellow, fmt.Sprintf("%s Outbound (App -> 3270)", cmd))
 	defer t.Render()
 	// 👇 table rows
-	t.AppendHeader(table.Row{"Cmd", "Row", "Col", "SF", "Blink", "Color", "Hidden", "Hilite", "MDT", "Num", "Prot", "Rev", "Uscore"})
+	t.AppendHeader(table.Row{"Order", "Row", "Col", "SF", "Blink", "Color", "Hidden", "Hilite", "MDT", "Num", "Prot", "Rev", "Uscore"})
 	addr := 0
 	a := &attrs.Attrs{Protected: true}
 	// 👇 look at each byte to see if it is an order
@@ -104,8 +103,8 @@ func (l *Logger) logOrders(out *stream.Outbound) {
 	}
 }
 
-func (l *Logger) logWSF(out *stream.Outbound) {
-	t := l.newTable(text.FgHiYellow)
+func (l *Logger) logWSF(out *stream.Outbound, cmd consts.Command) {
+	t := l.newTable(text.FgHiYellow, fmt.Sprintf("%s Outbound (App -> 3270)", cmd))
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"ID", "Info"})

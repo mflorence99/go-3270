@@ -10,7 +10,7 @@ import (
 )
 
 func (l *Logger) logProbe(addr int) {
-	t := l.newTable(text.FgHiMagenta)
+	t := l.newTable(text.FgHiMagenta, "")
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"", "Row", "Col", "SF", "Blink", "Color", "Hidden", "Hilite", "MDT", "Num", "Prot", "Rev", "Uscore"})

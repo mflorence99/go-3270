@@ -34,6 +34,10 @@ func (f *Flds) reset() {
 
 // 🟦 Public methods
 
+func (f *Flds) Get() []Fld {
+	return f.flds
+}
+
 func (f *Flds) ReadMDT() []byte {
 	bytes := make([]byte, 0)
 	for _, fld := range f.flds {
@@ -96,6 +100,10 @@ func (f *Flds) Reset() {
 			break
 		}
 		f.buf.Seek(addr)
+	}
+	// 🔥 don't forget the last field!
+	if len(fld) > 0 {
+		f.flds = append(f.flds, fld)
 	}
 }
 
