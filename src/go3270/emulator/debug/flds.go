@@ -13,9 +13,9 @@ func (l *Logger) logFlds(flds *buffer.Flds) {
 	t := l.newTable(text.FgHiBlue, "Flds (before render)")
 	defer t.Render()
 	// 👇 header rows
-	t.AppendHeader(table.Row{"Row", "Col", "PROT", "MDT", "Data"})
+	t.AppendHeader(table.Row{"Row", "Col", "Len", "PROT", "MDT", "Data"})
 	t.SetColumnConfigs([]table.ColumnConfig{
-		{Number: 5, Transformer: l.wrap(80), WidthMax: 80},
+		{Number: 6, Transformer: l.wrap(80), WidthMax: 80},
 	})
 	// 👇 data rows
 	for _, fld := range flds.Get() {
@@ -29,6 +29,7 @@ func (l *Logger) logFlds(flds *buffer.Flds) {
 		t.AppendRow(table.Row{
 			row,
 			col,
+			len(fld),
 			utils.Ternary(sf.Attrs.Protected, "PROT", ""),
 			utils.Ternary(sf.Attrs.Modified, "MDT", ""),
 			strings.TrimSpace(string(data)),

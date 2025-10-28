@@ -18,6 +18,8 @@ func NewState(bus *pubsub.Bus) *State {
 	s.bus = bus
 	// 👇 subscriptions
 	s.bus.SubConfig(s.configure)
+	s.bus.SubInbound(s.lock)
+	s.bus.SubOutbound(s.unlock)
 	s.bus.SubReset(s.reset)
 	s.bus.SubWCC(s.wcc)
 	return s
@@ -26,6 +28,13 @@ func NewState(bus *pubsub.Bus) *State {
 func (s *State) configure(cfg pubsub.Config) {
 	s.cfg = cfg
 	s.Stat = &pubsub.Status{}
+}
+
+func (s *State) lock(_ []byte) {
+	s.Patch(Patch{
+		Locked:  utils.BoolPtr(true),
+		Waiting: utils.BoolPtr(true),
+	})
 }
 
 func (s *State) reset() {
@@ -38,6 +47,13 @@ func (s *State) reset() {
 		Numeric:   utils.BoolPtr(false),
 		Protected: utils.BoolPtr(false),
 		Waiting:   utils.BoolPtr(false),
+	})
+}
+
+func (s *State) unlock(_ []byte) {
+	s.Patch(Patch{
+		Locked:  utils.BoolPtr(false),
+		Waiting: utils.BoolPtr(false),
 	})
 }
 
