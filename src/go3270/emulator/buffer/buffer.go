@@ -14,6 +14,7 @@ type Buffer struct {
 	bus  *pubsub.Bus
 	buf  []*attrs.Cell
 	cfg  pubsub.Config
+	flds [][]*attrs.Cell
 }
 
 func NewBuffer(bus *pubsub.Bus) *Buffer {
@@ -27,11 +28,21 @@ func NewBuffer(bus *pubsub.Bus) *Buffer {
 
 func (b *Buffer) configure(cfg pubsub.Config) {
 	b.cfg = cfg
-	b.buf = make([]*attrs.Cell, cfg.Cols*cfg.Rows)
+	b.reset()
 }
 
 func (b *Buffer) reset() {
-	b.Erase(0x00)
+	b.buf = make([]*attrs.Cell, b.cfg.Cols*b.cfg.Rows)
+	b.flds = make([][]*attrs.Cell, 0)
+}
+
+func (b *Buffer) setFldMDT(fldAddr int) bool {
+	fld, ok := b.Peek(fldAddr)
+	if !ok {
+		return false
+	}
+	fld.Attrs.Modified = true
+	return true
 }
 
 // 🟦 Housekeeping methods
@@ -42,6 +53,7 @@ func (b *Buffer) reset() {
 //    Flds() returns slice of all fields
 //    Len() get number of cell slots in buffer
 //    Peek() cell at given address
+//    Replace() cell at given address
 //    Seek() reposition buffer address
 
 func (b *Buffer) Addr() int {
@@ -58,54 +70,6 @@ func (b *Buffer) Chars() []byte {
 	return chars
 }
 
-func (b *Buffer) Erase(char byte) {
-	b.addr = 0
-	for ix := range b.buf {
-		b.buf[ix] = &attrs.Cell{Attrs: &attrs.Attrs{Protected: true}, Char: char}
-	}
-}
-
-func (b *Buffer) Flds() [][]*attrs.Cell {
-	flds := make([][]*attrs.Cell, 0)
-	// 👇 find the first SF - note that fields can wrap the buffer!
-	first := -1
-	for ix, cell := range b.buf {
-		if cell.FldStart {
-			first = ix
-			break
-		}
-	}
-	// 👇 there may be no real fields at all!
-	if first == -1 {
-		return flds
-	}
-	// 👇 now search for fields, starting with first
-	ix := first
-	fld := make([]*attrs.Cell, 0)
-	for {
-		cell, _ := b.Peek(ix)
-		if cell.FldStart {
-			if len(fld) > 0 {
-				flds = append(flds, fld)
-				fld = make([]*attrs.Cell, 0)
-			}
-		}
-		fld = append(fld, cell)
-		// 👇 wrap around as nercessary
-		if ix++; ix >= b.Len() {
-			ix = 0
-		}
-		if ix == first {
-			break
-		}
-	}
-	// 👇 don't forget the last field
-	if len(fld) > 0 {
-		flds = append(flds, fld)
-	}
-	return flds
-}
-
 func (b *Buffer) Len() int {
 	return len(b.buf)
 }
@@ -115,6 +79,10 @@ func (b *Buffer) Peek(addr int) (*attrs.Cell, bool) {
 		return nil, false
 	}
 	return b.buf[addr], true
+}
+
+func (b *Buffer) Replace(cell *attrs.Cell, addr int) {
+	b.buf[addr] = cell
 }
 
 func (b *Buffer) Seek(addr int) (int, bool) {
@@ -128,11 +96,16 @@ func (b *Buffer) Seek(addr int) (int, bool) {
 // 🟦 Get methods
 
 //    Get() cell at current address, no side effects
+//    GetFlds() all the cells organized as fields
 //    GetNext() cell at current address + 1, honoring wrap
 //    GetPrev() cell at current address - 1, honoring wrap
 
 func (b *Buffer) Get() (*attrs.Cell, int) {
 	return b.buf[b.addr], b.addr
+}
+
+func (b *Buffer) GetFlds() [][]*attrs.Cell {
+	return b.flds
 }
 
 func (b *Buffer) GetNext() (*attrs.Cell, int) {
@@ -169,6 +142,10 @@ func (b *Buffer) SetAndNext(c *attrs.Cell) int {
 		b.addr = 0
 	}
 	return addr
+}
+
+func (b *Buffer) SetFlds(flds [][]*attrs.Cell) {
+	b.flds = flds
 }
 
 func (b *Buffer) StartFld(a *attrs.Attrs) int {
@@ -268,13 +245,4 @@ func (b *Buffer) Tab(dir int) (int, bool) {
 		}
 	}
 	return -1, false
-}
-
-func (b *Buffer) setFldMDT(fldAddr int) bool {
-	fld, ok := b.Peek(fldAddr)
-	if !ok {
-		return false
-	}
-	fld.Attrs.Modified = true
-	return true
 }

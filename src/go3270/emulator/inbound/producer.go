@@ -92,7 +92,7 @@ func (p *Producer) rm(aid consts.AID) {
 	cursorAt := p.st.Stat.CursorAt
 	in.PutSlice(conv.AddrToBytes(cursorAt))
 	// 👇 SBA | addr + 1 | data for each modified field
-	flds := p.buf.Flds()
+	flds := p.buf.GetFlds()
 	for _, cells := range flds {
 		if cells[0].Attrs.Modified {
 			in.Put(byte(consts.SBA))

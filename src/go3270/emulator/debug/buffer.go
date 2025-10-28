@@ -25,11 +25,13 @@ func (l *Logger) logBuffer(cfg pubsub.Config, buf *buffer.Buffer) {
 	for ix := 1; ix <= cfg.Rows; ix++ {
 		row := ""
 		for addr := 0; addr < cfg.Cols; addr++ {
-			cell, _ := buf.Peek(addr + ((ix - 1) * cfg.Cols))
-			if cell.FldStart {
-				row += utils.Ternary(cell.Attrs.Protected, "\u00b6", "\u00bb")
-			} else {
-				row += string(utils.Ternary(cell.Char <= ' ', ' ', cell.Char))
+			cell, ok := buf.Peek(addr + ((ix - 1) * cfg.Cols))
+			if cell != nil && ok {
+				if cell.FldStart {
+					row += utils.Ternary(cell.Attrs.Protected, "\u00b6", "\u00bb")
+				} else {
+					row += string(utils.Ternary(cell.Char <= ' ', ' ', cell.Char))
+				}
 			}
 		}
 		t.AppendRow(table.Row{ix, row})

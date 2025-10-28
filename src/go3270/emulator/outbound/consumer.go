@@ -76,10 +76,9 @@ func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 	}
 }
 
+// TODO 🔥 EAU not handled
 func (c *Consumer) eau() {
 	c.bus.PubPanic("🔥 EAU not handled")
-	// NOTE: EAU doesn't need a WCC
-	c.bus.PubRender()
 }
 
 func (c *Consumer) ew(out *stream.Outbound) {
@@ -87,7 +86,7 @@ func (c *Consumer) ew(out *stream.Outbound) {
 	if ok {
 		c.bus.PubReset()
 		c.orders(out)
-		c.normalize()
+		c.finalize()
 		c.bus.PubRender()
 	}
 }
@@ -107,6 +106,7 @@ func (c *Consumer) rma() {
 func (c *Consumer) w(out *stream.Outbound) {
 	c.wcc(out)
 	c.orders(out)
+	c.finalize()
 	c.bus.PubRender()
 }
 
@@ -119,7 +119,7 @@ func (c *Consumer) wcc(out *stream.Outbound) (wcc.WCC, bool) {
 			println("🔥 WCC Reset not implemented")
 		}
 		if wcc.ResetMDT {
-			flds := c.buf.Flds()
+			flds := c.buf.GetFlds()
 			for _, cells := range flds {
 				cells[0].Attrs.Modified = false
 			}
@@ -170,6 +170,60 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 	}
 }
 
+// 🟦 Finalize write commands by organizing cells into fields
+
+func (c *Consumer) finalize() {
+	flds := make([][]*attrs.Cell, 0)
+	// 👇 find the first SF - note that fields can wrap the buffer!
+	first := -1
+	for addr := 0; addr < c.buf.Len(); addr++ {
+		cell, _ := c.buf.Peek(addr)
+		if cell != nil && cell.FldStart {
+			first = addr
+			break
+		}
+	}
+	// 👇 there may be no real fields at all!
+	if first > -1 {
+		addr := first
+		fld := make([]*attrs.Cell, 0)
+		for {
+			cell, _ := c.buf.Peek(addr)
+			// 👇 a field is delimited by the next field
+			if cell != nil && cell.FldStart {
+				if len(fld) > 0 {
+					flds = append(flds, fld)
+					fld = make([]*attrs.Cell, 0)
+					fld = append(fld, cell)
+				}
+			} else if cell == nil {
+				// 👇 the cell might be missing, so inherit from the SF
+				cell = &attrs.Cell{Attrs: fld[0].Attrs, Char: 0x00, FldAddr: fld[0].FldAddr}
+				c.buf.Replace(cell, addr)
+			} else if cell.FldAddr != fld[0].FldAddr {
+				// 👇 the cell might be a residue of an earlier field after a W command
+				cell.Attrs = fld[0].Attrs
+				// cell.Char = 0x00
+				cell.FldAddr = fld[0].FldAddr
+			}
+			// 👇 finally, just add this cell to the list of cells
+			fld = append(fld, cell)
+			// 👇 wrap around as necessary
+			if addr++; addr >= c.buf.Len() {
+				addr = 0
+			}
+			if addr == first {
+				break
+			}
+		}
+		// 👇 don't forget the last field
+		if len(fld) > 0 {
+			flds = append(flds, fld)
+		}
+	}
+	c.buf.SetFlds(flds)
+}
+
 // 🟦 Orders
 
 func (c *Consumer) orders(out *stream.Outbound) {
@@ -216,10 +270,9 @@ func (c *Consumer) orders(out *stream.Outbound) {
 		default:
 			if char == 0x00 || char >= 0x40 {
 				cell := &attrs.Cell{
-					Attrs:    fldAttrs,
-					Char:     conv.E2A(char),
-					FldAddr:  fldAddr,
-					FldStart: false,
+					Attrs:   fldAttrs,
+					Char:    conv.E2A(char),
+					FldAddr: fldAddr,
 				}
 				c.buf.SetAndNext(cell)
 			}
@@ -264,25 +317,21 @@ func (c *Consumer) ra(out *stream.Outbound) {
 	ascii := conv.E2A(ebcdic)
 	// 👇 foundation of what will be repeated
 	cell, addr := c.buf.Get()
+	/* 🔥 ugh! */ _ = addr
 	attrs := cell.Attrs
 	fldAddr := cell.FldAddr
-	// 👇 special case: if stop is current address, just fill the buffer
-	if stop == addr {
-		c.buf.Erase(ascii)
-	} else {
-		// 👇 watch for wrap around as we blast through to stop
-		for {
-			cell.Attrs = attrs
-			cell.Char = ascii
-			cell.FldAddr = fldAddr
-			cell.FldStart = false
-			cell, addr = c.buf.GetNext()
-			if addr == stop {
-				c.buf.Seek(stop)
-				break
-			}
-			c.buf.Seek(addr)
+	// 👇 watch for wrap around as we blast through to stop
+	for {
+		cell.Attrs = attrs
+		cell.Char = ascii
+		cell.FldAddr = fldAddr
+		cell.FldStart = false
+		cell, addr = c.buf.GetNext()
+		if addr == stop {
+			c.buf.Seek(stop)
+			break
 		}
+		c.buf.Seek(addr)
 	}
 }
 
@@ -312,18 +361,4 @@ func (c *Consumer) sfe(out *stream.Outbound) (int, *attrs.Attrs) {
 	fldAttrs := attrs.NewExtended(next)
 	fldAddr := c.buf.StartFld(fldAttrs)
 	return fldAddr, fldAttrs
-}
-
-// 🟦 Helpers
-
-func (c *Consumer) normalize() {
-	// 👇 make sure all cells in a field have the same attributes
-	for _, cells := range c.buf.Flds() {
-		fld := cells[0]
-		for ix := 1; ix < len(cells); ix++ {
-			cell := cells[ix]
-			cell.Attrs = fld.Attrs
-			cell.FldAddr = fld.FldAddr
-		}
-	}
 }

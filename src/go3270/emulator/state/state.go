@@ -49,6 +49,8 @@ func (s *State) wcc(wcc wcc.WCC) {
 	})
 }
 
+// 🟦 Public methods
+
 func (s *State) Patch(p Patch) {
 	if p.Alarm != nil {
 		s.Stat.Alarm = *p.Alarm
