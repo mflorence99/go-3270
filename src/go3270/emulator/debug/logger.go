@@ -5,6 +5,7 @@ import (
 	"go3270/emulator/attrs"
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
+	"go3270/emulator/conv"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/utils"
 	"go3270/emulator/wcc"
@@ -130,7 +131,7 @@ func (l *Logger) withoutAttrs(t table.Writer, cmd any, addr int, char byte) {
 		cmd,
 		row,
 		col,
-		utils.Ternary(char >= 0x20, string(char), " "),
+		utils.Ternary(char >= 0x40, string(conv.E2A(char)), " "),
 	})
 }
 

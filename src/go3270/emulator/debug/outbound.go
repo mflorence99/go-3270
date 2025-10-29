@@ -46,7 +46,7 @@ func (l *Logger) logOutbound(chars []byte) {
 }
 
 func (l *Logger) logOrders(out *stream.Outbound, cmd consts.Command) {
-	t := l.newTable(text.FgHiYellow, fmt.Sprintf("%s Outbound (App -> 3270)", cmd))
+	t := l.newTable(text.FgHiYellow, fmt.Sprintf("%s Outbound (App -> 3270)\nNOTE: RA orders are listed in pairs, one for start, the second for stop", cmd))
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"Order", "Row", "Col", "SF", "Blink", "Color", "Hidden", "Hilite", "MDT", "Num", "Prot", "Rev", "Uscore"})
@@ -72,6 +72,7 @@ func (l *Logger) logOrders(out *stream.Outbound, cmd consts.Command) {
 		case consts.RA:
 			raw, _ := out.NextSlice(2)
 			char, _ := out.Next()
+			l.withoutAttrs(t, order, addr, char)
 			addr = conv.AddrFromBytes(raw)
 			l.withoutAttrs(t, order, addr, char)
 
@@ -83,6 +84,7 @@ func (l *Logger) logOrders(out *stream.Outbound, cmd consts.Command) {
 		case consts.SBA:
 			raw, _ := out.NextSlice(2)
 			addr = conv.AddrFromBytes(raw)
+			l.withoutAttrs(t, order, addr, 0)
 
 		case consts.SF:
 			next, _ := out.Next()

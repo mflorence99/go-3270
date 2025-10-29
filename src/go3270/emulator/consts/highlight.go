@@ -3,14 +3,16 @@ package consts
 type Highlight byte
 
 const (
-	NOHILITE   Highlight = 0xF0
-	BLINK      Highlight = 0xF1
-	REVERSE    Highlight = 0xF2
-	UNDERSCORE Highlight = 0xF4
+	DFLT_HILITE Highlight = 0x00
+	NO_HILITE   Highlight = 0xF0
+	BLINK       Highlight = 0xF1
+	REVERSE     Highlight = 0xF2
+	UNDERSCORE  Highlight = 0xF4
 )
 
 var highlights = map[Highlight]string{
-	0xF0: "NOHILITE",
+	0x00: "DFLT_HILITE",
+	0xF0: "NO_HILITE",
 	0xF1: "BLINK",
 	0xF2: "REVERSE",
 	0xF4: "UNDERSCORE",

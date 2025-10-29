@@ -13,16 +13,17 @@ type Highlighting struct {
 }
 
 func NewHighlighting() Highlighting {
-	havs := make([][]byte, 5)
-	havs[0] = []byte{0x00, byte(consts.NOHILITE)}
-	havs[1] = []byte{0xF1, byte(consts.BLINK)}
-	havs[2] = []byte{0xF2, byte(consts.REVERSE)}
-	havs[3] = []byte{0xF3, byte(consts.UNDERSCORE)}
-	havs[4] = []byte{0xF4, byte(consts.HIGHLIGHT)}
+	havs := make([][]byte, 6)
+	havs[0] = []byte{0x00, byte(consts.DFLT_HILITE)}
+	havs[1] = []byte{0xF1, byte(consts.NO_HILITE)}
+	havs[2] = []byte{0xF1, byte(consts.BLINK)}
+	havs[3] = []byte{0xF2, byte(consts.REVERSE)}
+	havs[4] = []byte{0xF3, byte(consts.UNDERSCORE)}
+	havs[5] = []byte{0xF4, byte(consts.HIGHLIGHT)}
 	return Highlighting{
 		SFID:  consts.QUERY_REPLY,
 		QCode: consts.HIGHLIGHTING,
-		NP:    0x05,
+		NP:    0x06,
 		HAVs:  havs,
 	}
 }
