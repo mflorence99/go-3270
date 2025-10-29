@@ -51,7 +51,7 @@ func (l *Logger) logOrders(out *stream.Outbound, cmd consts.Command) {
 	// 👇 table rows
 	t.AppendHeader(table.Row{"Order", "Row", "Col", "SF", "Blink", "Color", "Hidden", "Hilite", "MDT", "Num", "Prot", "Rev", "Uscore"})
 	addr := 0
-	a := &attrs.Attrs{Protected: true}
+	fldAttrs := &attrs.Attrs{Protected: true}
 	// 👇 look at each byte to see if it is an order
 	for out.HasNext() {
 		char, _ := out.Next()
@@ -63,21 +63,22 @@ func (l *Logger) logOrders(out *stream.Outbound, cmd consts.Command) {
 		case consts.GE:
 
 		case consts.IC:
-			l.withoutAttrs(t, order, addr)
+			l.withoutAttrs(t, order, addr, ' ')
 
 		case consts.MF:
 
 		case consts.PT:
 
 		case consts.RA:
-			l.withoutAttrs(t, order, addr)
 			raw, _ := out.NextSlice(2)
+			char, _ := out.Next()
 			addr = conv.AddrFromBytes(raw)
+			l.withoutAttrs(t, order, addr, char)
 
 		case consts.SA:
 			bytes, _ := out.NextSlice(2)
-			a = attrs.NewModified(a, bytes)
-			l.withAttrs(t, order, addr, a, false)
+			fldAttrs = attrs.NewModified(fldAttrs, bytes)
+			l.withAttrs(t, order, addr, fldAttrs, false)
 
 		case consts.SBA:
 			raw, _ := out.NextSlice(2)
@@ -85,15 +86,15 @@ func (l *Logger) logOrders(out *stream.Outbound, cmd consts.Command) {
 
 		case consts.SF:
 			next, _ := out.Next()
-			a = attrs.NewBasic(next)
-			l.withAttrs(t, order, addr, a, true)
+			fldAttrs = attrs.NewBasic(next)
+			l.withAttrs(t, order, addr, fldAttrs, true)
 			addr++
 
 		case consts.SFE:
 			count, _ := out.Next()
 			next, _ := out.NextSlice(int(count) * 2)
-			a = attrs.NewExtended(next)
-			l.withAttrs(t, order, addr, a, true)
+			fldAttrs = attrs.NewExtended(next)
+			l.withAttrs(t, order, addr, fldAttrs, true)
 			addr++
 
 		default:

@@ -1,6 +1,7 @@
 package outbound
 
 import (
+	"fmt"
 	"go3270/emulator/attrs"
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
@@ -173,6 +174,7 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 func (c *Consumer) orders(out *stream.Outbound) {
 	fldAddr := 0
 	fldAttrs := &attrs.Attrs{Protected: true}
+outer:
 	for out.HasNext() {
 		// 👇 look at each byte to see if it is an order
 		char, _ := out.Next()
@@ -195,8 +197,12 @@ func (c *Consumer) orders(out *stream.Outbound) {
 		case consts.PT:
 			c.pt()
 
+		// 🔥 per spoc invalid RA terminates write operation
 		case consts.RA:
-			c.ra(out, fldAddr, fldAttrs)
+			ok := c.ra(out, fldAddr, fldAttrs)
+			if !ok {
+				break outer
+			}
 
 		case consts.SA:
 			fldAttrs = c.sa(out, fldAttrs)
@@ -254,27 +260,33 @@ func (c *Consumer) pt() {
 	c.bus.PubPanic("🔥 PT not handled")
 }
 
-func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) {
+func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) bool {
 	raw, _ := out.NextSlice(2)
 	stop := conv.AddrFromBytes(raw)
-	ebcdic, _ := out.Next()
-	ascii := conv.E2A(ebcdic)
-	cell, addr := c.buf.Get()
-	for {
-		if cell == nil {
-			cell = buffer.NewCell()
-			c.buf.Replace(cell, addr)
+	if stop < c.buf.Len() {
+		ebcdic, _ := out.Next()
+		ascii := conv.E2A(ebcdic)
+		cell, addr := c.buf.Get()
+		for {
+			if cell == nil {
+				cell = buffer.NewCell()
+				c.buf.Replace(cell, addr)
+			}
+			cell.Attrs = fldAttrs
+			cell.Char = ascii
+			cell.FldAddr = fldAddr
+			// 👇 watch for wrap around as we blast through to stop
+			cell, addr = c.buf.GetNext()
+			if addr == stop {
+				c.buf.Seek(stop)
+				break
+			}
+			c.buf.Seek(addr)
 		}
-		cell.Attrs = fldAttrs
-		cell.Char = ascii
-		cell.FldAddr = fldAddr
-		// 👇 watch for wrap around as we blast through to stop
-		cell, addr = c.buf.GetNext()
-		if addr == stop {
-			c.buf.Seek(stop)
-			break
-		}
-		c.buf.Seek(addr)
+		return true
+	} else {
+		println(fmt.Sprintf("🔥 Inavlid stop address %d in RA order terminates write", stop))
+		return false
 	}
 }
 

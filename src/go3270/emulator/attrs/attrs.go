@@ -26,6 +26,7 @@ func NewExtended(chars []byte) *Attrs {
 	return a
 }
 
+// 🔥 note that wee are taking a copy and overwriting deltas
 func NewModified(attrs *Attrs, chars []byte) *Attrs {
 	a := *attrs
 	a.fromBytes(chars)

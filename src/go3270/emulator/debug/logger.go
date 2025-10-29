@@ -124,12 +124,13 @@ func (l *Logger) withAttrs(t table.Writer, cmd any, addr int, a *attrs.Attrs, sf
 	})
 }
 
-func (l *Logger) withoutAttrs(t table.Writer, cmd any, addr int) {
+func (l *Logger) withoutAttrs(t table.Writer, cmd any, addr int, char byte) {
 	row, col := l.cfg.Addr2RC(addr)
 	t.AppendRow(table.Row{
 		cmd,
 		row,
 		col,
+		utils.Ternary(char >= 0x20, string(char), " "),
 	})
 }
 
