@@ -111,7 +111,7 @@ func (l *Logger) logWSF(out *stream.Outbound, cmd consts.Command) {
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"ID", "Info"})
-	sflds := consts.FromStream(out)
+	sflds := consts.SFldsFromStream(out)
 	for _, sfld := range sflds {
 		t.AppendRow(table.Row{sfld.ID, fmt.Sprintf("% #v", sfld.Info)})
 	}

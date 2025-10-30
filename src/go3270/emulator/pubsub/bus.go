@@ -58,6 +58,10 @@ func (b *Bus) PubQ() {
 	b.Publish("q")
 }
 
+func (b *Bus) PubQL(qcodes []consts.QCode) {
+	b.Publish("ql", qcodes)
+}
+
 func (b *Bus) PubRB(aid consts.AID) {
 	b.Publish("rb", aid)
 }
@@ -134,6 +138,10 @@ func (b *Bus) SubProbe(fn func(addr int)) {
 
 func (b *Bus) SubQ(fn func()) {
 	b.Subscribe("q", fn)
+}
+
+func (b *Bus) SubQL(fn func(qcodes []consts.QCode)) {
+	b.Subscribe("ql", fn)
 }
 
 func (b *Bus) SubRB(fn func(aid consts.AID)) {

@@ -82,7 +82,7 @@ func (l *Logger) logSFlds(out *stream.Outbound, aid consts.AID) {
 	t.SetColumnConfigs([]table.ColumnConfig{
 		{Number: 3, Transformer: l.wrap(60), WidthMax: 60},
 	})
-	sflds := consts.FromStream(out)
+	sflds := consts.SFldsFromStream(out)
 	for _, sfld := range sflds {
 		switch {
 

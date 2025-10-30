@@ -66,6 +66,11 @@ func (out *Outbound) PeekSliceUntil(matches []byte) ([]byte, bool) {
 	return out.nextSliceUntilImpl(matches, true)
 }
 
+func (out *Outbound) Rest() []byte {
+	rest, _ := out.nextSliceImpl(len(out.bytes)-out.ix, false)
+	return rest
+}
+
 func (out *Outbound) Skip(count int) {
 	out.ix += count
 }

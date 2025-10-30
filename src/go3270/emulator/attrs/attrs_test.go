@@ -24,12 +24,12 @@ func Test_NewBasic(t *testing.T) {
 
 func Test_NewExtended(t *testing.T) {
 	a := attrs.NewExtended(extended)
-	assert.True(t, a.Blink)
-	assert.True(t, a.Highlight)
+	assert.False(t, a.Blink)
+	assert.False(t, a.Highlight)
 	assert.True(t, a.Modified)
 	assert.True(t, a.Numeric)
 	assert.True(t, a.Protected)
-	assert.True(t, a.Reverse)
+	assert.False(t, a.Reverse)
 	assert.True(t, a.Underscore)
 }
 

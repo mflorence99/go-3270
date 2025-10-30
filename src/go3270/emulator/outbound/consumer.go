@@ -74,7 +74,6 @@ func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 	case consts.W:
 		c.w(out)
 
-	// f3 00 05 01 ff ff 02 ffef
 	case consts.WSF:
 		c.wsf(out)
 	}
@@ -134,26 +133,42 @@ func (c *Consumer) wcc(out *stream.Outbound) (wcc.WCC, bool) {
 
 func (c *Consumer) wsf(out *stream.Outbound) {
 	// 👇 there are a million SF types, but we are interested in READ_PARTITION
-	sflds := consts.FromStream(out)
+	sflds := consts.SFldsFromStream(out)
 	for _, sfld := range sflds {
 		if sfld.ID == consts.READ_PARTITION {
 			pid := sfld.Info[0]
 			if pid == 0xFF {
 				cmd := sfld.Info[1]
 
-				// TODO 🔥 we observe 0xFF when Q is intended!
-				if cmd == 0xFF {
-					cmd = byte(consts.Q)
-				}
-
 				switch consts.Command(cmd) {
 
 				case consts.Q:
 					c.bus.PubQ()
 
-					// TODO 🔥 QL not handled
 				case consts.QL:
-					c.bus.PubPanic("🔥 QL not handled")
+					all := (sfld.Info[2] & 0b10000000) == 0x80
+					var qcodes []consts.QCode
+					if all {
+						qcodes = []consts.QCode{
+							consts.USABLE_AREA,
+							consts.ALPHANUMERIC_PARTITIONS,
+							consts.CHARACTER_SETS,
+							consts.COLOR_SUPPORT,
+							consts.HIGHLIGHTING,
+							consts.REPLY_MODES,
+							consts.FIELD_VALIDATION,
+							consts.FIELD_OUTLINING,
+							consts.DDM,
+							consts.RPQ_NAMES,
+							consts.IMPLICIT_PARTITION,
+						}
+					} else {
+						qcodes = make([]consts.QCode, 0)
+						for ix := 3; ix < len(sfld.Info); ix++ {
+							qcodes = append(qcodes, consts.QCode(sfld.Info[ix]))
+						}
+					}
+					c.bus.PubQL(qcodes)
 
 				case consts.RB:
 					c.bus.PubRM(consts.INBOUND)

@@ -63,12 +63,11 @@ func (a *Attrs) fromBytes(chars []byte) {
 		case consts.BASIC:
 			a.fromByte(basic)
 		case consts.HIGHLIGHT:
+			a.Blink = false
+			a.Reverse = false
+			a.Underscore = false
+			a.Highlight = false
 			switch highlight {
-			case consts.DFLT_HILITE, consts.NO_HILITE:
-				a.Blink = false
-				a.Reverse = false
-				a.Underscore = false
-				a.Highlight = false
 			case consts.BLINK:
 				a.Blink = true
 			case consts.REVERSE:

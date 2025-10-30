@@ -28,6 +28,7 @@ func NewProducer(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds, st *sta
 	p.bus.SubConfig(p.configure)
 	p.bus.SubAttn(p.attn)
 	p.bus.SubQ(p.q)
+	p.bus.SubQL(p.ql)
 	p.bus.SubRB(p.rb)
 	p.bus.SubRM(p.rm)
 	p.bus.SubRMA(p.rma)
@@ -61,7 +62,6 @@ func (p *Producer) q() {
 		consts.FIELD_OUTLINING,
 		consts.DDM,
 		consts.RPQ_NAMES,
-		// TODO 🔥 this breaks the TERMTEST
 		consts.IMPLICIT_PARTITION,
 	}).Put(in)
 	// 👇 then the rest
@@ -75,8 +75,41 @@ func (p *Producer) q() {
 	qr.NewFieldOutlining().Put(in)
 	qr.NewDDM().Put(in)
 	qr.NewRPQNames().Put(in)
-	// TODO 🔥 this breaks the TERMTEST
 	qr.NewImplicitPartition(p.cfg.Cols, p.cfg.Rows).Put(in)
+	// 👇 frame boundary LT is last
+	in.PutSlice(consts.LT)
+	p.bus.PubInbound(in.Bytes())
+}
+
+func (p *Producer) ql(qcodes []consts.QCode) {
+	in := stream.NewInbound()
+	in.Put(byte(consts.INBOUND))
+	for _, qcode := range qcodes {
+		switch qcode {
+		case consts.USABLE_AREA:
+			qr.NewUsableArea(p.cfg.Cols, p.cfg.Rows).Put(in)
+		case consts.ALPHANUMERIC_PARTITIONS:
+			qr.NewAlphanumericPartitions(p.cfg.Cols, p.cfg.Rows).Put(in)
+		case consts.CHARACTER_SETS:
+			qr.NewCharacterSets().Put(in)
+		case consts.COLOR_SUPPORT:
+			qr.NewColorSupport(p.cfg.Monochrome).Put(in)
+		case consts.HIGHLIGHTING:
+			qr.NewHighlighting().Put(in)
+		case consts.REPLY_MODES:
+			qr.NewReplyModes().Put(in)
+		case consts.FIELD_VALIDATION:
+			qr.NewFieldValidation().Put(in)
+		case consts.FIELD_OUTLINING:
+			qr.NewFieldOutlining().Put(in)
+		case consts.DDM:
+			qr.NewDDM().Put(in)
+		case consts.RPQ_NAMES:
+			qr.NewRPQNames().Put(in)
+		case consts.IMPLICIT_PARTITION:
+			qr.NewImplicitPartition(p.cfg.Cols, p.cfg.Rows).Put(in)
+		}
+	}
 	// 👇 frame boundary LT is last
 	in.PutSlice(consts.LT)
 	p.bus.PubInbound(in.Bytes())
