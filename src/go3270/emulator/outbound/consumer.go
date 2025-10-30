@@ -171,13 +171,13 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 					c.bus.PubQL(qcodes)
 
 				case consts.RB:
-					c.bus.PubRM(consts.INBOUND)
+					c.bus.PubRB(consts.INBOUND)
 
 				case consts.RM:
 					c.bus.PubRM(consts.INBOUND)
 
 				case consts.RMA:
-					c.bus.PubRM(consts.INBOUND)
+					c.bus.PubRMA(consts.INBOUND)
 
 				}
 			}
@@ -307,6 +307,7 @@ func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) 
 }
 
 func (c *Consumer) sa(out *stream.Outbound, fldAttrs *attrs.Attrs) *attrs.Attrs {
+	c.buf.SetMode(consts.CHARACTER_MODE)
 	bytes, _ := out.NextSlice(2)
 	return attrs.NewModified(fldAttrs, bytes)
 }
@@ -320,6 +321,7 @@ func (c *Consumer) sba(out *stream.Outbound) {
 }
 
 func (c *Consumer) sf(out *stream.Outbound) (int, *attrs.Attrs) {
+	c.buf.SetMode(consts.FIELD_MODE)
 	next, _ := out.Next()
 	fldAttrs := attrs.NewBasic(next)
 	fldAddr := c.buf.StartFld(fldAttrs)
@@ -327,6 +329,7 @@ func (c *Consumer) sf(out *stream.Outbound) (int, *attrs.Attrs) {
 }
 
 func (c *Consumer) sfe(out *stream.Outbound) (int, *attrs.Attrs) {
+	c.buf.SetMode(consts.EXTENDED_FIELD_MODE)
 	count, _ := out.Next()
 	next, _ := out.NextSlice(int(count) * 2)
 	fldAttrs := attrs.NewExtended(next)

@@ -8,15 +8,18 @@ import (
 type ReplyModes struct {
 	SFID  consts.SFID
 	QCode consts.QCode
-	Modes []byte
+	Modes []consts.Mode
 }
 
 func NewReplyModes() ReplyModes {
 	return ReplyModes{
 		SFID:  consts.QUERY_REPLY,
 		QCode: consts.REPLY_MODES,
-		// 👇 field, extended field and character (SF, SFE and SA)
-		Modes: []byte{0x00, 0x01, 0x02},
+		Modes: []consts.Mode{
+			consts.FIELD_MODE,
+			consts.EXTENDED_FIELD_MODE,
+			consts.CHARACTER_MODE,
+		},
 	}
 }
 
@@ -26,7 +29,9 @@ func (s ReplyModes) Put(in *stream.Inbound) {
 		byte(s.QCode),
 	}
 	// 👇 flags
-	bytes = append(bytes, s.Modes...)
+	for _, mode := range s.Modes {
+		bytes = append(bytes, byte(mode))
+	}
 	in.Put16(uint16(len(bytes) + 2))
 	in.PutSlice(bytes)
 }

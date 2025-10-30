@@ -117,12 +117,32 @@ func (p *Producer) ql(qcodes []consts.QCode) {
 
 // TODO 🔥 RB not handled
 func (p *Producer) rb(aid consts.AID) {
-	p.bus.PubPanic("🔥 RB not handled")
+	in := stream.NewInbound()
+	in.Put(byte(aid))
+	cursorAt := p.st.Stat.CursorAt
+	in.PutSlice(conv.AddrToBytes(cursorAt))
+	in.PutSlice(p.flds.ReadBuffer())
+	// 👇 frame boundary LT is last
+	in.PutSlice(consts.LT)
+	p.bus.PubInbound(in.Bytes())
 }
 
 func (p *Producer) rm(aid consts.AID) {
 	in := stream.NewInbound()
-	// 👇 AID + cursor first
+	in.Put(byte(aid))
+	if !aid.ShortRead() {
+		cursorAt := p.st.Stat.CursorAt
+		in.PutSlice(conv.AddrToBytes(cursorAt))
+		in.PutSlice(p.flds.ReadMDT())
+		// 👇 frame boundary LT is last
+		in.PutSlice(consts.LT)
+		p.bus.PubInbound(in.Bytes())
+	}
+}
+
+// TODO 🔥 RMA not handled
+func (p *Producer) rma(aid consts.AID) {
+	in := stream.NewInbound()
 	in.Put(byte(aid))
 	cursorAt := p.st.Stat.CursorAt
 	in.PutSlice(conv.AddrToBytes(cursorAt))
@@ -130,9 +150,4 @@ func (p *Producer) rm(aid consts.AID) {
 	// 👇 frame boundary LT is last
 	in.PutSlice(consts.LT)
 	p.bus.PubInbound(in.Bytes())
-}
-
-// TODO 🔥 RMA not handled
-func (p *Producer) rma(aid consts.AID) {
-	p.bus.PubPanic("🔥 RMA not handled")
 }

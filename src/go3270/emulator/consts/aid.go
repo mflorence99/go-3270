@@ -112,6 +112,10 @@ func (a AID) PFx() bool {
 	return ok && strings.HasPrefix(str, "PF")
 }
 
+func (a AID) ShortRead() bool {
+	return a == CLEAR || a.PAx()
+}
+
 func (a AID) String() string {
 	return AIDFor(a)
 }

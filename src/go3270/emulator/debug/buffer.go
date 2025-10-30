@@ -10,7 +10,7 @@ import (
 )
 
 func (l *Logger) logBuffer(buf *buffer.Buffer) {
-	t := l.newTable(text.FgHiBlue, "Buffer (before render)")
+	t := l.newTable(text.FgHiBlue, fmt.Sprintf("%s Buffer", buf.Mode()))
 	defer t.Render()
 	// 👇 header rows
 	row1 := ""

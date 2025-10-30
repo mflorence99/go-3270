@@ -38,6 +38,25 @@ func (f *Flds) Get() []Fld {
 	return f.flds
 }
 
+// TODO 🔥 *only* FIELD_MODE *not* coded
+func (f *Flds) ReadBuffer() []byte {
+	bytes := make([]byte, 0)
+	for _, fld := range f.flds {
+		sf, _ := fld.StartFld()
+		bytes = append(bytes, byte(consts.SF))
+		bytes = append(bytes, sf.Attrs.Byte())
+		for ix := 1; ix < len(fld); ix++ {
+			cell := fld[ix]
+			char := cell.Char
+			if char != 0x00 {
+				bytes = append(bytes, conv.A2E(char))
+			}
+		}
+	}
+	return bytes
+}
+
+// TODO 🔥 CHARACTER_MODE *not* coded
 func (f *Flds) ReadMDT() []byte {
 	bytes := make([]byte, 0)
 	for _, fld := range f.flds {
@@ -59,50 +78,50 @@ func (f *Flds) ReadMDT() []byte {
 
 func (f *Flds) Reset() {
 	f.reset()
-	// 👇 prepare to build flds
-	stop := -1
+	// 👇 prepare to gather flds
+	first := -1
 	fld := make(Fld, 0)
-	// 👇 start with an arbitrary cell
-	cell, addr := f.buf.Get()
-	start := addr
-	// 🔥 watch out for an endless loop if no fields at all
-	for ix := 0; ix < f.buf.Len()*2; ix++ {
+	// 👇 normalize the cell at a given position in a fld
+	fix := func(fld Fld, cell *Cell, ix int) *Cell {
+		sf, _ := fld.StartFld()
+		if cell == nil {
+			// 👇 the cell might be missing, so inherit from the SF
+			cell = &Cell{Attrs: sf.Attrs, Char: 0x00, FldAddr: sf.FldAddr}
+			f.buf.Replace(cell, ix)
+		} else if cell.FldAddr != sf.FldAddr {
+			// 👇 the cell might be a residue of an earlier field after a W command
+			cell.Attrs = sf.Attrs
+			cell.FldAddr = sf.FldAddr
+		}
+		return cell
+	}
+	// 👇 start at the beginning
+	for ix := 0; ix < f.buf.Len(); ix++ {
+		cell, _ := f.buf.Peek(ix)
 		// 👇 a field is delimited by the next field
 		if cell != nil && cell.FldStart {
+			cell.FldAddr = ix
 			if len(fld) > 0 {
 				f.flds = append(f.flds, fld)
 				fld = make(Fld, 0)
 			}
 			fld = append(fld, cell)
-			// 👇 now we know where to stop
-			if stop == -1 {
-				stop = addr
+			// 👇 bookmark where we found the first field
+			if first == -1 {
+				first = ix
 			}
-		} else if stop != -1 {
-			sf, _ := fld.StartFld()
-			// 👇 we are starting to collect cells now
-			if cell == nil {
-				// 👇 the cell might be missing, so inherit from the SF
-				cell = &Cell{Attrs: sf.Attrs, Char: 0x00, FldAddr: sf.FldAddr}
-				f.buf.Replace(cell, addr)
-			} else if cell.FldAddr != sf.FldAddr {
-				// 👇 the cell might be a residue of an earlier field after a W command
-				cell.Attrs = sf.Attrs
-				cell.FldAddr = sf.FldAddr
-			}
-			// 👇 finally, just append this cell to the fld
+		} else if first != -1 {
+			cell = fix(fld, cell, ix)
 			fld = append(fld, cell)
 		}
-		// 👇 watch for wrap around as we blast through to stop
-		cell, addr = f.buf.GetNext()
-		if addr == stop {
-			f.buf.Seek(start)
-			break
-		}
-		f.buf.Seek(addr)
 	}
-	// 🔥 don't forget the last field!
+	// 🔥 don't forget the last field, which icludes any wrap-around
 	if len(fld) > 0 {
+		for ix := 0; ix < first; ix++ {
+			cell, _ := f.buf.Peek(ix)
+			cell = fix(fld, cell, ix)
+			fld = append(fld, cell)
+		}
 		f.flds = append(f.flds, fld)
 	}
 }

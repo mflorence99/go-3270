@@ -39,9 +39,6 @@ func (l *Logger) logOutbound(chars []byte) {
 
 	case consts.WSF:
 		l.logWSF(out, cmd)
-
-	default:
-		l.logOrders(out, cmd)
 	}
 }
 

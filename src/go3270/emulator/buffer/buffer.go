@@ -14,6 +14,7 @@ type Buffer struct {
 	bus  *pubsub.Bus
 	buf  []*Cell
 	cfg  pubsub.Config
+	mode consts.Mode
 }
 
 func NewBuffer(bus *pubsub.Bus) *Buffer {
@@ -32,6 +33,7 @@ func (b *Buffer) configure(cfg pubsub.Config) {
 
 func (b *Buffer) reset() {
 	b.buf = make([]*Cell, b.cfg.Cols*b.cfg.Rows)
+	b.mode = consts.FIELD_MODE
 }
 
 func (b *Buffer) setFldMDT(fldAddr int) bool {
@@ -50,6 +52,7 @@ func (b *Buffer) setFldMDT(fldAddr int) bool {
 //    Deltas() returns stack of changes
 //    Flds() returns slice of all fields
 //    Len() get number of cell slots in buffer
+//    Mode() reports the buffer's reply mode
 //    Peek() cell at given address
 //    Replace() cell at given address
 //    Seek() reposition buffer address
@@ -72,6 +75,10 @@ func (b *Buffer) Len() int {
 	return len(b.buf)
 }
 
+func (b *Buffer) Mode() consts.Mode {
+	return b.mode
+}
+
 func (b *Buffer) Peek(addr int) (*Cell, bool) {
 	if addr >= len(b.buf) {
 		return nil, false
@@ -89,6 +96,13 @@ func (b *Buffer) Seek(addr int) (int, bool) {
 	}
 	b.addr = addr
 	return b.addr, true
+}
+
+func (b *Buffer) SetMode(mode consts.Mode) consts.Mode {
+	if mode > b.mode {
+		b.mode = mode
+	}
+	return b.mode
 }
 
 // 🟦 Get methods
