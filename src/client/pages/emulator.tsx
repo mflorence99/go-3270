@@ -109,7 +109,7 @@ export class Emulator extends SignalWatcher(LitElement) {
       this.dispatchEvent(new CustomEvent('done'));
     else if (
       window.confirm(
-        'Are you sre you want to terminate the 3270 session?'
+        'Are you sure you want to terminate the 3270 session? You may want to logoff from any open applications before doing so.'
       )
     )
       window.dispatchEvent(new CustomEvent('disconnect'));

@@ -74,6 +74,7 @@ func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 	case consts.W:
 		c.w(out)
 
+	// f3 00 05 01 ff ff 02 ffef
 	case consts.WSF:
 		c.wsf(out)
 	}

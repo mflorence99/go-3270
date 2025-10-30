@@ -68,12 +68,15 @@ func (a *Attrs) fromBytes(chars []byte) {
 				a.Blink = false
 				a.Reverse = false
 				a.Underscore = false
+				a.Highlight = false
 			case consts.BLINK:
 				a.Blink = true
 			case consts.REVERSE:
 				a.Reverse = true
 			case consts.UNDERSCORE:
 				a.Underscore = true
+			case consts.INTENSIFY:
+				a.Highlight = true
 			}
 		case consts.COLOR:
 			a.Color = color

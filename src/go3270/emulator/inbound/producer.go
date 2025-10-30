@@ -57,12 +57,12 @@ func (p *Producer) q() {
 		consts.COLOR_SUPPORT,
 		consts.HIGHLIGHTING,
 		consts.REPLY_MODES,
-		consts.RPQ_NAMES,
-		consts.DDM,
-		// TODO 🔥 this breaks the TERMTEST
-		// consts.IMPLICIT_PARTITION,
 		consts.FIELD_VALIDATION,
 		consts.FIELD_OUTLINING,
+		consts.DDM,
+		consts.RPQ_NAMES,
+		// TODO 🔥 this breaks the TERMTEST
+		consts.IMPLICIT_PARTITION,
 	}).Put(in)
 	// 👇 then the rest
 	qr.NewUsableArea(p.cfg.Cols, p.cfg.Rows).Put(in)
@@ -71,12 +71,12 @@ func (p *Producer) q() {
 	qr.NewColorSupport(p.cfg.Monochrome).Put(in)
 	qr.NewHighlighting().Put(in)
 	qr.NewReplyModes().Put(in)
-	qr.NewRPQNames().Put(in)
-	qr.NewDDM().Put(in)
-	// TODO 🔥 this breaks the TERMTEST
-	// qr.NewImplicitPartition(p.cfg.Cols, p.cfg.Rows).Put(in)
 	qr.NewFieldValidation().Put(in)
 	qr.NewFieldOutlining().Put(in)
+	qr.NewDDM().Put(in)
+	qr.NewRPQNames().Put(in)
+	// TODO 🔥 this breaks the TERMTEST
+	qr.NewImplicitPartition(p.cfg.Cols, p.cfg.Rows).Put(in)
 	// 👇 frame boundary LT is last
 	in.PutSlice(consts.LT)
 	p.bus.PubInbound(in.Bytes())

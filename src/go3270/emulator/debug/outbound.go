@@ -20,19 +20,19 @@ func (l *Logger) logOutbound(chars []byte) {
 	switch cmd {
 
 	case consts.EW:
-		_, ok := out.Next() // 👈 eat thw WCC
+		_, ok := out.Next() // 👈 eat the WCC
 		if ok {
 			l.logOrders(out, cmd)
 		}
 
 	case consts.EWA:
-		_, ok := out.Next() // 👈 eat thw WCC
+		_, ok := out.Next() // 👈 eat the WCC
 		if ok {
 			l.logOrders(out, cmd)
 		}
 
 	case consts.W:
-		_, ok := out.Next() // 👈 eat thw WCC
+		_, ok := out.Next() // 👈 eat the WCC
 		if ok {
 			l.logOrders(out, cmd)
 		}
