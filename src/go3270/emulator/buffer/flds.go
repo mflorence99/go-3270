@@ -81,7 +81,7 @@ func (f *Flds) Reset() {
 	// 👇 prepare to gather flds
 	first := -1
 	fld := make(Fld, 0)
-	// 👇 normalize the cell at a given position in a fld
+	// 👇 normalize the cell at a given position in a given fld
 	fix := func(fld Fld, cell *Cell, ix int) *Cell {
 		sf, _ := fld.StartFld()
 		if cell == nil {
@@ -115,7 +115,7 @@ func (f *Flds) Reset() {
 			fld = append(fld, cell)
 		}
 	}
-	// 🔥 don't forget the last field, which icludes any wrap-around
+	// 🔥 don't forget the last field, which includes any wrap-around
 	if len(fld) > 0 {
 		for ix := 0; ix < first; ix++ {
 			cell, _ := f.buf.Peek(ix)
