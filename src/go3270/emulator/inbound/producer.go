@@ -39,7 +39,7 @@ func (p *Producer) attn(aid consts.AID) {
 	in := stream.NewInbound()
 	in.Put(byte(aid))
 	in.PutSlice(consts.LT)
-	p.bus.PubInbound(in.Bytes())
+	p.bus.PubInbound(in.Bytes(), false)
 }
 
 func (p *Producer) configure(cfg pubsub.Config) {
@@ -78,7 +78,7 @@ func (p *Producer) q() {
 	qr.NewImplicitPartition(p.cfg.Cols, p.cfg.Rows).Put(in)
 	// 👇 frame boundary LT is last
 	in.PutSlice(consts.LT)
-	p.bus.PubInbound(in.Bytes())
+	p.bus.PubInbound(in.Bytes(), true)
 }
 
 func (p *Producer) ql(qcodes []consts.QCode) {
@@ -112,10 +112,9 @@ func (p *Producer) ql(qcodes []consts.QCode) {
 	}
 	// 👇 frame boundary LT is last
 	in.PutSlice(consts.LT)
-	p.bus.PubInbound(in.Bytes())
+	p.bus.PubInbound(in.Bytes(), true)
 }
 
-// TODO 🔥 RB not handled
 func (p *Producer) rb(aid consts.AID) {
 	in := stream.NewInbound()
 	in.Put(byte(aid))
@@ -124,7 +123,7 @@ func (p *Producer) rb(aid consts.AID) {
 	in.PutSlice(p.flds.ReadBuffer())
 	// 👇 frame boundary LT is last
 	in.PutSlice(consts.LT)
-	p.bus.PubInbound(in.Bytes())
+	p.bus.PubInbound(in.Bytes(), false)
 }
 
 func (p *Producer) rm(aid consts.AID) {
@@ -136,11 +135,10 @@ func (p *Producer) rm(aid consts.AID) {
 		in.PutSlice(p.flds.ReadMDT())
 		// 👇 frame boundary LT is last
 		in.PutSlice(consts.LT)
-		p.bus.PubInbound(in.Bytes())
+		p.bus.PubInbound(in.Bytes(), false)
 	}
 }
 
-// TODO 🔥 RMA not handled
 func (p *Producer) rma(aid consts.AID) {
 	in := stream.NewInbound()
 	in.Put(byte(aid))
@@ -149,5 +147,5 @@ func (p *Producer) rma(aid consts.AID) {
 	in.PutSlice(p.flds.ReadMDT())
 	// 👇 frame boundary LT is last
 	in.PutSlice(consts.LT)
-	p.bus.PubInbound(in.Bytes())
+	p.bus.PubInbound(in.Bytes(), false)
 }

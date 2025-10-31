@@ -38,7 +38,7 @@ func (l *Logger) logOutbound(chars []byte) {
 		}
 
 	case consts.WSF:
-		l.logWSF(out, cmd)
+		l.logOutboundWSF(out)
 	}
 }
 
@@ -103,8 +103,8 @@ func (l *Logger) logOrders(out *stream.Outbound, cmd consts.Command) {
 	}
 }
 
-func (l *Logger) logWSF(out *stream.Outbound, cmd consts.Command) {
-	t := l.newTable(text.FgHiYellow, fmt.Sprintf("%s Outbound (App -> 3270)", cmd))
+func (l *Logger) logOutboundWSF(out *stream.Outbound) {
+	t := l.newTable(text.FgHiYellow, "Outbound WSF (App -> 3270)")
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"ID", "Info"})

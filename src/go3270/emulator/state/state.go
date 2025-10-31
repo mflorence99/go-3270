@@ -30,7 +30,7 @@ func (s *State) configure(cfg pubsub.Config) {
 	s.Stat = &pubsub.Status{}
 }
 
-func (s *State) lock(_ []byte) {
+func (s *State) lock(_ []byte, _ bool) {
 	s.Patch(Patch{
 		Locked:  utils.BoolPtr(true),
 		Waiting: utils.BoolPtr(true),

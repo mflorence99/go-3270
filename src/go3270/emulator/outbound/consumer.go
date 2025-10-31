@@ -95,7 +95,7 @@ func (c *Consumer) ew(out *stream.Outbound) {
 }
 
 func (c *Consumer) rb() {
-	c.bus.PubRM(consts.INBOUND)
+	c.bus.PubRB(consts.INBOUND)
 }
 
 func (c *Consumer) rm() {
@@ -103,7 +103,7 @@ func (c *Consumer) rm() {
 }
 
 func (c *Consumer) rma() {
-	c.bus.PubRM(consts.INBOUND)
+	c.bus.PubRMA(consts.INBOUND)
 }
 
 func (c *Consumer) w(out *stream.Outbound) {

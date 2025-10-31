@@ -6,7 +6,7 @@ import (
 )
 
 func (l *Logger) logTrace(topic string, handler interface{}) {
-	if topic == "rb" /* 🔥 suppressed ?? && false */ {
+	if topic != "tick" /* 🔥 suppressed ?? */ && false {
 		pkg, nm := utils.GetFuncName(handler)
 		println(fmt.Sprintf("🐞 topic %s -> func %s() in %s", topic, nm, pkg))
 	}

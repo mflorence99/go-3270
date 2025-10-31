@@ -184,7 +184,7 @@ func (m *Mediator) dispatchEvent(params map[string]any) {
 	js.Global().Get("window").Call("dispatchEvent", event)
 }
 
-func (m *Mediator) inbound(chars []byte) {
+func (m *Mediator) inbound(chars []byte, _ bool) {
 	bytes := js.Global().Get("Uint8ClampedArray").New(len(chars))
 	js.CopyBytesToJS(bytes, chars)
 	params := map[string]any{

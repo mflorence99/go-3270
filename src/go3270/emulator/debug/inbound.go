@@ -15,24 +15,11 @@ import (
 func (l *Logger) logInbound(chars []byte) {
 	// 👇 convert into a stream for convenience
 	slice, _, ok := bytes.Cut(chars, consts.LT)
-	out := stream.NewOutbound(utils.Ternary(ok, slice, chars))
-	char, _ := out.Next()
+	in := stream.NewOutbound(utils.Ternary(ok, slice, chars))
+	char, _ := in.Next()
 	aid := consts.AID(char)
-	// 👇 now we can analyze the AID
-	switch aid {
-
-	case consts.INBOUND:
-		l.logSFlds(out, aid)
-
-	default:
-		l.logRead(out, aid)
-
-	}
-}
-
-func (l *Logger) logRead(out *stream.Outbound, aid consts.AID) {
 	// 👇 short reads only contain the AID
-	raw, ok := out.NextSlice(2)
+	raw, ok := in.NextSlice(2)
 	if ok {
 		t := l.newTable(text.FgHiGreen, fmt.Sprintf("%s Inbound (3270 -> App)", aid))
 		defer t.Render()
@@ -48,8 +35,8 @@ func (l *Logger) logRead(out *stream.Outbound, aid consts.AID) {
 		// 👇 we will aggregate data delimited by SBA's
 		data := make([]byte, 0)
 		// 👇 look at each byte to see if it is an order
-		for out.HasNext() {
-			char, _ := out.Next()
+		for in.HasNext() {
+			char, _ := in.Next()
 			order := consts.Order(char)
 			switch order {
 
@@ -58,7 +45,7 @@ func (l *Logger) logRead(out *stream.Outbound, aid consts.AID) {
 					t.AppendRow(table.Row{row, col, string(data)})
 					data = make([]byte, 0)
 				}
-				raw, _ := out.NextSlice(2)
+				raw, _ := in.NextSlice(2)
 				addr := conv.AddrFromBytes(raw)
 				row, col = l.cfg.Addr2RC(addr)
 
@@ -71,18 +58,27 @@ func (l *Logger) logRead(out *stream.Outbound, aid consts.AID) {
 		if len(data) > 0 {
 			t.AppendRow(table.Row{row, col, string(data)})
 		}
+	} else {
+		println(fmt.Sprintf("🐞 %s Short Read (3270 -> App)", aid))
 	}
 }
 
-func (l *Logger) logSFlds(out *stream.Outbound, aid consts.AID) {
-	t := l.newTable(text.FgHiGreen, fmt.Sprintf("%s Query Reply (3270 -> App)", aid))
+// TODO 🔥 only really handles Query Reply
+
+func (l *Logger) logInboundWSF(chars []byte) {
+	t := l.newTable(text.FgHiGreen, ("Inbound WSF (3270 -> App)"))
 	defer t.Render()
+	// 👇 convert into a stream for convenience
+	slice, _, ok := bytes.Cut(chars, consts.LT)
+	in := stream.NewOutbound(utils.Ternary(ok, slice, chars))
+	// 👇 eat the AID
+	in.Next()
 	// 👇 table rows
-	t.AppendHeader(table.Row{"ID", "QCode", "Info"})
+	t.AppendHeader(table.Row{"ID", "Type", "Info"})
 	t.SetColumnConfigs([]table.ColumnConfig{
 		{Number: 3, Transformer: l.wrap(60), WidthMax: 60},
 	})
-	sflds := consts.SFldsFromStream(out)
+	sflds := consts.SFldsFromStream(in)
 	for _, sfld := range sflds {
 		switch {
 

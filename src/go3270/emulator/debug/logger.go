@@ -50,8 +50,12 @@ func (l *Logger) configure(cfg pubsub.Config) {
 	l.logCLUT(l.cfg)
 }
 
-func (l *Logger) inbound(chars []byte) {
-	l.logInbound(chars)
+func (l *Logger) inbound(chars []byte, wsf bool) {
+	if wsf {
+		l.logInboundWSF(chars)
+	} else {
+		l.logInbound(chars)
+	}
 }
 
 func (l *Logger) outbound(chars []byte) {
