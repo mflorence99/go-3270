@@ -6,12 +6,16 @@ import (
 	"go3270/emulator/wcc"
 )
 
+// 🟧 3270 status (as shared with the Typescript UI)
+
 type State struct {
 	Stat *pubsub.Status
 
 	bus *pubsub.Bus
 	cfg pubsub.Config
 }
+
+// 🟦 Constructor
 
 func NewState(bus *pubsub.Bus) *State {
 	s := new(State)
@@ -30,13 +34,6 @@ func (s *State) configure(cfg pubsub.Config) {
 	s.Stat = &pubsub.Status{}
 }
 
-func (s *State) lock(_ []byte, _ bool) {
-	s.Patch(Patch{
-		Locked:  utils.BoolPtr(true),
-		Waiting: utils.BoolPtr(true),
-	})
-}
-
 func (s *State) reset() {
 	s.Patch(Patch{
 		Alarm:     utils.BoolPtr(false),
@@ -47,6 +44,15 @@ func (s *State) reset() {
 		Numeric:   utils.BoolPtr(false),
 		Protected: utils.BoolPtr(false),
 		Waiting:   utils.BoolPtr(false),
+	})
+}
+
+// 🟦 Functions to dispatch actions depending on state
+
+func (s *State) lock(_ []byte, _ bool) {
+	s.Patch(Patch{
+		Locked:  utils.BoolPtr(true),
+		Waiting: utils.BoolPtr(true),
 	})
 }
 
@@ -65,7 +71,7 @@ func (s *State) wcc(wcc wcc.WCC) {
 	})
 }
 
-// 🟦 Public methods
+// 🟦 Public functions
 
 func (s *State) Patch(p Patch) {
 	if p.Alarm != nil {

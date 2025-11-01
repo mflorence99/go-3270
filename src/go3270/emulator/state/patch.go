@@ -1,5 +1,7 @@
 package state
 
+// 🟧 Patch only deltas to state
+
 type Patch struct {
 	Alarm     *bool
 	CursorAt  *int
