@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+// 🟧 A glyph, as stored in the glyph cache
+
 type Glyph struct {
 	Char       byte
 	Color      string
@@ -12,10 +14,14 @@ type Glyph struct {
 	Underscore bool
 }
 
+// 🟦 Constructor
+
 func NewGlyph() *Glyph {
 	g := new(Glyph)
 	return g
 }
+
+// 🟦 Stringer implementation
 
 func (g *Glyph) String() string {
 	str := fmt.Sprintf("GLYPH=[ 0x%02x %s ", g.Char, g.Color)

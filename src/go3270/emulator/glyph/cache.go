@@ -8,11 +8,15 @@ import (
 	"github.com/fogleman/gg"
 )
 
+// 🟧 Cache of glyphs as drawn from the buffer
+
 type Cache struct {
 	bus   *pubsub.Bus
 	cache map[Glyph]image.Image
 	cfg   pubsub.Config
 }
+
+// 🟦 Constructor
 
 func NewCache(bus *pubsub.Bus) *Cache {
 	c := new(Cache)
@@ -26,6 +30,8 @@ func (c *Cache) configure(cfg pubsub.Config) {
 	c.cfg = cfg
 	c.cache = make(map[Glyph]image.Image)
 }
+
+// 🟦 Public functions
 
 func (c *Cache) ImageFor(g Glyph, box pubsub.Box) image.Image {
 	img, ok := c.cache[g]

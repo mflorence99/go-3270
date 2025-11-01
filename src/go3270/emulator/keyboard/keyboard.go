@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+// 🟧 Respond to keyboard input
+
 type Keyboard struct {
 	bus  *pubsub.Bus
 	buf  *buffer.Buffer
@@ -17,6 +19,8 @@ type Keyboard struct {
 	flds *buffer.Flds
 	st   *state.State
 }
+
+// 🟦 Constructor
 
 func NewKeyboard(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds, st *state.State) *Keyboard {
 	k := new(Keyboard)
@@ -31,57 +35,11 @@ func NewKeyboard(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds, st *sta
 	return k
 }
 
-func (k *Keyboard) backspace() (int, bool) {
-	// 👇 validate data entry into previous cell
-	c, addr := k.buf.PrevGet()
-	prot := c.FldStart || c.Attrs.Protected
-	if prot {
-		return -1, false
-	}
-	// 👇 reposition to previous cell and update it
-	k.buf.Seek(addr)
-	c.Char = ' '
-	c.Attrs.Modified = true
-	addr = k.buf.Set(c)
-	// 👇 set the MDT flag at the field level
-	ok := k.flds.SetMDT(c.FldAddr)
-	if !ok {
-		return -1, false
-	}
-	return addr, true
-}
-
 func (k *Keyboard) configure(cfg pubsub.Config) {
 	k.cfg = cfg
 }
 
-func (k *Keyboard) focus(focussed bool) {
-	k.st.Patch(state.Patch{
-		Error:   utils.BoolPtr(!focussed),
-		Locked:  utils.BoolPtr(!focussed),
-		Message: utils.StringPtr(utils.Ternary(focussed, "", "LOCK")),
-	})
-}
-
-func (k *Keyboard) keyin(char byte) (int, bool) {
-	c, _ := k.buf.Get()
-	// 👇 validate data entry into current cell
-	numlock := c.Attrs.Numeric && !strings.Contains("-0123456789.", string(char))
-	prot := c.FldStart || c.Attrs.Protected
-	if numlock || prot {
-		return -1, false
-	}
-	// 👇 update cell and advance to next
-	c.Char = char
-	c.Attrs.Modified = true
-	addr := k.buf.SetAndNext(c)
-	// 👇 set the MDT flag at the field level
-	ok := k.flds.SetMDT(c.FldAddr)
-	if !ok {
-		return -1, false
-	}
-	return addr, true
-}
+// 🟦 Dispatch action per key code
 
 func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 	// 👇 prepare to move the cursor -- most keystrokes do this
@@ -180,6 +138,56 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 	if !deltas.Empty() {
 		k.bus.PubRenderDeltas(deltas)
 	}
+}
+
+// 🟦 Functions specific to particular keys
+
+func (k *Keyboard) backspace() (int, bool) {
+	// 👇 validate data entry into previous cell
+	c, addr := k.buf.PrevGet()
+	prot := c.FldStart || c.Attrs.Protected
+	if prot {
+		return -1, false
+	}
+	// 👇 reposition to previous cell and update it
+	k.buf.Seek(addr)
+	c.Char = ' '
+	c.Attrs.Modified = true
+	addr = k.buf.Set(c)
+	// 👇 set the MDT flag at the field level
+	ok := k.flds.SetMDT(c.FldAddr)
+	if !ok {
+		return -1, false
+	}
+	return addr, true
+}
+
+func (k *Keyboard) focus(focussed bool) {
+	k.st.Patch(state.Patch{
+		Error:   utils.BoolPtr(!focussed),
+		Locked:  utils.BoolPtr(!focussed),
+		Message: utils.StringPtr(utils.Ternary(focussed, "", "LOCK")),
+	})
+}
+
+func (k *Keyboard) keyin(char byte) (int, bool) {
+	c, _ := k.buf.Get()
+	// 👇 validate data entry into current cell
+	numlock := c.Attrs.Numeric && !strings.Contains("-0123456789.", string(char))
+	prot := c.FldStart || c.Attrs.Protected
+	if numlock || prot {
+		return -1, false
+	}
+	// 👇 update cell and advance to next
+	c.Char = char
+	c.Attrs.Modified = true
+	addr := k.buf.SetAndNext(c)
+	// 👇 set the MDT flag at the field level
+	ok := k.flds.SetMDT(c.FldAddr)
+	if !ok {
+		return -1, false
+	}
+	return addr, true
 }
 
 func (k *Keyboard) tab(dir int) (int, bool) {

@@ -6,9 +6,13 @@ import (
 	"go3270/emulator/wcc"
 )
 
+// 🟧 Basic (but type-safe) pubsub implementation
+
 type Bus struct {
 	handlers map[string][]interface{}
 }
+
+// 🟦 Constructor
 
 func NewBus() *Bus {
 	b := new(Bus)
@@ -180,7 +184,7 @@ func (b *Bus) SubWCC(fn func(wcc wcc.WCC)) {
 	b.Subscribe("wcc", fn)
 }
 
-// 🟥 Debug only
+// 🔥 Debug only
 
 func (b *Bus) SubTrace(fn func(topic string, handler interface{})) {
 	b.Subscribe("$$$", fn)
@@ -192,7 +196,7 @@ func (b *Bus) UnsubscribeAll() {
 	b.handlers = make(map[string][]interface{})
 }
 
-// 🟦 Public, just for test cases
+// 🟦 Public functions (public just for test cases)
 
 func (b *Bus) Publish(topic string, args ...any) {
 	debuggers := b.handlers["$$$"]

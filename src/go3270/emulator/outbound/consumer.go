@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+// 🟧 Consume outbound (3270 <- app) data stream
+
 type Consumer struct {
 	buf   *buffer.Buffer
 	bus   *pubsub.Bus
@@ -21,6 +23,8 @@ type Consumer struct {
 	flds  *buffer.Flds
 	st    *state.State
 }
+
+// 🟦 Constructor
 
 func NewConsumer(bus *pubsub.Bus, buf *buffer.Buffer, cells *buffer.Cells, flds *buffer.Flds, st *state.State) *Consumer {
 	c := new(Consumer)

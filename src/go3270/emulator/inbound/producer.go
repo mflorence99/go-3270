@@ -10,6 +10,8 @@ import (
 	"go3270/emulator/stream"
 )
 
+// 🟧 Produce inbound (3270 -> app) data stream
+
 type Producer struct {
 	buf  *buffer.Buffer
 	bus  *pubsub.Bus
@@ -17,6 +19,8 @@ type Producer struct {
 	flds *buffer.Flds
 	st   *state.State
 }
+
+// 🟦 Constructor
 
 func NewProducer(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds, st *state.State) *Producer {
 	p := new(Producer)
@@ -35,15 +39,17 @@ func NewProducer(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds, st *sta
 	return p
 }
 
+func (p *Producer) configure(cfg pubsub.Config) {
+	p.cfg = cfg
+}
+
+// 🟦 Functions to produce requested stream type
+
 func (p *Producer) attn(aid consts.AID) {
 	in := stream.NewInbound()
 	in.Put(byte(aid))
 	in.PutSlice(consts.LT)
 	p.bus.PubInbound(in.Bytes(), false)
-}
-
-func (p *Producer) configure(cfg pubsub.Config) {
-	p.cfg = cfg
 }
 
 func (p *Producer) q() {
