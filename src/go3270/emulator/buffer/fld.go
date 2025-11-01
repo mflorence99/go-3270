@@ -1,6 +1,10 @@
 package buffer
 
+// 🟧 Field in buffer
+
 type Fld []*Cell
+
+// 🟦 Public functions
 
 func (f Fld) StartFld() (*Cell, bool) {
 	if len(f) > 0 {

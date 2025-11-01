@@ -15,6 +15,8 @@ type Flds struct {
 	flds []Fld
 }
 
+// 🟦 Constructor
+
 func NewFlds(bus *pubsub.Bus, buf *Buffer) *Flds {
 	f := new(Flds)
 	f.buf = buf
@@ -34,7 +36,7 @@ func (f *Flds) reset() {
 	f.flds = make([]Fld, 0)
 }
 
-// 🟦 Public methods
+// 🟦 Public functions
 
 func (f *Flds) EAU() int {
 	addr := -1

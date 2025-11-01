@@ -1,6 +1,10 @@
 package consts
 
+// 🟧 3270 highlight extended attribute
+
 type Highlight byte
+
+// 🟦 Lookup tables
 
 const (
 	DFLT_HILITE Highlight = 0x00
@@ -19,6 +23,8 @@ var highlights = map[Highlight]string{
 	0xF4: "UNDERSCORE",
 	0xF8: "INTENSIFY",
 }
+
+// 🟦 Stringer implementation
 
 func HighlightFor(h Highlight) string {
 	return highlights[h]

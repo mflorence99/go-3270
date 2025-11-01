@@ -1,6 +1,10 @@
 package consts
 
+// 🟧 3270 Commands
+
 type Command byte
+
+// 🟦 Lookup tables
 
 const (
 	EAU Command = 0x6F
@@ -27,6 +31,8 @@ var commands = map[Command]string{
 	0xF5: "EW",
 	0xF6: "RM",
 }
+
+// 🟦 Stringer implementation
 
 func CommandFor(c Command) string {
 	return commands[c]

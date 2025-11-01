@@ -1,6 +1,10 @@
 package consts
 
+// 🟧 3270 buffer mode
+
 type Mode byte
+
+// 🟦 Lookup tables
 
 const (
 	FIELD_MODE          Mode = 0x00
@@ -13,6 +17,8 @@ var modes = map[Mode]string{
 	0x01: "EXTENDED_FIELD_MODE",
 	0x02: "CHARACTER_MODE",
 }
+
+// 🟦 Stringer implementation
 
 func ModeFor(m Mode) string {
 	return modes[m]

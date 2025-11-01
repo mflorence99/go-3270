@@ -1,6 +1,10 @@
 package consts
 
+// 🟧 3270 Orders
+
 type Order byte
+
+// 🟦 Lookup tables
 
 const (
 	EUA Order = 0x12
@@ -27,6 +31,8 @@ var orders = map[Order]string{
 	0x2C: "MF",
 	0x3C: "RA",
 }
+
+// 🟦 Stringer implementation
 
 func OrderFor(o Order) string {
 	return orders[o]

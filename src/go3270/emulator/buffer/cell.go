@@ -4,12 +4,16 @@ import (
 	"go3270/emulator/attrs"
 )
 
+// 🟧 Cell in buffer
+
 type Cell struct {
 	Attrs    *attrs.Attrs
 	Char     byte
 	FldAddr  int
 	FldStart bool
 }
+
+// 🟦 Constructor
 
 func NewCell() *Cell {
 	c := new(Cell)

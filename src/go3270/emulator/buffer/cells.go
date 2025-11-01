@@ -14,6 +14,8 @@ type Cells struct {
 	cfg pubsub.Config
 }
 
+// 🟦 Constructor
+
 func NewCells(bus *pubsub.Bus, buf *Buffer) *Cells {
 	c := new(Cells)
 	c.buf = buf
@@ -39,7 +41,7 @@ func (c *Cells) reset() {
 	}
 }
 
-// 🟦 Public methods
+// 🟦 Public functions
 
 func (c *Cells) EUA(stop int) bool {
 	if stop < c.buf.Len() {

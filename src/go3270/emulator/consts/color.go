@@ -2,7 +2,11 @@ package consts
 
 // 👁️ https://bitsavers.trailing-edge.com/pdf/ibm/3278/GA33-3056-0_3270_Information_Display_System_Color_and_Programmed_Symbols_3278_3279_3287_Sep1979.pdf?utm_source=chatgpt.com
 
+// 🟧 3270 colors
+
 type Color byte
+
+// 🟦 Lookup tables
 
 const (
 	BACKGROUND     Color = 0xF0
@@ -41,6 +45,8 @@ var colors = map[Color]string{
 	0xFE: "GREY",
 	0xFF: "WHITE",
 }
+
+// 🟦 Stringer implementation
 
 func ColorFor(c Color) string {
 	return colors[c]

@@ -7,7 +7,11 @@ import (
 	"strings"
 )
 
+// 🟧 3270 AIDs (attention identifiers)
+
 type AID byte
+
+// 🟦 Lookup tables
 
 const (
 	INBOUND AID = 0x88
@@ -77,9 +81,11 @@ var aids = map[AID]string{
 
 var aidsLookup = make(map[string]AID)
 
-func AIDFor(a AID) string {
-	return aids[a]
+func init() {
+	aidsLookup = utils.Invert(aids)
 }
+
+// 🟦 Constructor
 
 func AIDOf(key string, alt, ctrl, shift bool) AID {
 	code := strings.ToUpper(key)
@@ -102,6 +108,8 @@ func AIDOf(key string, alt, ctrl, shift bool) AID {
 	return 0
 }
 
+// 🟦 Public functions
+
 func (a AID) PAx() bool {
 	str, ok := aids[a]
 	return ok && strings.HasPrefix(str, "PA")
@@ -116,10 +124,12 @@ func (a AID) ShortRead() bool {
 	return a == CLEAR || a.PAx()
 }
 
-func (a AID) String() string {
-	return AIDFor(a)
+// 🟦 Stringer implementation
+
+func AIDFor(a AID) string {
+	return aids[a]
 }
 
-func init() {
-	aidsLookup = utils.Invert(aids)
+func (a AID) String() string {
+	return AIDFor(a)
 }

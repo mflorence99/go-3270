@@ -2,6 +2,8 @@ package attrs
 
 import "go3270/emulator/consts"
 
+// 🟧 3270 field and extended attributes
+
 type Attrs struct {
 	Blink      bool
 	Color      consts.Color
@@ -13,6 +15,8 @@ type Attrs struct {
 	Reverse    bool
 	Underscore bool
 }
+
+// 🟦 Constructors
 
 func NewBasic(char byte) *Attrs {
 	a := new(Attrs)
@@ -26,7 +30,7 @@ func NewExtended(chars []byte) *Attrs {
 	return a
 }
 
-// 🔥 note that wee are taking a copy and overwriting deltas
+// 🔥 note that we are taking a copy and overwriting deltas
 func NewModified(attrs *Attrs, chars []byte) *Attrs {
 	a := *attrs
 	a.fromBytes(chars)
@@ -82,6 +86,8 @@ func (a *Attrs) fromBytes(chars []byte) {
 		}
 	}
 }
+
+// 🟦 Public functions
 
 func (a *Attrs) Byte() byte {
 	var char byte = 0b00000000

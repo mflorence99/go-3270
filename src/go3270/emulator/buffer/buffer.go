@@ -18,6 +18,8 @@ type Buffer struct {
 	mode consts.Mode
 }
 
+// 🟦 Constructor
+
 func NewBuffer(bus *pubsub.Bus) *Buffer {
 	b := new(Buffer)
 	b.bus = bus
@@ -37,7 +39,7 @@ func (b *Buffer) reset() {
 	b.mode = consts.FIELD_MODE
 }
 
-// 🟦 Housekeeping methods
+// 🟦 Housekeeping functions
 
 //    Addr() get current buffer address
 //    Len() get number of cell slots in buffer
@@ -83,7 +85,7 @@ func (b *Buffer) SetMode(mode consts.Mode) consts.Mode {
 	return b.mode
 }
 
-// 🟦 Get methods
+// 🟦 Get functions
 
 //    Get() cell at current address, no side effects
 //    GetNext() cell at current address + 1, honoring wrap
@@ -109,7 +111,7 @@ func (b *Buffer) PrevGet() (*Cell, int) {
 	return b.buf[addr], addr
 }
 
-// 🟦 Set methods
+// 🟦 Set functions
 
 //    Set() cell at current address, no side effects
 //    SetAndNext() replace cell at current address, then advance to next

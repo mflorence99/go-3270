@@ -1,6 +1,10 @@
 package consts
 
+// 🟧 Query Reply / List responses
+
 type QCode byte
+
+// 🟦 Lookup tables
 
 const (
 	ALPHANUMERIC_PARTITIONS QCode = 0x84
@@ -31,6 +35,8 @@ var qcodes = map[QCode]string{
 	0xA1: "RPQ_NAMES",
 	0xA6: "IMPLICIT_PARTITION",
 }
+
+// 🟦 Stringer implementation
 
 func QCodeFor(s QCode) string {
 	return qcodes[s]
