@@ -114,11 +114,11 @@ export class Tn3270 {
       let response;
       if (negotiator.matches(['IAC', 'DO', 'TERMINAL_TYPE']))
         response = ['IAC', 'WILL', 'TERMINAL_TYPE'];
-      if (negotiator.matches(['IAC', 'DO', 'EOR']))
+      else if (negotiator.matches(['IAC', 'DO', 'EOR']))
         response = ['IAC', 'WILL', 'EOR', 'IAC', 'DO', 'EOR'];
-      if (negotiator.matches(['IAC', 'DO', 'BINARY']))
+      else if (negotiator.matches(['IAC', 'DO', 'BINARY']))
         response = ['IAC', 'WILL', 'BINARY', 'IAC', 'DO', 'BINARY'];
-      if (negotiator.matches(['IAC', 'SB', 'TERMINAL_TYPE']))
+      else if (negotiator.matches(['IAC', 'SB', 'TERMINAL_TYPE']))
         response = [
           'IAC',
           'SB',
@@ -147,7 +147,6 @@ export class Tn3270 {
     }
   }
 
-  // 🔥 this class emulates the device and "inbound" data streams are sent FROM the device TO application code
   sendToApp(bytes: Uint8ClampedArray): void {
     this.#socket?.send(bytes);
   }
@@ -165,7 +164,7 @@ class Negotiator {
       let decoded = reverse[byte];
       // 👇 decode anything not in lookup as 0xXX
       if (typeof decoded === 'undefined')
-        decoded = `0x${byte < 16 ? '0' : ''}${byte.toString(16)}`;
+        decoded = `0x${byte.toString(16).padStart(2, '0')}`;
       commands.push(decoded);
     }
     return commands;
