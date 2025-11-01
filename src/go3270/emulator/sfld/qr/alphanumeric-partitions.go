@@ -6,6 +6,8 @@ import (
 	"go3270/emulator/stream"
 )
 
+// 🟧 Query Reply structured field
+
 type AlphanumericPartitions struct {
 	SFID  consts.SFID
 	QCode consts.QCode
@@ -13,6 +15,8 @@ type AlphanumericPartitions struct {
 	M     uint16
 	Flags byte
 }
+
+// 🟦 Constructor
 
 func NewAlphanumericPartitions(cols, rows int) AlphanumericPartitions {
 	return AlphanumericPartitions{
@@ -23,6 +27,8 @@ func NewAlphanumericPartitions(cols, rows int) AlphanumericPartitions {
 		Flags: 0x00,
 	}
 }
+
+// 🟦 Public emitter function
 
 func (s AlphanumericPartitions) Put(in *stream.Inbound) {
 	chars := []byte{

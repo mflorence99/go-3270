@@ -6,6 +6,8 @@ import (
 	"go3270/emulator/stream"
 )
 
+// 🟧 Query Reply structured field
+
 type ImplicitPartition struct {
 	SFID   consts.SFID
 	QCode  consts.QCode
@@ -18,6 +20,8 @@ type ImplicitPartition struct {
 	WA     uint16
 	HA     uint16
 }
+
+// 🟦 Constructor
 
 func NewImplicitPartition(cols, rows int) ImplicitPartition {
 	return ImplicitPartition{
@@ -33,6 +37,8 @@ func NewImplicitPartition(cols, rows int) ImplicitPartition {
 		HA:     uint16(rows),
 	}
 }
+
+// 🟦 Public emitter function
 
 func (s ImplicitPartition) Put(in *stream.Inbound) {
 	chars := []byte{

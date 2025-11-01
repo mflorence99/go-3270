@@ -10,6 +10,8 @@ import (
 	"github.com/fogleman/gg"
 )
 
+// 🟧 Model the screen onto which the buffer is rendered (eventually an HTML <canvas> in the Typescript UI)
+
 type Screen struct {
 	buf *buffer.Buffer
 	bus *pubsub.Bus
@@ -21,6 +23,8 @@ type Screen struct {
 	cps    []glyph.Box
 	glyphs []glyph.Glyph
 }
+
+// 🟦 Constructor
 
 func NewScreen(bus *pubsub.Bus, buf *buffer.Buffer, gc *glyph.Cache, st *state.State) *Screen {
 	s := new(Screen)
@@ -38,6 +42,29 @@ func NewScreen(bus *pubsub.Bus, buf *buffer.Buffer, gc *glyph.Cache, st *state.S
 	return s
 }
 
+func (s *Screen) configure(cfg pubsub.Config) {
+	s.cfg = cfg
+	// 👇 precompute the box for each cell
+	s.cps = make([]glyph.Box, s.cfg.Cols*s.cfg.Rows)
+	for ix := range s.cps {
+		row := int(ix / cfg.Cols)
+		col := ix % cfg.Cols
+		s.cps[ix] = glyph.NewBox(row, col, cfg)
+	}
+	// 👇 optimization remembers which glyph is already drawn in each cell
+	s.glyphs = make([]glyph.Glyph, s.cfg.Cols*s.cfg.Rows)
+}
+
+func (s *Screen) reset() {
+	dc := gg.NewContextForRGBA(s.cfg.RGBA)
+	dc.SetHexColor(s.cfg.BgColor)
+	dc.Clear()
+	s.glyphs = make([]glyph.Glyph, s.cfg.Cols*s.cfg.Rows)
+	s.clean = true
+}
+
+// 🟦 Rendering functions
+
 func (s *Screen) blink(counter int) {
 	blinkOn := counter%2 == 0
 	// 👇 find all the blinbers
@@ -54,19 +81,6 @@ func (s *Screen) blink(counter int) {
 	}
 	// 👇 now we can render
 	s.renderDeltas(blinkers, true, blinkOn)
-}
-
-func (s *Screen) configure(cfg pubsub.Config) {
-	s.cfg = cfg
-	// 👇 precompute the box for each cell
-	s.cps = make([]glyph.Box, s.cfg.Cols*s.cfg.Rows)
-	for ix := range s.cps {
-		row := int(ix / cfg.Cols)
-		col := ix % cfg.Cols
-		s.cps[ix] = glyph.NewBox(row, col, cfg)
-	}
-	// 👇 optimization remembers which glyph is already drawn in each cell
-	s.glyphs = make([]glyph.Glyph, s.cfg.Cols*s.cfg.Rows)
 }
 
 func (s *Screen) render() {
@@ -117,12 +131,4 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 			s.glyphs[addr] = g
 		}
 	}
-}
-
-func (s *Screen) reset() {
-	dc := gg.NewContextForRGBA(s.cfg.RGBA)
-	dc.SetHexColor(s.cfg.BgColor)
-	dc.Clear()
-	s.glyphs = make([]glyph.Glyph, s.cfg.Cols*s.cfg.Rows)
-	s.clean = true
 }

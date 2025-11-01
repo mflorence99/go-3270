@@ -6,6 +6,8 @@ import (
 	"go3270/emulator/stream"
 )
 
+// 🟧 Query Reply structured field
+
 type DDM struct {
 	SFID   consts.SFID
 	QCode  consts.QCode
@@ -15,6 +17,8 @@ type DDM struct {
 	NSS    byte
 	DDMSS  byte
 }
+
+// 🟦 Constructor
 
 func NewDDM() DDM {
 	return DDM{
@@ -27,6 +31,8 @@ func NewDDM() DDM {
 		DDMSS:  1,
 	}
 }
+
+// 🟦 Public emitter function
 
 func (s DDM) Put(in *stream.Inbound) {
 	chars := []byte{

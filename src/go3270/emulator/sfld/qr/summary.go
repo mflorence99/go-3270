@@ -5,11 +5,15 @@ import (
 	"go3270/emulator/stream"
 )
 
+// 🟧 Query Reply structured field
+
 type Summary struct {
 	SFID  consts.SFID
 	QCode consts.QCode
 	List  []consts.QCode
 }
+
+// 🟦 Constructor
 
 func NewSummary(list []consts.QCode) Summary {
 	return Summary{
@@ -18,6 +22,8 @@ func NewSummary(list []consts.QCode) Summary {
 		List:  list,
 	}
 }
+
+// 🟦 Public emitter function
 
 func (s Summary) Put(in *stream.Inbound) {
 	chars := []byte{

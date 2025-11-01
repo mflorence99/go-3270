@@ -7,6 +7,8 @@ import (
 	"golang.org/x/image/font"
 )
 
+// 🟧 Go3270 configuration parameters
+
 type Config struct {
 	BgColor      string
 	BoldFace     *font.Face
@@ -23,6 +25,8 @@ type Config struct {
 	Rows         int
 	Screenshot   string
 }
+
+// 🟦 Public functions
 
 func (c Config) Addr2RC(addr int) (int, int) {
 	row := int(addr/c.Cols) + 1

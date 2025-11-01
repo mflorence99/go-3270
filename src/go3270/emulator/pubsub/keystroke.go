@@ -5,6 +5,8 @@ import (
 	"go3270/emulator/utils"
 )
 
+// 🟧 Keystroke, as submitted by Typescript UI
+
 type Keystroke struct {
 	ALT   bool
 	Code  string
@@ -12,6 +14,8 @@ type Keystroke struct {
 	Key   string
 	SHIFT bool
 }
+
+// 🟦 Stringer implementation
 
 func (k Keystroke) String() string {
 	str := ""

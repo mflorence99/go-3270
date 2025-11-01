@@ -5,12 +5,16 @@ import (
 	"go3270/emulator/stream"
 )
 
+// 🟧 Query Reply structured field
+
 type Highlighting struct {
 	SFID  consts.SFID
 	QCode consts.QCode
 	NP    byte
 	HAVs  [][]byte
 }
+
+// 🟦 Constructor
 
 func NewHighlighting() Highlighting {
 	havs := make([][]byte, 5)
@@ -26,6 +30,8 @@ func NewHighlighting() Highlighting {
 		HAVs:  havs,
 	}
 }
+
+// 🟦 Public emitter function
 
 func (s Highlighting) Put(in *stream.Inbound) {
 	chars := []byte{

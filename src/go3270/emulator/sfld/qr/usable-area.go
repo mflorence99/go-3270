@@ -6,6 +6,8 @@ import (
 	"go3270/emulator/stream"
 )
 
+// 🟧 Query Reply structured field
+
 type UsableArea struct {
 	SFID   consts.SFID
 	QCode  consts.QCode
@@ -14,6 +16,8 @@ type UsableArea struct {
 	W      uint16
 	H      uint16
 }
+
+// 🟦 Constructor
 
 func NewUsableArea(cols, rows int) UsableArea {
 	return UsableArea{
@@ -27,6 +31,8 @@ func NewUsableArea(cols, rows int) UsableArea {
 		H:      uint16(rows),
 	}
 }
+
+// 🟦 Public emitter function
 
 func (s UsableArea) Put(in *stream.Inbound) {
 	chars := []byte{

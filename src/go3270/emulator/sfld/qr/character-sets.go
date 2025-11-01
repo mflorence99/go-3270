@@ -5,6 +5,8 @@ import (
 	"go3270/emulator/stream"
 )
 
+// 🟧 Query Reply structured field
+
 type CharacterSets struct {
 	SFID  consts.SFID
 	QCode consts.QCode
@@ -13,6 +15,8 @@ type CharacterSets struct {
 	SDW   byte
 	SDH   byte
 }
+
+// 🟦 Constructor
 
 func NewCharacterSets() CharacterSets {
 	return CharacterSets{
@@ -25,6 +29,8 @@ func NewCharacterSets() CharacterSets {
 		SDH: 0x0C,
 	}
 }
+
+// 🟦 Public emitter function
 
 func (s CharacterSets) Put(in *stream.Inbound) {
 	chars := []byte{

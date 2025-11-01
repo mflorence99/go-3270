@@ -5,6 +5,8 @@ import (
 	"go3270/emulator/stream"
 )
 
+// 🟧 Query Reply structured field
+
 type FieldOutlining struct {
 	SFID  consts.SFID
 	QCode consts.QCode
@@ -15,6 +17,8 @@ type FieldOutlining struct {
 	HPOS0 byte
 	HPOS1 byte
 }
+
+// 🟦 Constructor
 
 func NewFieldOutlining() FieldOutlining {
 	return FieldOutlining{
@@ -29,6 +33,8 @@ func NewFieldOutlining() FieldOutlining {
 		HPOS1: 0x00,
 	}
 }
+
+// 🟦 Public emitter function
 
 func (s FieldOutlining) Put(in *stream.Inbound) {
 	chars := []byte{

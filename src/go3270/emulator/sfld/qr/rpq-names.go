@@ -6,6 +6,8 @@ import (
 	"go3270/emulator/stream"
 )
 
+// 🟧 Query Reply structured field
+
 type RPQNames struct {
 	SFID    consts.SFID
 	QCode   consts.QCode
@@ -13,6 +15,8 @@ type RPQNames struct {
 	Model   []byte
 	RPQName string
 }
+
+// 🟦 Constructor
 
 func NewRPQNames() RPQNames {
 	return RPQNames{
@@ -23,6 +27,8 @@ func NewRPQNames() RPQNames {
 		RPQName: "go3270",
 	}
 }
+
+// 🟦 Public emitter function
 
 func (s RPQNames) Put(in *stream.Inbound) {
 	chars := []byte{

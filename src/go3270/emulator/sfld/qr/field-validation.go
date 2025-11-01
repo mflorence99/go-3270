@@ -5,11 +5,15 @@ import (
 	"go3270/emulator/stream"
 )
 
+// 🟧 Query Reply structured field
+
 type FieldValidation struct {
 	SFID  consts.SFID
 	QCode consts.QCode
 	Types byte
 }
+
+// 🟦 Constructor
 
 func NewFieldValidation() FieldValidation {
 	return FieldValidation{
@@ -19,6 +23,8 @@ func NewFieldValidation() FieldValidation {
 		Types: 0b00000111,
 	}
 }
+
+// 🟦 Public emitter function
 
 func (s FieldValidation) Put(in *stream.Inbound) {
 	chars := []byte{

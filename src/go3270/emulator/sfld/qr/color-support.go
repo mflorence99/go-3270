@@ -6,6 +6,8 @@ import (
 	"go3270/emulator/utils"
 )
 
+// 🟧 Query Reply structured field
+
 type ColorSupport struct {
 	SFID  consts.SFID
 	QCode consts.QCode
@@ -13,6 +15,8 @@ type ColorSupport struct {
 	NP    byte
 	CAVs  []byte
 }
+
+// 🟦 Constructor
 
 func NewColorSupport(monochrome bool) ColorSupport {
 	cavs := make([]byte, 0)
@@ -30,6 +34,8 @@ func NewColorSupport(monochrome bool) ColorSupport {
 		CAVs:  cavs,
 	}
 }
+
+// 🟦 Public emitter function
 
 func (s ColorSupport) Put(in *stream.Inbound) {
 	chars := []byte{

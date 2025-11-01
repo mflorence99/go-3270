@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+// 🟧 3270 status, as shared with Typescript UI
+
 type Status struct {
 	Alarm     bool
 	CursorAt  int
@@ -14,6 +16,8 @@ type Status struct {
 	Protected bool
 	Waiting   bool
 }
+
+// 🟦 Stringer implementation
 
 func (s Status) String() string {
 	str := fmt.Sprintf("CURSOR %d ", s.CursorAt)

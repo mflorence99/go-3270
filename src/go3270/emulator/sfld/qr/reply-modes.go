@@ -5,11 +5,15 @@ import (
 	"go3270/emulator/stream"
 )
 
+// 🟧 Query Reply structured field
+
 type ReplyModes struct {
 	SFID  consts.SFID
 	QCode consts.QCode
 	Modes []consts.Mode
 }
+
+// 🟦 Constructor
 
 func NewReplyModes() ReplyModes {
 	return ReplyModes{
@@ -22,6 +26,8 @@ func NewReplyModes() ReplyModes {
 		},
 	}
 }
+
+// 🟦 Public emitter function
 
 func (s ReplyModes) Put(in *stream.Inbound) {
 	chars := []byte{
