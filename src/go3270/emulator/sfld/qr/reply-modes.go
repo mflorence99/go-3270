@@ -24,14 +24,14 @@ func NewReplyModes() ReplyModes {
 }
 
 func (s ReplyModes) Put(in *stream.Inbound) {
-	bytes := []byte{
+	chars := []byte{
 		byte(s.SFID),
 		byte(s.QCode),
 	}
 	// 👇 flags
 	for _, mode := range s.Modes {
-		bytes = append(bytes, byte(mode))
+		chars = append(chars, byte(mode))
 	}
-	in.Put16(uint16(len(bytes) + 2))
-	in.PutSlice(bytes)
+	in.Put16(uint16(len(chars) + 2))
+	in.PutSlice(chars)
 }

@@ -135,12 +135,12 @@ export class Connector extends SignalWatcher(LitElement) {
         `IBM-${config.device}-${config.model}-E`
       );
       this.#tn3270.stream$.subscribe({
-        next: (bytes: Uint8ClampedArray) => {
+        next: (chars: Uint8ClampedArray) => {
           if (this.connecting)
             this.dispatchEvent(new CustomEvent('connected'));
           this.dispatchEvent(
             new CustomEvent('outbound', {
-              detail: { bytes }
+              detail: { chars }
             })
           );
           this.connecting = false;
@@ -320,8 +320,8 @@ export class Connector extends SignalWatcher(LitElement) {
     return this.state.model.get().config;
   }
 
-  sendToApp(bytes: Uint8ClampedArray): void {
-    this.#tn3270?.sendToApp(bytes);
+  sendToApp(chars: Uint8ClampedArray): void {
+    this.#tn3270?.sendToApp(chars);
   }
 
   setup(): void {

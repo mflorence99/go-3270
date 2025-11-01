@@ -31,17 +31,17 @@ func NewFieldOutlining() FieldOutlining {
 }
 
 func (s FieldOutlining) Put(in *stream.Inbound) {
-	bytes := []byte{
+	chars := []byte{
 		byte(s.SFID),
 		byte(s.QCode),
 	}
 	// 👇 flags
-	bytes = append(bytes, s.Flag)
-	bytes = append(bytes, s.Sep)
-	bytes = append(bytes, s.VPOS)
-	bytes = append(bytes, s.HPOS)
-	bytes = append(bytes, s.HPOS0)
-	bytes = append(bytes, s.HPOS1)
-	in.Put16(uint16(len(bytes) + 2))
-	in.PutSlice(bytes)
+	chars = append(chars, s.Flag)
+	chars = append(chars, s.Sep)
+	chars = append(chars, s.VPOS)
+	chars = append(chars, s.HPOS)
+	chars = append(chars, s.HPOS0)
+	chars = append(chars, s.HPOS1)
+	in.Put16(uint16(len(chars) + 2))
+	in.PutSlice(chars)
 }

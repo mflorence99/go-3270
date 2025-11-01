@@ -185,11 +185,11 @@ func (m *Mediator) dispatchEvent(params map[string]any) {
 }
 
 func (m *Mediator) inbound(chars []byte, _ bool) {
-	bytes := js.Global().Get("Uint8ClampedArray").New(len(chars))
-	js.CopyBytesToJS(bytes, chars)
+	u8s := js.Global().Get("Uint8ClampedArray").New(len(chars))
+	js.CopyBytesToJS(u8s, chars)
 	params := map[string]any{
 		"eventType": "inbound",
-		"bytes":     bytes,
+		"chars":     u8s,
 	}
 	m.dispatchEvent(params)
 }

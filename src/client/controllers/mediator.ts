@@ -51,8 +51,8 @@ export class Mediator implements ReactiveController {
         break;
       case 'inbound':
         {
-          const { bytes } = (evt as CustomEvent).detail;
-          this.host.connector.sendToApp(bytes);
+          const { chars } = (evt as CustomEvent).detail;
+          this.host.connector.sendToApp(chars);
         }
         break;
       case 'status':

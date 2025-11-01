@@ -64,7 +64,7 @@ export class Root extends SignalWatcher(LitElement) {
         @connected=${(): any => (this.pageNum = Pages.emulator)}
         @disconnected=${(): any => (this.pageNum = Pages.connector)}
         @outbound=${(evt: CustomEvent): any =>
-          this.emulator.outbound(evt.detail.bytes)}
+          this.emulator.outbound(evt.detail.chars)}
         @setup=${(): any => (this.pageNum = Pages.setup)}
         class="connector"
         data-page-num="${Pages.connector}"

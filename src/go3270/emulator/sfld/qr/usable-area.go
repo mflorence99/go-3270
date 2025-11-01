@@ -29,15 +29,15 @@ func NewUsableArea(cols, rows int) UsableArea {
 }
 
 func (s UsableArea) Put(in *stream.Inbound) {
-	bytes := []byte{
+	chars := []byte{
 		byte(s.SFID),
 		byte(s.QCode),
 	}
 	// 👇 flags and data
-	bytes = append(bytes, s.Flags1)
-	bytes = append(bytes, s.Flags2)
-	bytes = binary.BigEndian.AppendUint16(bytes, s.W)
-	bytes = binary.BigEndian.AppendUint16(bytes, s.H)
-	in.Put16(uint16(len(bytes) + 2))
-	in.PutSlice(bytes)
+	chars = append(chars, s.Flags1)
+	chars = append(chars, s.Flags2)
+	chars = binary.BigEndian.AppendUint16(chars, s.W)
+	chars = binary.BigEndian.AppendUint16(chars, s.H)
+	in.Put16(uint16(len(chars) + 2))
+	in.PutSlice(chars)
 }

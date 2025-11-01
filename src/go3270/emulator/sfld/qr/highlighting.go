@@ -28,15 +28,15 @@ func NewHighlighting() Highlighting {
 }
 
 func (s Highlighting) Put(in *stream.Inbound) {
-	bytes := []byte{
+	chars := []byte{
 		byte(s.SFID),
 		byte(s.QCode),
 	}
 	// 👇 flags and data
-	bytes = append(bytes, s.NP)
+	chars = append(chars, s.NP)
 	for _, hav := range s.HAVs {
-		bytes = append(bytes, hav...)
+		chars = append(chars, hav...)
 	}
-	in.Put16(uint16(len(bytes) + 2))
-	in.PutSlice(bytes)
+	in.Put16(uint16(len(chars) + 2))
+	in.PutSlice(chars)
 }

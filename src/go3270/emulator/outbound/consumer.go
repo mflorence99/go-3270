@@ -308,8 +308,8 @@ func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) 
 
 func (c *Consumer) sa(out *stream.Outbound, fldAttrs *attrs.Attrs) *attrs.Attrs {
 	c.buf.SetMode(consts.CHARACTER_MODE)
-	bytes, _ := out.NextSlice(2)
-	return attrs.NewModified(fldAttrs, bytes)
+	chars, _ := out.NextSlice(2)
+	return attrs.NewModified(fldAttrs, chars)
 }
 
 func (c *Consumer) sba(out *stream.Outbound) {

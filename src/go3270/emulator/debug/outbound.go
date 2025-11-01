@@ -74,8 +74,8 @@ func (l *Logger) logOrders(out *stream.Outbound, cmd consts.Command) {
 			l.withoutAttrs(t, order, addr, char)
 
 		case consts.SA:
-			bytes, _ := out.NextSlice(2)
-			fldAttrs = attrs.NewModified(fldAttrs, bytes)
+			chars, _ := out.NextSlice(2)
+			fldAttrs = attrs.NewModified(fldAttrs, chars)
 			l.withAttrs(t, order, addr, fldAttrs, false)
 
 		case consts.SBA:

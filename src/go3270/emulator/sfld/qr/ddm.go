@@ -29,16 +29,16 @@ func NewDDM() DDM {
 }
 
 func (s DDM) Put(in *stream.Inbound) {
-	bytes := []byte{
+	chars := []byte{
 		byte(s.SFID),
 		byte(s.QCode),
 	}
 	// 👇 flags and data
-	bytes = append(bytes, s.Flags...)
-	bytes = binary.BigEndian.AppendUint16(bytes, s.LimIn)
-	bytes = binary.BigEndian.AppendUint16(bytes, s.LimOut)
-	bytes = append(bytes, s.NSS)
-	bytes = append(bytes, s.DDMSS)
-	in.Put16(uint16(len(bytes) + 2))
-	in.PutSlice(bytes)
+	chars = append(chars, s.Flags...)
+	chars = binary.BigEndian.AppendUint16(chars, s.LimIn)
+	chars = binary.BigEndian.AppendUint16(chars, s.LimOut)
+	chars = append(chars, s.NSS)
+	chars = append(chars, s.DDMSS)
+	in.Put16(uint16(len(chars) + 2))
+	in.PutSlice(chars)
 }

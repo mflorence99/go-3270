@@ -21,12 +21,12 @@ func NewFieldValidation() FieldValidation {
 }
 
 func (s FieldValidation) Put(in *stream.Inbound) {
-	bytes := []byte{
+	chars := []byte{
 		byte(s.SFID),
 		byte(s.QCode),
 	}
 	// 👇 flags
-	bytes = append(bytes, s.Types)
-	in.Put16(uint16(len(bytes) + 2))
-	in.PutSlice(bytes)
+	chars = append(chars, s.Types)
+	in.Put16(uint16(len(chars) + 2))
+	in.PutSlice(chars)
 }

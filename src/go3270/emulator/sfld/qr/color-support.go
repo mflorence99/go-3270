@@ -32,14 +32,14 @@ func NewColorSupport(monochrome bool) ColorSupport {
 }
 
 func (s ColorSupport) Put(in *stream.Inbound) {
-	bytes := []byte{
+	chars := []byte{
 		byte(s.SFID),
 		byte(s.QCode),
 	}
 	// 👇 flags and data
-	bytes = append(bytes, s.Flags)
-	bytes = append(bytes, s.NP)
-	bytes = append(bytes, s.CAVs...)
-	in.Put16(uint16(len(bytes) + 2))
-	in.PutSlice(bytes)
+	chars = append(chars, s.Flags)
+	chars = append(chars, s.NP)
+	chars = append(chars, s.CAVs...)
+	in.Put16(uint16(len(chars) + 2))
+	in.PutSlice(chars)
 }

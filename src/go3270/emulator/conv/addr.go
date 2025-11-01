@@ -11,17 +11,17 @@ var Six2E = []byte{
 	0xF8, 0xF9, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F,
 }
 
-func AddrFromBytes(bytes []byte) int {
-	addr := int(bytes[0])
+func AddrFromBytes(chars []byte) int {
+	addr := int(chars[0])
 	addr &= 0b00111111
 	addr = addr << 6
-	addr += int(bytes[1] & 0b00111111)
+	addr += int(chars[1] & 0b00111111)
 	return addr
 }
 
 func AddrToBytes(addr int) []byte {
-	bytes := make([]byte, 2)
-	bytes[0] = Six2E[(addr>>6)&0b00111111]
-	bytes[1] = Six2E[addr&0b00111111]
-	return bytes
+	chars := make([]byte, 2)
+	chars[0] = Six2E[(addr>>6)&0b00111111]
+	chars[1] = Six2E[addr&0b00111111]
+	return chars
 }

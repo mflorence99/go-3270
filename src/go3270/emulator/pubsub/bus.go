@@ -38,12 +38,12 @@ func (b *Bus) PubKeystroke(key Keystroke) {
 	b.Publish("keystroke", key)
 }
 
-func (b *Bus) PubInbound(bytes []byte, wsf bool) {
-	b.Publish("inbound", bytes, wsf)
+func (b *Bus) PubInbound(chars []byte, wsf bool) {
+	b.Publish("inbound", chars, wsf)
 }
 
-func (b *Bus) PubOutbound(bytes []byte) {
-	b.Publish("outbound", bytes)
+func (b *Bus) PubOutbound(chars []byte) {
+	b.Publish("outbound", chars)
 }
 
 func (b *Bus) PubPanic(msg string) {
@@ -120,11 +120,11 @@ func (b *Bus) SubKeystroke(fn func(key Keystroke)) {
 	b.Subscribe("keystroke", fn)
 }
 
-func (b *Bus) SubInbound(fn func(bytes []byte, wsh bool)) {
+func (b *Bus) SubInbound(fn func(chars []byte, wsh bool)) {
 	b.Subscribe("inbound", fn)
 }
 
-func (b *Bus) SubOutbound(fn func(bytes []byte)) {
+func (b *Bus) SubOutbound(fn func(chars []byte)) {
 	b.Subscribe("outbound", fn)
 }
 

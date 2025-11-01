@@ -7,30 +7,30 @@ import (
 // 🔥 "Inbound" data flows from the 3270 ie this code to the application
 
 type Inbound struct {
-	bytes []byte
+	chars []byte
 }
 
 func NewInbound() *Inbound {
 	in := new(Inbound)
-	in.bytes = []byte{}
+	in.chars = []byte{}
 	return in
 }
 
 func (in *Inbound) Bytes() []byte {
-	return in.bytes
+	return in.chars
 }
 
 func (in *Inbound) Put(char byte) []byte {
-	in.bytes = append(in.bytes, char)
-	return in.bytes
+	in.chars = append(in.chars, char)
+	return in.chars
 }
 
 func (in *Inbound) Put16(chars uint16) []byte {
-	in.bytes = binary.BigEndian.AppendUint16(in.bytes, chars)
-	return in.bytes
+	in.chars = binary.BigEndian.AppendUint16(in.chars, chars)
+	return in.chars
 }
 
 func (in *Inbound) PutSlice(slice []byte) []byte {
-	in.bytes = append(in.bytes, slice...)
-	return in.bytes
+	in.chars = append(in.chars, slice...)
+	return in.chars
 }

@@ -40,40 +40,40 @@ func (f *Flds) Get() []Fld {
 
 // TODO 🔥 *only* FIELD_MODE *not* coded
 func (f *Flds) ReadBuffer() []byte {
-	bytes := make([]byte, 0)
+	chars := make([]byte, 0)
 	for _, fld := range f.flds {
 		sf, _ := fld.StartFld()
-		bytes = append(bytes, byte(consts.SF))
-		bytes = append(bytes, sf.Attrs.Byte())
+		chars = append(chars, byte(consts.SF))
+		chars = append(chars, sf.Attrs.Byte())
 		for ix := 1; ix < len(fld); ix++ {
 			cell := fld[ix]
 			char := cell.Char
 			if char != 0x00 {
-				bytes = append(bytes, conv.A2E(char))
+				chars = append(chars, conv.A2E(char))
 			}
 		}
 	}
-	return bytes
+	return chars
 }
 
 // TODO 🔥 CHARACTER_MODE *not* coded
 func (f *Flds) ReadMDT() []byte {
-	bytes := make([]byte, 0)
+	chars := make([]byte, 0)
 	for _, fld := range f.flds {
 		sf, _ := fld.StartFld()
 		if sf.Attrs.Modified {
-			bytes = append(bytes, byte(consts.SBA))
-			bytes = append(bytes, conv.AddrToBytes(sf.FldAddr+1)...)
+			chars = append(chars, byte(consts.SBA))
+			chars = append(chars, conv.AddrToBytes(sf.FldAddr+1)...)
 			for ix := 1; ix < len(fld); ix++ {
 				cell := fld[ix]
 				char := cell.Char
 				if char != 0x00 {
-					bytes = append(bytes, conv.A2E(char))
+					chars = append(chars, conv.A2E(char))
 				}
 			}
 		}
 	}
-	return bytes
+	return chars
 }
 
 func (f *Flds) Reset() {

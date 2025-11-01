@@ -35,19 +35,19 @@ func NewImplicitPartition(cols, rows int) ImplicitPartition {
 }
 
 func (s ImplicitPartition) Put(in *stream.Inbound) {
-	bytes := []byte{
+	chars := []byte{
 		byte(s.SFID),
 		byte(s.QCode),
 	}
 	// 👇 flags and data
-	bytes = append(bytes, s.Flags1...)
-	bytes = append(bytes, s.L)
-	bytes = append(bytes, s.SDPID)
-	bytes = append(bytes, s.Flags2)
-	bytes = binary.BigEndian.AppendUint16(bytes, s.WD)
-	bytes = binary.BigEndian.AppendUint16(bytes, s.HD)
-	bytes = binary.BigEndian.AppendUint16(bytes, s.WA)
-	bytes = binary.BigEndian.AppendUint16(bytes, s.HA)
-	in.Put16(uint16(len(bytes) + 2))
-	in.PutSlice(bytes)
+	chars = append(chars, s.Flags1...)
+	chars = append(chars, s.L)
+	chars = append(chars, s.SDPID)
+	chars = append(chars, s.Flags2)
+	chars = binary.BigEndian.AppendUint16(chars, s.WD)
+	chars = binary.BigEndian.AppendUint16(chars, s.HD)
+	chars = binary.BigEndian.AppendUint16(chars, s.WA)
+	chars = binary.BigEndian.AppendUint16(chars, s.HA)
+	in.Put16(uint16(len(chars) + 2))
+	in.PutSlice(chars)
 }

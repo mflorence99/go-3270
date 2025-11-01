@@ -10,7 +10,7 @@ export type Go3270 = {
     ctrl: boolean,
     shift: boolean
   ) => void;
-  outbound: (bytes: Uint8ClampedArray) => void;
+  outbound: (chars: Uint8ClampedArray) => void;
 };
 
 declare global {

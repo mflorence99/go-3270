@@ -51,10 +51,10 @@ export class Tn3270 {
         this.#socket.onmessage = async (
           e: MessageEvent
         ): Promise<void> => {
-          const bytes = new Uint8ClampedArray(
+          const chars = new Uint8ClampedArray(
             await e.data.arrayBuffer()
           );
-          this.outbound(bytes, observer);
+          this.outbound(chars, observer);
         };
         // 🔥 ERROR
         this.#socket.onerror = (evt: Event): void => {
@@ -106,11 +106,11 @@ export class Tn3270 {
 
   // 🔥 this class emulates the device and "outbound" data streams flow FROM application code TO the device
   outbound(
-    bytes: Uint8ClampedArray,
+    chars: Uint8ClampedArray,
     observer: Observer<Uint8ClampedArray>
   ): void {
-    if (bytes[0] === lookup.IAC) {
-      const negotiator = new Negotiator(bytes);
+    if (chars[0] === lookup.IAC) {
+      const negotiator = new Negotiator(chars);
       let response;
       if (negotiator.matches(['IAC', 'DO', 'TERMINAL_TYPE']))
         response = ['IAC', 'WILL', 'TERMINAL_TYPE'];
@@ -143,24 +143,24 @@ export class Tn3270 {
         this.#socket?.send(negotiator.encode(response));
       }
     } else {
-      observer.next(bytes);
+      observer.next(chars);
     }
   }
 
-  sendToApp(bytes: Uint8ClampedArray): void {
-    this.#socket?.send(bytes);
+  sendToApp(chars: Uint8ClampedArray): void {
+    this.#socket?.send(chars);
   }
 }
 
 // 🟧 Negotiate Telnet connection 3270 <-> Host
 
 class Negotiator {
-  constructor(private bytes: Uint8ClampedArray) {}
+  constructor(private chars: Uint8ClampedArray) {}
 
   decode(): string[] {
     const commands: string[] = [];
-    for (let ix = 0; ix < this.bytes.length; ix++) {
-      const byte = this.bytes[ix] ?? 0;
+    for (let ix = 0; ix < this.chars.length; ix++) {
+      const byte = this.chars[ix] ?? 0;
       let decoded = reverse[byte];
       // 👇 decode anything not in lookup as 0xXX
       if (typeof decoded === 'undefined')
@@ -179,7 +179,7 @@ class Negotiator {
         // 👇 convert hex strings to decimal
         else if (command.startsWith('0x'))
           acc.push(parseInt(command.substring(3), 16));
-        // 👇 anything not in lookup is a string, so decode bytes
+        // 👇 anything not in lookup is a string, so decode chars
         else if (typeof encoded === 'undefined') {
           for (let ix = 0; ix < command.length; ix++)
             acc.push(command.charCodeAt(ix));
@@ -193,7 +193,7 @@ class Negotiator {
 
   matches(commands: string[]): boolean {
     return commands.every((command, ix) => {
-      return lookup[command] === this.bytes[ix];
+      return lookup[command] === this.chars[ix];
     });
   }
 }
