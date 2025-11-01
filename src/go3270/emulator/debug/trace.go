@@ -5,6 +5,10 @@ import (
 	"go3270/emulator/utils"
 )
 
+// 🟧 Debugger: trace pubsub activity
+
+// TODO 🔥 currently disabled
+
 func (l *Logger) logTrace(topic string, handler interface{}) {
 	if topic != "tick" /* 🔥 suppressed ?? */ && false {
 		pkg, nm := utils.GetFuncName(handler)

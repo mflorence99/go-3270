@@ -1,8 +1,12 @@
 package conv
 
+// 🟧 EBCDIC -> ASCII conversion
+
 // 👁️ https://stackoverflow.com/questions/25367120/example-ebcdic-file-for-java-program-to-convert-ebcdic-to-ascii
 
 // 🔥 by skipping the first 64 entries and starting on line 64, it's easy to read the EBCDIC character as the line # and the constant as its ASCII equivalent
+
+// 🟦 Lookup tables
 
 var EBCDIC = []byte{
 	// start on line 64 to make reconciliation easier
@@ -254,6 +258,8 @@ var EBCDIC = []byte{
 	' ',
 	' ',
 }
+
+// 🟦 Public functions
 
 func E2A(e byte) byte {
 	a := byte(0x00)

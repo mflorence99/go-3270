@@ -12,6 +12,8 @@ import (
 	"github.com/jedib0t/go-pretty/v6/text"
 )
 
+// 🟧 Debugger: log inbound (3270 -> app) stream
+
 func (l *Logger) logInbound(chars []byte) {
 	// 👇 convert into a stream for convenience
 	slice, _, ok := bytes.Cut(chars, consts.LT)

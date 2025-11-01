@@ -8,6 +8,8 @@ import (
 	"github.com/jedib0t/go-pretty/v6/text"
 )
 
+// 🟧 Debugger: log configuration
+
 func (l *Logger) logConfig(cfg pubsub.Config) {
 	t := l.newTable(text.FgHiBlue, "Config")
 	defer t.Render()

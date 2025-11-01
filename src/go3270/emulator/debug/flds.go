@@ -9,6 +9,8 @@ import (
 	"github.com/jedib0t/go-pretty/v6/text"
 )
 
+// 🟧 Debugger: log buffer fields
+
 func (l *Logger) logFlds(flds *buffer.Flds) {
 	t := l.newTable(text.FgHiBlue, "Buffer Fields")
 	defer t.Render()

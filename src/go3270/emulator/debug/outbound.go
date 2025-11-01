@@ -11,6 +11,8 @@ import (
 	"github.com/jedib0t/go-pretty/v6/text"
 )
 
+// 🟧 Debugger: log outbound (3270 <- app) stream
+
 func (l *Logger) logOutbound(chars []byte) {
 	// 👇 analyze the commands in the stream
 	out := stream.NewOutbound(chars)
@@ -22,19 +24,19 @@ func (l *Logger) logOutbound(chars []byte) {
 	case consts.EW:
 		_, ok := out.Next() // 👈 eat the WCC
 		if ok {
-			l.logOrders(out, cmd)
+			l.logOutboundOrders(out, cmd)
 		}
 
 	case consts.EWA:
 		_, ok := out.Next() // 👈 eat the WCC
 		if ok {
-			l.logOrders(out, cmd)
+			l.logOutboundOrders(out, cmd)
 		}
 
 	case consts.W:
 		_, ok := out.Next() // 👈 eat the WCC
 		if ok {
-			l.logOrders(out, cmd)
+			l.logOutboundOrders(out, cmd)
 		}
 
 	case consts.WSF:
@@ -42,7 +44,7 @@ func (l *Logger) logOutbound(chars []byte) {
 	}
 }
 
-func (l *Logger) logOrders(out *stream.Outbound, cmd consts.Command) {
+func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command) {
 	t := l.newTable(text.FgHiYellow, fmt.Sprintf("%s Outbound (App -> 3270)\nNOTE: EUA and RA orders are listed instart/stop pairs", cmd))
 	defer t.Render()
 	// 👇 table rows

@@ -9,8 +9,10 @@ import (
 	"github.com/jedib0t/go-pretty/v6/text"
 )
 
+// 🟧 Debugger: log cell contents (STRL+arrow)
+
 func (l *Logger) logProbe(addr int) {
-	t := l.newTable(text.FgHiMagenta, "")
+	t := l.newTable(text.FgHiRed, "")
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"", "Row", "Col", "SF", "Blink", "Color", "Hidden", "Hilite", "MDT", "Num", "Prot", "Rev", "Uscore"})

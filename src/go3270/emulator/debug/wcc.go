@@ -7,6 +7,8 @@ import (
 	"github.com/jedib0t/go-pretty/v6/text"
 )
 
+// 🟧 Debugger: log WCC
+
 func (l *Logger) logWCC(wcc wcc.WCC) {
 	t := l.newTable(text.FgHiBlue, "")
 	defer t.Render()
