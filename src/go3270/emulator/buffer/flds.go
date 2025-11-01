@@ -6,6 +6,8 @@ import (
 	"go3270/emulator/pubsub"
 )
 
+// 🟧 View the buffer as an array of fields
+
 type Flds struct {
 	buf  *Buffer
 	bus  *pubsub.Bus
@@ -34,6 +36,29 @@ func (f *Flds) reset() {
 
 // 🟦 Public methods
 
+func (f *Flds) EAU() int {
+	addr := -1
+	for _, fld := range f.flds {
+		sf, ok := fld.StartFld()
+		if ok {
+			sf.Attrs.Modified = false
+			if !sf.Attrs.Protected {
+				// 👇 capture address of first unprotected field
+				if addr == -1 {
+					addr = sf.FldAddr
+				}
+				// 🔥 reset char and any character attributes
+				for ix := 1; ix < len(fld); ix++ {
+					cell := fld[ix]
+					cell.Char = 0x00
+					cell.Attrs = sf.Attrs
+				}
+			}
+		}
+	}
+	return addr
+}
+
 func (f *Flds) Get() []Fld {
 	return f.flds
 }
@@ -57,7 +82,7 @@ func (f *Flds) ReadBuffer() []byte {
 }
 
 // TODO 🔥 CHARACTER_MODE *not* coded
-func (f *Flds) ReadMDT() []byte {
+func (f *Flds) ReadMDTs() []byte {
 	chars := make([]byte, 0)
 	for _, fld := range f.flds {
 		sf, _ := fld.StartFld()
@@ -82,14 +107,9 @@ func (f *Flds) Reset() {
 	first := -1
 	fld := make(Fld, 0)
 	// 👇 normalize the cell at a given position in a given fld
-	fix := func(fld Fld, cell *Cell, ix int) *Cell {
+	fix := func(fld Fld, cell *Cell) *Cell {
 		sf, _ := fld.StartFld()
-		if cell == nil {
-			// 👇 the cell might be missing, so inherit from the SF
-			cell = &Cell{Attrs: sf.Attrs, Char: 0x00, FldAddr: sf.FldAddr}
-			f.buf.Replace(cell, ix)
-		} else if cell.FldAddr != sf.FldAddr {
-			// 👇 the cell might be a residue of an earlier field after a W command
+		if cell.FldAddr != sf.FldAddr {
 			cell.Attrs = sf.Attrs
 			cell.FldAddr = sf.FldAddr
 		}
@@ -99,7 +119,7 @@ func (f *Flds) Reset() {
 	for ix := 0; ix < f.buf.Len(); ix++ {
 		cell, _ := f.buf.Peek(ix)
 		// 👇 a field is delimited by the next field
-		if cell != nil && cell.FldStart {
+		if cell.FldStart {
 			cell.FldAddr = ix
 			if len(fld) > 0 {
 				f.flds = append(f.flds, fld)
@@ -111,7 +131,7 @@ func (f *Flds) Reset() {
 				first = ix
 			}
 		} else if first != -1 {
-			cell = fix(fld, cell, ix)
+			cell = fix(fld, cell)
 			fld = append(fld, cell)
 		}
 	}
@@ -119,18 +139,27 @@ func (f *Flds) Reset() {
 	if len(fld) > 0 {
 		for ix := 0; ix < first; ix++ {
 			cell, _ := f.buf.Peek(ix)
-			cell = fix(fld, cell, ix)
+			cell = fix(fld, cell)
 			fld = append(fld, cell)
 		}
 		f.flds = append(f.flds, fld)
 	}
 }
 
-func (f *Flds) ResetMDT() {
+func (f *Flds) ResetMDTs() {
 	for _, fld := range f.flds {
 		sf, ok := fld.StartFld()
 		if ok {
 			sf.Attrs.Modified = false
 		}
 	}
+}
+
+func (f *Flds) SetMDT(fldAddr int) bool {
+	fld, ok := f.buf.Peek(fldAddr)
+	if !fld.FldStart || !ok {
+		return false
+	}
+	fld.Attrs.Modified = true
+	return true
 }

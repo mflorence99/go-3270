@@ -4,8 +4,9 @@ import (
 	"go3270/emulator/attrs"
 	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
-	"strings"
 )
+
+// 🟧 Basic buffer operations
 
 // 🔥 NOTE: the buffer will always hold ASCII characters
 
@@ -36,39 +37,18 @@ func (b *Buffer) reset() {
 	b.mode = consts.FIELD_MODE
 }
 
-func (b *Buffer) setFldMDT(fldAddr int) bool {
-	fld, ok := b.Peek(fldAddr)
-	if !ok {
-		return false
-	}
-	fld.Attrs.Modified = true
-	return true
-}
-
 // 🟦 Housekeeping methods
 
 //    Addr() get current buffer address
-//    Chars() extracts ASCII chars from buffer for debugging
-//    Deltas() returns stack of changes
-//    Flds() returns slice of all fields
 //    Len() get number of cell slots in buffer
 //    Mode() reports the buffer's reply mode
 //    Peek() cell at given address
 //    Replace() cell at given address
 //    Seek() reposition buffer address
+//    SetMode() sets the buffer's reply mode
 
 func (b *Buffer) Addr() int {
 	return b.addr
-}
-
-func (b *Buffer) Chars() []byte {
-	chars := make([]byte, b.Len())
-	for ix, cell := range b.buf {
-		if cell != nil {
-			chars[ix] = cell.Char
-		}
-	}
-	return chars
 }
 
 func (b *Buffer) Len() int {
@@ -90,12 +70,9 @@ func (b *Buffer) Replace(cell *Cell, addr int) {
 	b.buf[addr] = cell
 }
 
-func (b *Buffer) Seek(addr int) (int, bool) {
-	if addr >= len(b.buf) {
-		return -1, false
-	}
-	b.addr = addr
-	return b.addr, true
+func (b *Buffer) Seek(addr int) {
+	// 🔥 mot wrap around
+	b.addr = addr % b.Len()
 }
 
 func (b *Buffer) SetMode(mode consts.Mode) consts.Mode {
@@ -167,85 +144,4 @@ func (b *Buffer) PrevAndSet(c *Cell) int {
 	}
 	addr := b.Set(c)
 	return addr
-}
-
-// 🟦 Keystroke methods
-
-//    Keyin() updates char in current cell, then advances to next
-//    Backspace() points to previous cell then updates its char
-//    Tab() skips forward or backward to the next unprotected field
-
-func (b *Buffer) Keyin(char byte) (int, bool) {
-	c, _ := b.Get()
-	// 👇 validate data entry into current cell
-	numlock := c.Attrs.Numeric && !strings.Contains("-0123456789.", string(char))
-	prot := c.FldStart || c.Attrs.Protected
-	if numlock || prot {
-		return -1, false
-	}
-	// 👇 update cell and advance to next
-	c.Char = char
-	c.Attrs.Modified = true
-	addr := b.SetAndNext(c)
-	// 👇 set the MDT flag at the field level
-	ok := b.setFldMDT(c.FldAddr)
-	if !ok {
-		return -1, false
-	}
-	return addr, true
-}
-
-func (b *Buffer) Backspace() (int, bool) {
-	// 👇 validate data entry into previous cell
-	c, addr := b.PrevGet()
-	prot := c.FldStart || c.Attrs.Protected
-	if prot {
-		return -1, false
-	}
-	// 👇 reposition to previous cell and update it
-	b.Seek(addr)
-	c.Char = ' '
-	c.Attrs.Modified = true
-	addr = b.Set(c)
-	// 👇 set the MDT flag at the field level
-	ok := b.setFldMDT(c.FldAddr)
-	if !ok {
-		return -1, false
-	}
-	return addr, true
-}
-
-func (b *Buffer) Tab(dir int) (int, bool) {
-	start := b.addr
-	addr := b.addr
-	for ix := 0; ; ix++ {
-		// 👇 wrap to the start means no unprotected field
-		if addr == start && ix > 0 {
-			break
-		}
-		// 👇 look at the "next" cell
-		addr += dir
-		if addr < 0 {
-			addr = len(b.buf) - 1
-		} else if addr >= len(b.buf) {
-			addr = 0
-		}
-		// 👇 see if we've hit an unprotected field start
-		cell, _ := b.Peek(addr)
-		if cell.FldStart && !cell.Attrs.Protected {
-			// 👇 if going backwards, and we hit in the first try, it doesn't count
-			if dir < 0 && ix == 0 {
-				continue
-			}
-			b.Seek(addr) // 👈 go to FldStart
-			cell, addr := b.GetNext()
-			// 👇 if the next cell is also a field start (two contiguous SFs) it also doesn't count
-			if cell.FldStart {
-				continue
-			}
-			b.Seek(addr) // 👈 now to first char
-			return addr, true
-		}
-	}
-	return -1, false
 }

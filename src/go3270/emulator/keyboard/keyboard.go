@@ -11,22 +11,44 @@ import (
 )
 
 type Keyboard struct {
-	bus *pubsub.Bus
-	cfg pubsub.Config
-	buf *buffer.Buffer
-	st  *state.State
+	bus  *pubsub.Bus
+	buf  *buffer.Buffer
+	cfg  pubsub.Config
+	flds *buffer.Flds
+	st   *state.State
 }
 
-func NewKeyboard(bus *pubsub.Bus, buf *buffer.Buffer, st *state.State) *Keyboard {
+func NewKeyboard(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds, st *state.State) *Keyboard {
 	k := new(Keyboard)
 	k.buf = buf
 	k.bus = bus
+	k.flds = flds
 	k.st = st
 	// 👇 subscriptions
 	k.bus.SubConfig(k.configure)
 	k.bus.SubKeystroke(k.keystroke)
 	k.bus.SubFocus(k.focus)
 	return k
+}
+
+func (k *Keyboard) backspace() (int, bool) {
+	// 👇 validate data entry into previous cell
+	c, addr := k.buf.PrevGet()
+	prot := c.FldStart || c.Attrs.Protected
+	if prot {
+		return -1, false
+	}
+	// 👇 reposition to previous cell and update it
+	k.buf.Seek(addr)
+	c.Char = ' '
+	c.Attrs.Modified = true
+	addr = k.buf.Set(c)
+	// 👇 set the MDT flag at the field level
+	ok := k.flds.SetMDT(c.FldAddr)
+	if !ok {
+		return -1, false
+	}
+	return addr, true
 }
 
 func (k *Keyboard) configure(cfg pubsub.Config) {
@@ -39,6 +61,26 @@ func (k *Keyboard) focus(focussed bool) {
 		Locked:  utils.BoolPtr(!focussed),
 		Message: utils.StringPtr(utils.Ternary(focussed, "", "LOCK")),
 	})
+}
+
+func (k *Keyboard) keyin(char byte) (int, bool) {
+	c, _ := k.buf.Get()
+	// 👇 validate data entry into current cell
+	numlock := c.Attrs.Numeric && !strings.Contains("-0123456789.", string(char))
+	prot := c.FldStart || c.Attrs.Protected
+	if numlock || prot {
+		return -1, false
+	}
+	// 👇 update cell and advance to next
+	c.Char = char
+	c.Attrs.Modified = true
+	addr := k.buf.SetAndNext(c)
+	// 👇 set the MDT flag at the field level
+	ok := k.flds.SetMDT(c.FldAddr)
+	if !ok {
+		return -1, false
+	}
+	return addr, true
 }
 
 func (k *Keyboard) keystroke(key pubsub.Keystroke) {
@@ -92,7 +134,7 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 		}
 
 	case key.Code == "Backspace":
-		_, ok := k.buf.Backspace()
+		_, ok := k.backspace()
 		if ok {
 			cursorTo = k.buf.Addr()
 		} else {
@@ -100,7 +142,7 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 		}
 
 	case key.Code == "Tab":
-		_, ok := k.buf.Tab(utils.Ternary(key.SHIFT, -1, +1))
+		_, ok := k.tab(utils.Ternary(key.SHIFT, -1, +1))
 		if ok {
 			cursorTo = k.buf.Addr()
 		} else {
@@ -108,7 +150,7 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 		}
 
 	case len(key.Key) == 1:
-		_, ok := k.buf.Keyin(key.Key[0])
+		_, ok := k.keyin(key.Key[0])
 		if ok {
 			cursorTo = k.buf.Addr()
 		} else {
@@ -138,4 +180,39 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 	if !deltas.Empty() {
 		k.bus.PubRenderDeltas(deltas)
 	}
+}
+
+func (k *Keyboard) tab(dir int) (int, bool) {
+	start := k.buf.Addr()
+	addr := k.buf.Addr()
+	for ix := 0; ; ix++ {
+		// 👇 wrap to the start means no unprotected field
+		if addr == start && ix > 0 {
+			break
+		}
+		// 👇 look at the "next" cell
+		addr += dir
+		if addr < 0 {
+			addr = k.buf.Len() - 1
+		} else if addr >= k.buf.Len() {
+			addr = 0
+		}
+		// 👇 see if we've hit an unprotected field start
+		cell, _ := k.buf.Peek(addr)
+		if cell.FldStart && !cell.Attrs.Protected {
+			// 👇 if going backwards, and we hit in the first try, it doesn't count
+			if dir < 0 && ix == 0 {
+				continue
+			}
+			k.buf.Seek(addr) // 👈 go to FldStart
+			cell, addr := k.buf.GetNext()
+			// 👇 if the next cell is also a field start (two contiguous SFs) it also doesn't count
+			if cell.FldStart {
+				continue
+			}
+			k.buf.Seek(addr) // 👈 now to first char
+			return addr, true
+		}
+	}
+	return -1, false
 }

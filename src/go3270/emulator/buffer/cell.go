@@ -13,5 +13,6 @@ type Cell struct {
 
 func NewCell() *Cell {
 	c := new(Cell)
+	c.Attrs = attrs.NewBasic(0)
 	return c
 }

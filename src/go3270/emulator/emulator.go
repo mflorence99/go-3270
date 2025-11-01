@@ -16,25 +16,28 @@ import (
 // 🟧 3270 emulator itself, in pure go test-able code
 
 type Emulator struct {
-	bus  *pubsub.Bus
-	buf  *buffer.Buffer
-	cfg  pubsub.Config
-	flds *buffer.Flds
-	gc   *glyph.Cache
-	log  *debug.Logger
-	in   *inbound.Producer
-	key  *keyboard.Keyboard
-	out  *outbound.Consumer
-	scr  *screen.Screen
-	st   *state.State
+	bus   *pubsub.Bus
+	buf   *buffer.Buffer
+	cells *buffer.Cells
+	cfg   pubsub.Config
+	flds  *buffer.Flds
+	gc    *glyph.Cache
+	log   *debug.Logger
+	in    *inbound.Producer
+	key   *keyboard.Keyboard
+	out   *outbound.Consumer
+	scr   *screen.Screen
+	st    *state.State
 }
 
 func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	e := new(Emulator)
 	e.bus = bus
 	e.cfg = cfg
-	// 👇 core components; need these FIRST
+	// 🔥 absolutely #1 as FIFO for pubsub topics
 	e.buf = buffer.NewBuffer(e.bus)
+	// 👇 core components; need these FIRST
+	e.cells = buffer.NewCells(e.bus, e.buf)
 	e.flds = buffer.NewFlds(e.bus, e.buf)
 	e.log = debug.NewLogger(e.bus, e.buf, e.flds)
 	e.gc = glyph.NewCache(e.bus)
@@ -42,7 +45,7 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	// 👇 rendering components
 	e.scr = screen.NewScreen(e.bus, e.buf, e.gc, e.st)
 	// 👇 i/o components
-	e.key = keyboard.NewKeyboard(e.bus, e.buf, e.st)
+	e.key = keyboard.NewKeyboard(e.bus, e.buf, e.flds, e.st)
 	e.in = inbound.NewProducer(e.bus, e.buf, e.flds, e.st)
 	e.out = outbound.NewConsumer(e.bus, e.buf, e.flds, e.st)
 	// 👇 subscriptions

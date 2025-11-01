@@ -79,9 +79,14 @@ func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 	}
 }
 
-// TODO 🔥 EAU not handled
 func (c *Consumer) eau() {
-	c.bus.PubPanic("🔥 EAU not handled")
+	addr := c.flds.EAU()
+	if addr != -1 {
+		c.buf.Seek(addr + 1)
+		c.st.Patch(state.Patch{
+			CursorAt: utils.IntPtr(c.buf.Addr()),
+		})
+	}
 }
 
 func (c *Consumer) ew(out *stream.Outbound) {
@@ -122,7 +127,7 @@ func (c *Consumer) wcc(out *stream.Outbound) (wcc.WCC, bool) {
 			println("🔥 WCC Reset not implemented")
 		}
 		if wcc.ResetMDT {
-			c.flds.ResetMDT()
+			c.flds.ResetMDTs()
 		}
 		c.bus.PubWCC(wcc)
 		return wcc, true
@@ -314,10 +319,11 @@ func (c *Consumer) sa(out *stream.Outbound, fldAttrs *attrs.Attrs) *attrs.Attrs 
 
 func (c *Consumer) sba(out *stream.Outbound) {
 	raw, _ := out.NextSlice(2)
-	_, ok := c.buf.Seek(conv.AddrFromBytes(raw))
-	if !ok {
+	addr := conv.AddrFromBytes(raw)
+	if addr >= c.buf.Len() {
 		c.bus.PubPanic("🔥 Data requires a device with a larger screen")
 	}
+	c.buf.Seek(addr)
 }
 
 func (c *Consumer) sf(out *stream.Outbound) (int, *attrs.Attrs) {

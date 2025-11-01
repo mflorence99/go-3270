@@ -1,0 +1,9 @@
+#!/bin/bash
+docker container rm vm370 --force
+
+docker run \
+  -dit \
+  --name vm370 \
+   -p 3270:3270 -p 8038:8038 \
+  rattydave/docker-ubuntu-hercules-vm370:latest
+

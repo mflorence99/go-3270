@@ -132,7 +132,7 @@ func (p *Producer) rm(aid consts.AID) {
 	if !aid.ShortRead() {
 		cursorAt := p.st.Stat.CursorAt
 		in.PutSlice(conv.AddrToBytes(cursorAt))
-		in.PutSlice(p.flds.ReadMDT())
+		in.PutSlice(p.flds.ReadMDTs())
 		// 👇 frame boundary LT is last
 		in.PutSlice(consts.LT)
 		p.bus.PubInbound(in.Bytes(), false)
@@ -144,7 +144,7 @@ func (p *Producer) rma(aid consts.AID) {
 	in.Put(byte(aid))
 	cursorAt := p.st.Stat.CursorAt
 	in.PutSlice(conv.AddrToBytes(cursorAt))
-	in.PutSlice(p.flds.ReadMDT())
+	in.PutSlice(p.flds.ReadMDTs())
 	// 👇 frame boundary LT is last
 	in.PutSlice(consts.LT)
 	p.bus.PubInbound(in.Bytes(), false)
