@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+// 🟦 Develop a function's name from a pointer
+
 func GetFuncName(fn any) (pkg string, nm string) {
 	var pc uintptr
 	// 👇 for a specific function

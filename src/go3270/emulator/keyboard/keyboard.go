@@ -43,7 +43,7 @@ func (k *Keyboard) configure(cfg pubsub.Config) {
 
 func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 	// 👇 prepare to move the cursor -- most keystrokes do this
-	cursorAt := k.st.Stat.CursorAt
+	cursorAt := k.st.Status.CursorAt
 	cursorTo := cursorAt
 	cursorMax := k.cfg.Rows * k.cfg.Cols
 	// 👇 maintain a stack of changed cells

@@ -76,8 +76,8 @@ func (s *Screen) blink(counter int) {
 		}
 	}
 	// 👇 include the cursor if we have the focus
-	if !s.st.Stat.Locked || !blinkOn {
-		blinkers.Push(s.st.Stat.CursorAt)
+	if !s.st.Status.Locked || !blinkOn {
+		blinkers.Push(s.st.Status.CursorAt)
 	}
 	// 👇 now we can render
 	s.renderDeltas(blinkers, true, blinkOn)
@@ -112,7 +112,7 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 	ix := utils.Ternary(attrs.Color == 0 || s.cfg.Monochrome, 0xF4, attrs.Color)
 	color := s.cfg.CLUT[ix]
 	// 🔥 != here is the Go idiom for XOR
-	reverse := utils.Ternary(doBlink, attrs.Reverse != blinkOn, attrs.Reverse != (addr == s.st.Stat.CursorAt))
+	reverse := utils.Ternary(doBlink, attrs.Reverse != blinkOn, attrs.Reverse != (addr == s.st.Status.CursorAt))
 	char := utils.Ternary(invisible, ' ', cell.Char)
 	// 🔥 optimization: if the screen is clean and the char blank, skip
 	if !s.clean || char > ' ' || reverse {

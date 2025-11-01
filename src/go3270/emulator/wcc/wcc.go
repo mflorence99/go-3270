@@ -1,11 +1,15 @@
 package wcc
 
+// 🟧 3270 WCC (write control character)
+
 type WCC struct {
 	Alarm    bool
 	Reset    bool
 	ResetMDT bool
 	Unlock   bool
 }
+
+// 🟦 Constructor
 
 func NewWCC(char byte) WCC {
 	return WCC{
@@ -15,6 +19,8 @@ func NewWCC(char byte) WCC {
 		Unlock:   (char & 0b00000010) != 0,
 	}
 }
+
+// 🟦 Public functions
 
 func (w *WCC) Byte() byte {
 	var u8 byte = 0

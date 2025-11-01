@@ -4,17 +4,21 @@ import (
 	"encoding/binary"
 )
 
-// 🔥 "Inbound" data flows from the 3270 ie this code to the application
+// 🟧 Inbound (3270 -> app) data stream
 
 type Inbound struct {
 	chars []byte
 }
+
+// 🟦 Constructor
 
 func NewInbound() *Inbound {
 	in := new(Inbound)
 	in.chars = []byte{}
 	return in
 }
+
+// 🟦 Public functions
 
 func (in *Inbound) Bytes() []byte {
 	return in.chars

@@ -4,6 +4,8 @@ import (
 	"reflect"
 )
 
+// 🟦 Call an arbitrary function with arbitrary arguments
+
 func Call(fn any, args ...any) []any {
 	v := reflect.ValueOf(fn)
 	if v.Kind() != reflect.Func {

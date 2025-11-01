@@ -1,5 +1,7 @@
 package utils
 
+// 🟦 Develop pointers to primitives
+
 func BoolPtr(b bool) *bool {
 	return &b
 }

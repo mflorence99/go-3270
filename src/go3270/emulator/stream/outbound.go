@@ -4,12 +4,14 @@ import (
 	"bytes"
 )
 
-// 🔥 "Outbound" data flows from the application to the 3270 ie this code
+// 🟧 Outbound (3270 <- app) data stream
 
 type Outbound struct {
 	chars []byte
 	ix    int
 }
+
+// 🟦 Constructor
 
 func NewOutbound(chars []byte) *Outbound {
 	out := new(Outbound)
@@ -17,6 +19,8 @@ func NewOutbound(chars []byte) *Outbound {
 	out.ix = 0
 	return out
 }
+
+// 🟦 Public functions
 
 func (out *Outbound) Bytes() []byte {
 	return out.chars
@@ -75,7 +79,7 @@ func (out *Outbound) Skip(count int) {
 	out.ix += count
 }
 
-// 👇 Helpers
+// 🟦 Helpers
 
 func (out *Outbound) nextImpl(peek bool) (byte, bool) {
 	if out.HasNext() {

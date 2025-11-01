@@ -124,7 +124,7 @@ func (p *Producer) ql(qcodes []consts.QCode) {
 func (p *Producer) rb(aid consts.AID) {
 	in := stream.NewInbound()
 	in.Put(byte(aid))
-	cursorAt := p.st.Stat.CursorAt
+	cursorAt := p.st.Status.CursorAt
 	in.PutSlice(conv.AddrToBytes(cursorAt))
 	in.PutSlice(p.flds.ReadBuffer())
 	// 👇 frame boundary LT is last
@@ -136,7 +136,7 @@ func (p *Producer) rm(aid consts.AID) {
 	in := stream.NewInbound()
 	in.Put(byte(aid))
 	if !aid.ShortRead() {
-		cursorAt := p.st.Stat.CursorAt
+		cursorAt := p.st.Status.CursorAt
 		in.PutSlice(conv.AddrToBytes(cursorAt))
 		in.PutSlice(p.flds.ReadMDTs())
 		// 👇 frame boundary LT is last
@@ -148,7 +148,7 @@ func (p *Producer) rm(aid consts.AID) {
 func (p *Producer) rma(aid consts.AID) {
 	in := stream.NewInbound()
 	in.Put(byte(aid))
-	cursorAt := p.st.Stat.CursorAt
+	cursorAt := p.st.Status.CursorAt
 	in.PutSlice(conv.AddrToBytes(cursorAt))
 	in.PutSlice(p.flds.ReadMDTs())
 	// 👇 frame boundary LT is last

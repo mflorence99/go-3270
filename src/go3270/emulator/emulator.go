@@ -30,6 +30,8 @@ type Emulator struct {
 	st    *state.State
 }
 
+// 🟦 Constructor
+
 func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	e := new(Emulator)
 	e.bus = bus
@@ -60,6 +62,6 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	return e
 }
 
-func (e *Emulator) close() {
-	// 🔥 placeholder, just in case we need it
-}
+// TODO 🔥 placeholder, just in case we need it
+
+func (e *Emulator) close() {}

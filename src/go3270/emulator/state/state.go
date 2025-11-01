@@ -9,7 +9,7 @@ import (
 // 🟧 3270 status (as shared with the Typescript UI)
 
 type State struct {
-	Stat *pubsub.Status
+	Status *pubsub.Status
 
 	bus *pubsub.Bus
 	cfg pubsub.Config
@@ -31,7 +31,7 @@ func NewState(bus *pubsub.Bus) *State {
 
 func (s *State) configure(cfg pubsub.Config) {
 	s.cfg = cfg
-	s.Stat = &pubsub.Status{}
+	s.Status = &pubsub.Status{}
 }
 
 func (s *State) reset() {
@@ -75,30 +75,30 @@ func (s *State) wcc(wcc wcc.WCC) {
 
 func (s *State) Patch(p Patch) {
 	if p.Alarm != nil {
-		s.Stat.Alarm = *p.Alarm
+		s.Status.Alarm = *p.Alarm
 	}
 	if p.CursorAt != nil {
-		s.Stat.CursorAt = *p.CursorAt
+		s.Status.CursorAt = *p.CursorAt
 	}
 	if p.Error != nil {
-		s.Stat.Error = *p.Error
+		s.Status.Error = *p.Error
 	}
 	if p.Locked != nil {
-		s.Stat.Locked = *p.Locked
+		s.Status.Locked = *p.Locked
 	}
 	if p.Message != nil {
-		s.Stat.Message = *p.Message
+		s.Status.Message = *p.Message
 	}
 	if p.Numeric != nil {
-		s.Stat.Numeric = *p.Numeric
+		s.Status.Numeric = *p.Numeric
 	}
 	if p.Protected != nil {
-		s.Stat.Protected = *p.Protected
+		s.Status.Protected = *p.Protected
 	}
 	if p.Waiting != nil {
-		s.Stat.Waiting = *p.Waiting
+		s.Status.Waiting = *p.Waiting
 	}
-	s.bus.PubStatus(s.Stat)
+	s.bus.PubStatus(s.Status)
 	// 👇 make sure to reset alarm
-	s.Stat.Alarm = false
+	s.Status.Alarm = false
 }

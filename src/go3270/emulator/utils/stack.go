@@ -1,12 +1,18 @@
 package utils
 
+// 🟧 Simple stacvk impementation
+
 type Stack[T any] struct {
 	data []T
 }
 
+// 🟦 Constructor
+
 func NewStack[T any](capacity int) *Stack[T] {
 	return &Stack[T]{data: make([]T, 0, capacity)}
 }
+
+// 🟦 Public functions
 
 func (s *Stack[T]) Empty() bool {
 	return len(s.data) == 0
