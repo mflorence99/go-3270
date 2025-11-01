@@ -10,7 +10,7 @@ import (
 )
 
 func (l *Logger) logFlds(flds *buffer.Flds) {
-	t := l.newTable(text.FgHiBlue, "Flds")
+	t := l.newTable(text.FgHiBlue, "Buffer Fields")
 	defer t.Render()
 	// 👇 header rows
 	t.AppendHeader(table.Row{"Row", "Col", "Len", "PROT", "MDT", "Data"})

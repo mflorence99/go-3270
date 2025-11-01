@@ -70,9 +70,10 @@ func (b *Buffer) Replace(cell *Cell, addr int) {
 	b.buf[addr] = cell
 }
 
-func (b *Buffer) Seek(addr int) {
+func (b *Buffer) Seek(addr int) int {
 	// 🔥 mot wrap around
 	b.addr = addr % b.Len()
+	return b.addr
 }
 
 func (b *Buffer) SetMode(mode consts.Mode) consts.Mode {

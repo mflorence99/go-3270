@@ -1,6 +1,8 @@
 package buffer
 
 import (
+	"fmt"
+	"go3270/emulator/attrs"
 	"go3270/emulator/pubsub"
 )
 
@@ -34,5 +36,44 @@ func (c *Cells) reset() {
 			cell = NewCell()
 			c.buf.Replace(cell, addr)
 		}
+	}
+}
+
+// 🟦 Public methods
+
+func (c *Cells) EUA(stop int) bool {
+	if stop < c.buf.Len() {
+		for addr := c.buf.Addr(); addr != stop; addr = c.buf.Seek(addr + 1) {
+			cell, _ := c.buf.Get()
+			if !cell.Attrs.Protected {
+				// TODO 🔥 spec says to reset any character attributes ie revert to fld but this just makes everything blank
+				// sf, _ := c.buf.Peek(cell.FldAddr)
+				// cell.Attrs = sf.Attrs
+				cell.Char = 0x00
+				c.buf.Replace(cell, addr)
+			}
+		}
+		return true
+	} else {
+		println(fmt.Sprintf("🔥 Inavlid stop address %d in EUA order terminates write", stop))
+		return false
+	}
+}
+
+func (c *Cells) MF(chars []byte) {
+	cell, _ := c.buf.Get()
+	cell.Attrs = attrs.NewModified(cell.Attrs, chars)
+	c.buf.SetAndNext(cell)
+}
+
+func (c *Cells) RA(cell *Cell, stop int) bool {
+	if stop < c.buf.Len() {
+		for addr := c.buf.Addr(); addr != stop; addr = c.buf.Seek(addr + 1) {
+			c.buf.Replace(cell, addr)
+		}
+		return true
+	} else {
+		println(fmt.Sprintf("🔥 Inavlid stop address %d in RA order terminates write", stop))
+		return false
 	}
 }

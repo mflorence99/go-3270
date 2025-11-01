@@ -1,7 +1,6 @@
 package outbound
 
 import (
-	"fmt"
 	"go3270/emulator/attrs"
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
@@ -15,17 +14,19 @@ import (
 )
 
 type Consumer struct {
-	buf  *buffer.Buffer
-	bus  *pubsub.Bus
-	cfg  pubsub.Config
-	flds *buffer.Flds
-	st   *state.State
+	buf   *buffer.Buffer
+	bus   *pubsub.Bus
+	cells *buffer.Cells
+	cfg   pubsub.Config
+	flds  *buffer.Flds
+	st    *state.State
 }
 
-func NewConsumer(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds, st *state.State) *Consumer {
+func NewConsumer(bus *pubsub.Bus, buf *buffer.Buffer, cells *buffer.Cells, flds *buffer.Flds, st *state.State) *Consumer {
 	c := new(Consumer)
 	c.bus = bus
 	c.buf = buf
+	c.cells = cells
 	c.flds = flds
 	c.st = st
 	// 👇 subscriptions
@@ -203,8 +204,12 @@ outer:
 		// 👇 dispatch on order
 		switch order {
 
+		// 🔥 per spoc invalid EUA terminates write operation
 		case consts.EUA:
-			c.eua(out)
+			ok := c.eua(out)
+			if !ok {
+				break outer
+			}
 
 		case consts.GE:
 			c.ge(out)
@@ -251,10 +256,10 @@ outer:
 	}
 }
 
-// TODO 🔥 EUA not handled
-func (c *Consumer) eua(out *stream.Outbound) {
-	c.bus.PubPanic("🔥 EUA not handled")
-	out.NextSlice(2)
+func (c *Consumer) eua(out *stream.Outbound) bool {
+	raw, _ := out.NextSlice(2)
+	stop := conv.AddrFromBytes(raw)
+	return c.cells.EUA(stop)
 }
 
 // TODO 🔥 GE not handled
@@ -269,11 +274,10 @@ func (c *Consumer) ic() {
 	})
 }
 
-// TODO 🔥 MF not handled
 func (c *Consumer) mf(out *stream.Outbound) {
-	c.bus.PubPanic("🔥 MF not handled")
 	count, _ := out.Next()
-	out.NextSlice(int(count) * 2)
+	raw, _ := out.NextSlice(int(count) * 2)
+	c.cells.MF(raw)
 }
 
 // TODO 🔥 PT not handled
@@ -284,31 +288,13 @@ func (c *Consumer) pt() {
 func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) bool {
 	raw, _ := out.NextSlice(2)
 	stop := conv.AddrFromBytes(raw)
-	if stop < c.buf.Len() {
-		ebcdic, _ := out.Next()
-		ascii := conv.E2A(ebcdic)
-		cell, addr := c.buf.Get()
-		for {
-			if cell == nil {
-				cell = buffer.NewCell()
-				c.buf.Replace(cell, addr)
-			}
-			cell.Attrs = fldAttrs
-			cell.Char = ascii
-			cell.FldAddr = fldAddr
-			// 👇 watch for wrap around as we blast through to stop
-			cell, addr = c.buf.GetNext()
-			if addr == stop {
-				c.buf.Seek(stop)
-				break
-			}
-			c.buf.Seek(addr)
-		}
-		return true
-	} else {
-		println(fmt.Sprintf("🔥 Inavlid stop address %d in RA order terminates write", stop))
-		return false
+	ebcdic, _ := out.Next()
+	cell := &buffer.Cell{
+		Attrs:   fldAttrs,
+		Char:    conv.E2A(ebcdic),
+		FldAddr: fldAddr,
 	}
+	return c.cells.RA(cell, stop)
 }
 
 func (c *Consumer) sa(out *stream.Outbound, fldAttrs *attrs.Attrs) *attrs.Attrs {
@@ -328,8 +314,8 @@ func (c *Consumer) sba(out *stream.Outbound) {
 
 func (c *Consumer) sf(out *stream.Outbound) (int, *attrs.Attrs) {
 	c.buf.SetMode(consts.FIELD_MODE)
-	next, _ := out.Next()
-	fldAttrs := attrs.NewBasic(next)
+	raw, _ := out.Next()
+	fldAttrs := attrs.NewBasic(raw)
 	fldAddr := c.buf.StartFld(fldAttrs)
 	return fldAddr, fldAttrs
 }
@@ -337,8 +323,8 @@ func (c *Consumer) sf(out *stream.Outbound) (int, *attrs.Attrs) {
 func (c *Consumer) sfe(out *stream.Outbound) (int, *attrs.Attrs) {
 	c.buf.SetMode(consts.EXTENDED_FIELD_MODE)
 	count, _ := out.Next()
-	next, _ := out.NextSlice(int(count) * 2)
-	fldAttrs := attrs.NewExtended(next)
+	raw, _ := out.NextSlice(int(count) * 2)
+	fldAttrs := attrs.NewExtended(raw)
 	fldAddr := c.buf.StartFld(fldAttrs)
 	return fldAddr, fldAttrs
 }
