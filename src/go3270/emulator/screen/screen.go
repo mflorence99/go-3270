@@ -18,7 +18,7 @@ type Screen struct {
 	st  *state.State
 
 	clean  bool
-	cps    []pubsub.Box
+	cps    []glyph.Box
 	glyphs []glyph.Glyph
 }
 
@@ -59,11 +59,11 @@ func (s *Screen) blink(counter int) {
 func (s *Screen) configure(cfg pubsub.Config) {
 	s.cfg = cfg
 	// 👇 precompute the box for each cell
-	s.cps = make([]pubsub.Box, s.cfg.Cols*s.cfg.Rows)
+	s.cps = make([]glyph.Box, s.cfg.Cols*s.cfg.Rows)
 	for ix := range s.cps {
 		row := int(ix / cfg.Cols)
 		col := ix % cfg.Cols
-		s.cps[ix] = pubsub.NewBox(row, col, cfg)
+		s.cps[ix] = glyph.NewBox(row, col, cfg)
 	}
 	// 👇 optimization remembers which glyph is already drawn in each cell
 	s.glyphs = make([]glyph.Glyph, s.cfg.Cols*s.cfg.Rows)

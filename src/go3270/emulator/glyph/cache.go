@@ -33,7 +33,7 @@ func (c *Cache) configure(cfg pubsub.Config) {
 
 // 🟦 Public functions
 
-func (c *Cache) ImageFor(g Glyph, box pubsub.Box) image.Image {
+func (c *Cache) ImageFor(g Glyph, box Box) image.Image {
 	img, ok := c.cache[g]
 	if !ok {
 		// 👇 cache miss: draw the glyph in a temporary context
