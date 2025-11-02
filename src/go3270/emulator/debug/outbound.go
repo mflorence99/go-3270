@@ -45,7 +45,7 @@ func (l *Logger) logOutbound(chars []byte) {
 }
 
 func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command) {
-	t := l.newTable(text.FgHiYellow, fmt.Sprintf("%s Outbound (App -> 3270)\nNOTE: EUA and RA orders are listed instart/stop pairs", cmd))
+	t := l.newTable(text.FgHiYellow, fmt.Sprintf("%s Outbound (App -> 3270)\nNOTE: EUA and RA orders are listed in start/stop pairs", cmd))
 	defer t.Render()
 	// 👇 table rows
 	t.AppendHeader(table.Row{"Order", "Row", "Col", "SF", "Blink", "Color", "Hidden", "Hilite", "MDT", "Num", "Prot", "Rev", "Uscore"})
