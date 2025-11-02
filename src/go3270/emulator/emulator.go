@@ -39,11 +39,11 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	// 🔥 absolutely #1 as FIFO for pubsub topics
 	e.buf = buffer.NewBuffer(e.bus)
 	// 👇 core components; need these FIRST
-	e.cells = buffer.NewCells(e.bus, e.buf)
-	e.flds = buffer.NewFlds(e.bus, e.buf)
-	e.log = debug.NewLogger(e.bus, e.buf, e.flds)
 	e.gc = glyph.NewCache(e.bus)
 	e.st = state.NewState(e.bus)
+	e.cells = buffer.NewCells(e.bus, e.buf)
+	e.flds = buffer.NewFlds(e.bus, e.buf)
+	e.log = debug.NewLogger(e.bus, e.buf, e.flds, e.st)
 	// 👇 rendering components
 	e.scr = screen.NewScreen(e.bus, e.buf, e.gc, e.st)
 	// 👇 i/o components

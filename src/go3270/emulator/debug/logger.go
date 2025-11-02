@@ -7,6 +7,7 @@ import (
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
 	"go3270/emulator/pubsub"
+	"go3270/emulator/state"
 	"go3270/emulator/utils"
 	"go3270/emulator/wcc"
 	"os"
@@ -20,13 +21,15 @@ type Logger struct {
 	bus  *pubsub.Bus
 	cfg  pubsub.Config
 	flds *buffer.Flds
+	st   *state.State
 }
 
-func NewLogger(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds) *Logger {
+func NewLogger(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds, st *state.State) *Logger {
 	l := new(Logger)
 	l.buf = buf
 	l.bus = bus
 	l.flds = flds
+	l.st = st
 	// 👇 do this in ctor, so logging precedes actions it logs
 	l.bus.SubClose(l.close)
 	l.bus.SubConfig(l.configure)
@@ -46,8 +49,8 @@ func (l *Logger) close() {
 func (l *Logger) configure(cfg pubsub.Config) {
 	l.cfg = cfg
 	println("🐞 Emulator initialized")
-	l.logConfig(l.cfg)
-	l.logCLUT(l.cfg)
+	l.logConfig()
+	l.logCLUT()
 }
 
 func (l *Logger) inbound(chars []byte, wsf bool) {
@@ -67,8 +70,8 @@ func (l *Logger) probe(addr int) {
 }
 
 func (l *Logger) render() {
-	l.logBuffer(l.buf)
-	l.logFlds(l.flds)
+	l.logBuffer()
+	l.logFlds()
 }
 
 func (l *Logger) trace(topic string, handler interface{}) {

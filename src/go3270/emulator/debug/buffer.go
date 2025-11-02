@@ -2,7 +2,6 @@ package debug
 
 import (
 	"fmt"
-	"go3270/emulator/buffer"
 	"go3270/emulator/utils"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -11,8 +10,8 @@ import (
 
 // 🟧 Debugger: log buffer contents
 
-func (l *Logger) logBuffer(buf *buffer.Buffer) {
-	t := l.newTable(text.FgHiBlue, fmt.Sprintf("%s Buffer", buf.Mode()))
+func (l *Logger) logBuffer() {
+	t := l.newTable(text.FgHiBlue, fmt.Sprintf("%s Buffer\nNOTE: \u25a0 denotes the cursor", l.buf.Mode()))
 	defer t.Render()
 	// 👇 header rows
 	row1 := ""
@@ -22,19 +21,27 @@ func (l *Logger) logBuffer(buf *buffer.Buffer) {
 		row2 += "1234567890"
 	}
 	t.AppendHeader(table.Row{"", fmt.Sprintf("%s\n%s", row1, row2)})
+	// 👇 where's the cursorAt?
+	crow, ccol := l.cfg.Addr2RC(l.st.Status.CursorAt)
 	// 👇 data rows
-	for ix := 1; ix <= l.cfg.Rows; ix++ {
+	for iy := 1; iy <= l.cfg.Rows; iy++ {
 		row := ""
-		for addr := 0; addr < l.cfg.Cols; addr++ {
-			cell, ok := buf.Peek(addr + ((ix - 1) * l.cfg.Cols))
-			if cell != nil && ok {
-				if cell.FldStart {
-					row += utils.Ternary(cell.Attrs.Protected, "\u00b6", "\u00bb")
-				} else {
-					row += string(utils.Ternary(cell.Char <= ' ', ' ', cell.Char))
+		for ix := 1; ix <= l.cfg.Cols; ix++ {
+			// 👇 show the cursor specially
+			if iy == crow && ix == ccol {
+				row += "\u25a0"
+			} else {
+				// 👇 or the cell contents, best as we can
+				cell, ok := l.buf.Peek(ix + ((iy - 1) * l.cfg.Cols) - 1)
+				if cell != nil && ok {
+					if cell.FldStart {
+						row += utils.Ternary(cell.Attrs.Protected, "\u00b6", "\u00bb")
+					} else {
+						row += string(utils.Ternary(cell.Char <= ' ', ' ', cell.Char))
+					}
 				}
 			}
 		}
-		t.AppendRow(table.Row{ix, row})
+		t.AppendRow(table.Row{iy, row})
 	}
 }

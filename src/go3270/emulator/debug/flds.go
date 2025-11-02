@@ -1,7 +1,6 @@
 package debug
 
 import (
-	"go3270/emulator/buffer"
 	"go3270/emulator/utils"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -10,13 +9,13 @@ import (
 
 // 🟧 Debugger: log buffer fields
 
-func (l *Logger) logFlds(flds *buffer.Flds) {
+func (l *Logger) logFlds() {
 	t := l.newTable(text.FgHiBlue, "Buffer Fields")
 	defer t.Render()
 	// 👇 header rows
 	t.AppendHeader(table.Row{"Row", "Col", "Len", "PROT", "MDT", "Data"})
 	// 👇 data rows
-	for _, fld := range flds.Get() {
+	for _, fld := range l.flds.Get() {
 		sf, _ := fld.StartFld()
 		row, col := l.cfg.Addr2RC(sf.FldAddr)
 		// 👇 gather all the chars in the fld
