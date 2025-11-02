@@ -1,6 +1,6 @@
 import { css } from 'lit';
 
-// 🟦 global styles injected into shadow DOM components
+// 🟧 Global styles injected into shadow DOM components
 
 export const globals = css`
   *,

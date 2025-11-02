@@ -1,7 +1,7 @@
 import { bundle } from '$builder/bundler';
 import { config } from '$builder/config';
 
-// 📘 define all the tasks we can perform
+// 🟧 Define all the tasks we can perform
 
 class TaskClass {
   banner?: { color: string; icon: string } = {

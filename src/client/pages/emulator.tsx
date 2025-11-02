@@ -19,7 +19,7 @@ declare global {
   }
 }
 
-// 📘 emulate the 3270 emulator
+// 🟧 Emulate the 3270 emulator
 
 @customElement('app-emulator')
 export class Emulator extends SignalWatcher(LitElement) {

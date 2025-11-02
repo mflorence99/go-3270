@@ -1,4 +1,4 @@
-// 📘 not sure why we have to keep implementing this
+// 🟧 Not sure why we have to keep implementing this
 //    it's built-in to Deno
 
 export function debounce<T extends (...args: any[]) => any>(

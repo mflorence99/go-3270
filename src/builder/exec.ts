@@ -15,7 +15,7 @@ import { log } from '$builder/logger';
 import chokidar from 'chokidar';
 import psList from 'ps-list';
 
-// 📘 execute all tasks to build & test
+// 🟧 Execute all tasks to build & test
 
 const { taskNames, prod, verbose, watch } = cli();
 

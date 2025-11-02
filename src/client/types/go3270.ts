@@ -1,5 +1,7 @@
 import { CLUT } from '$client/state/state';
 
+// 🟧 Go <--> Typescript interface
+
 export type Go3270 = {
   close: () => void;
   focus: (focus: boolean) => void;

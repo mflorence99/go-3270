@@ -12,7 +12,7 @@ import StackTrace from 'stacktrace-js';
 
 enablePatches();
 
-// 📘 base state class
+// 🟧 Base state class
 
 abstract class Base<T> {
   delta: Partial<T> = {};
@@ -79,7 +79,7 @@ abstract class Base<T> {
   }
 }
 
-// 📘 the entire state of the app
+// 🟧 The entire state of the app
 
 export type CLUT = Record<number, [string, string]>;
 

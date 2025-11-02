@@ -24,7 +24,7 @@ declare global {
   }
 }
 
-// 📘 the whole enchilada
+// 🟧 The whole enchilada
 
 @customElement('app-root')
 export class Root extends SignalWatcher(LitElement) {

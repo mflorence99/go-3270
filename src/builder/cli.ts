@@ -9,7 +9,7 @@ import { log } from '$builder/logger';
 import { parseArgs } from 'node:util';
 import { statSync } from 'node:fs';
 
-// 📘 handle the details of the CLI
+// 🟧 Handle the details of the CLI
 
 export type ParsedArgs = {
   help: boolean;

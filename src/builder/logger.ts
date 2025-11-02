@@ -12,7 +12,7 @@ type Params = {
   warning?: boolean;
 };
 
-// 📘 provides a consistent logging format
+// 🟧 Provides a consistent logging format
 
 export function log({
   data,

@@ -12,7 +12,7 @@ declare global {
   }
 }
 
-// 📘 display material icon
+// 🟧 Display material icon
 
 // 👉 https://marella.me/material-icons/demo/
 

@@ -4,7 +4,7 @@ import { ReactiveControllerHost } from 'lit';
 
 import { nextTick } from '$lib/delay';
 
-// 📘 Manage startup tasks
+// 🟧 Manage startup tasks
 
 export class Startup implements ReactiveController {
   host: ReactiveControllerHost;

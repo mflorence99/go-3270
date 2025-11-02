@@ -8,7 +8,7 @@ export const Pages = {
   setup: 2
 };
 
-// 📘 Mediate between Go code and the UI
+// 🟧 Mediate between Go code and the UI
 
 export class Mediator implements ReactiveController {
   host: Root;

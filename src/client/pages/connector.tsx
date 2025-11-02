@@ -22,7 +22,7 @@ declare global {
   }
 }
 
-// 📘 manage 3270 connection
+// 🟧 Manage 3270 connection
 
 @customElement('app-connector')
 export class Connector extends SignalWatcher(LitElement) {

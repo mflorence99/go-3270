@@ -21,7 +21,7 @@ declare global {
   }
 }
 
-// 📘 327x Setup options
+// 🟧 327x Setup options
 
 @customElement('app-setup')
 export class Setup extends SignalWatcher(LitElement) {

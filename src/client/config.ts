@@ -1,4 +1,4 @@
-// 📘 common configuration settings
+// 🟧 Common configuration settings
 //    NOT designed to be user-settable
 
 export class ConfigClass {
