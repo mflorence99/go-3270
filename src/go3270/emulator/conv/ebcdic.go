@@ -270,3 +270,12 @@ func E2A(e byte) byte {
 	}
 	return a
 }
+
+func E2As(str string) string {
+	ebcdic := []byte(str)
+	ascii := make([]byte, len(ebcdic))
+	for ix, char := range ebcdic {
+		ascii[ix] = E2A(char)
+	}
+	return string(ascii)
+}

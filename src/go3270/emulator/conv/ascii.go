@@ -24,3 +24,12 @@ func A2E(a byte) byte {
 	}
 	return e
 }
+
+func A2Es(str string) string {
+	ascii := []byte(str)
+	ebcdic := make([]byte, len(ascii))
+	for ix, char := range ascii {
+		ebcdic[ix] = A2E(char)
+	}
+	return string(ebcdic)
+}

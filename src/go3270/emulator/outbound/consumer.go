@@ -266,7 +266,7 @@ func (c *Consumer) char(char byte, fldAddr int, fldAttrs *attrs.Attrs) {
 
 func (c *Consumer) eua(out *stream.Outbound) bool {
 	raw, _ := out.NextSlice(2)
-	stop := conv.AddrFromBytes(raw)
+	stop := conv.Bytes2Addr(raw)
 	return c.cells.EUA(stop)
 }
 
@@ -295,7 +295,7 @@ func (c *Consumer) pt() {
 
 func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) bool {
 	raw, _ := out.NextSlice(2)
-	stop := conv.AddrFromBytes(raw)
+	stop := conv.Bytes2Addr(raw)
 	ebcdic, _ := out.Next()
 	cell := &buffer.Cell{
 		Attrs:   fldAttrs,
@@ -313,7 +313,7 @@ func (c *Consumer) sa(out *stream.Outbound, fldAttrs *attrs.Attrs) *attrs.Attrs 
 
 func (c *Consumer) sba(out *stream.Outbound) {
 	raw, _ := out.NextSlice(2)
-	addr := conv.AddrFromBytes(raw)
+	addr := conv.Bytes2Addr(raw)
 	if addr >= c.buf.Len() {
 		c.bus.PubPanic("🔥 Data requires a device with a larger screen")
 	}

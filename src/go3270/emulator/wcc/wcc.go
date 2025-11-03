@@ -22,7 +22,7 @@ func NewWCC(char byte) WCC {
 
 // 🟦 Public functions
 
-func (w *WCC) Byte() byte {
+func (w WCC) Byte() byte {
 	var u8 byte = 0
 	if w.Alarm {
 		u8 |= 0b00000100

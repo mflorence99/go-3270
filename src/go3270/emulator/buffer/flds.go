@@ -90,7 +90,7 @@ func (f *Flds) ReadMDTs() []byte {
 		sf, _ := fld.StartFld()
 		if sf.Attrs.Modified {
 			chars = append(chars, byte(consts.SBA))
-			chars = append(chars, conv.AddrToBytes(sf.FldAddr+1)...)
+			chars = append(chars, conv.Addr2Bytes(sf.FldAddr+1)...)
 			for ix := 1; ix < len(fld); ix++ {
 				cell := fld[ix]
 				char := cell.Char

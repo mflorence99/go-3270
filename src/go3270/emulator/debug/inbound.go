@@ -31,7 +31,7 @@ func (l *Logger) logInbound(chars []byte) {
 			{Number: 3, Transformer: l.wrap(80), WidthMax: 80},
 		})
 		// 👇 one row just for the cursor
-		cursorAt := conv.AddrFromBytes(raw)
+		cursorAt := conv.Bytes2Addr(raw)
 		row, col := l.cfg.Addr2RC(cursorAt)
 		t.AppendRow(table.Row{row, col, "(cursorAt)"})
 		// 👇 we will aggregate data delimited by SBA's
@@ -48,7 +48,7 @@ func (l *Logger) logInbound(chars []byte) {
 					data = make([]byte, 0)
 				}
 				raw, _ := in.NextSlice(2)
-				addr := conv.AddrFromBytes(raw)
+				addr := conv.Bytes2Addr(raw)
 				row, col = l.cfg.Addr2RC(addr)
 
 			default:

@@ -24,11 +24,11 @@ func Test_E2A(t *testing.T) {
 func Test_AddrFromBytes(t *testing.T) {
 	addr := 1
 	u8s := []byte{0x40, 0xC1}
-	assert.True(t, addr == conv.AddrFromBytes(u8s))
+	assert.True(t, addr == conv.Bytes2Addr(u8s))
 }
 
 func Test_AddrToBytes(t *testing.T) {
 	addr := 79
 	u8s := []byte{0xC1, 0x4F}
-	assert.True(t, slices.Equal(u8s, conv.AddrToBytes(addr)))
+	assert.True(t, slices.Equal(u8s, conv.Addr2Bytes(addr)))
 }
