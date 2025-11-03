@@ -67,7 +67,7 @@ func (s *Screen) reset() {
 
 func (s *Screen) blink(counter int) {
 	blinkOn := counter%2 == 0
-	// 👇 find all the blinbers
+	// 👇 find all the blinkers
 	blinkers := utils.NewStack[int](1)
 	for addr := 0; addr < s.buf.Len(); addr++ {
 		cell, _ := s.buf.Peek(addr)
@@ -76,7 +76,7 @@ func (s *Screen) blink(counter int) {
 		}
 	}
 	// 👇 include the cursor if we have the focus
-	if !s.st.Status.Locked || !blinkOn {
+	if !s.st.Status.Locked {
 		blinkers.Push(s.st.Status.CursorAt)
 	}
 	// 👇 now we can render

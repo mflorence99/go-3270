@@ -192,7 +192,7 @@ export class Connector extends SignalWatcher(LitElement) {
 
   debug(): void {
     // TODO 🔥 generalize to multiple test screenshots
-    this.save('termtest');
+    this.save('ge');
     this.dispatchEvent(new CustomEvent('connected'));
   }
 

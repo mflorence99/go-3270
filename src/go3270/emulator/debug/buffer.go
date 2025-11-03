@@ -11,7 +11,7 @@ import (
 // 🟧 Debugger: log buffer contents
 
 func (l *Logger) logBuffer() {
-	t := l.newTable(text.FgHiBlue, fmt.Sprintf("%s Buffer\nNOTE: \u25a0 denotes the cursor", l.buf.Mode()))
+	t := l.newTable(text.FgHiBlue, fmt.Sprintf("%s Buffer\nLEGEND: \u25a0 cursor -- \u00b6 protected -- \u00bb", l.buf.Mode()))
 	defer t.Render()
 	// 👇 header rows
 	row1 := ""

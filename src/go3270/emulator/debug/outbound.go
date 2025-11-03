@@ -64,7 +64,8 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command) {
 			l.withoutAttrs(t, order, addr, ' ')
 
 		case consts.GE:
-			l.withoutAttrs(t, order, addr, ' ')
+			char, _ := out.Next()
+			l.withoutAttrs(t, order, addr, conv.E2A(char))
 
 		case consts.IC:
 			l.withoutAttrs(t, order, addr, ' ')
@@ -82,9 +83,9 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command) {
 		case consts.RA:
 			raw, _ := out.NextSlice(2)
 			char, _ := out.Next()
-			l.withoutAttrs(t, order, addr, char)
+			l.withoutAttrs(t, order, addr, conv.E2A(char))
 			addr = conv.AddrFromBytes(raw)
-			l.withoutAttrs(t, order, addr, char)
+			l.withoutAttrs(t, order, addr, conv.E2A(char))
 
 		case consts.SA:
 			chars, _ := out.NextSlice(2)

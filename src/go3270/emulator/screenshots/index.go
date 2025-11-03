@@ -6,5 +6,6 @@ var Index map[string][]byte
 
 func init() {
 	Index = make(map[string][]byte)
+	Index["ge"] = GE
 	Index["termtest"] = TERMTEST
 }

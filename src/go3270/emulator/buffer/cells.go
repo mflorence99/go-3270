@@ -71,7 +71,8 @@ func (c *Cells) MF(chars []byte) {
 func (c *Cells) RA(cell *Cell, stop int) bool {
 	if stop < c.buf.Len() {
 		for addr := c.buf.Addr(); addr != stop; addr = c.buf.Seek(addr + 1) {
-			c.buf.Replace(cell, addr)
+			copy := *cell
+			c.buf.Replace(&copy, addr)
 		}
 		return true
 	} else {

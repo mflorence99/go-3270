@@ -216,7 +216,7 @@ outer:
 			}
 
 		case consts.GE:
-			c.ge(out)
+			c.ge(out, fldAddr, fldAttrs)
 
 		case consts.IC:
 			c.ic()
@@ -248,15 +248,19 @@ outer:
 
 		// 👇 if it isn't an order, it's data
 		default:
-			if char == 0x00 || char >= 0x40 {
-				cell := &buffer.Cell{
-					Attrs:   fldAttrs,
-					Char:    conv.E2A(char),
-					FldAddr: fldAddr,
-				}
-				c.buf.SetAndNext(cell)
-			}
+			c.char(char, fldAddr, fldAttrs)
 		}
+	}
+}
+
+func (c *Consumer) char(char byte, fldAddr int, fldAttrs *attrs.Attrs) {
+	if char == 0x00 || char >= 0x40 {
+		cell := &buffer.Cell{
+			Attrs:   fldAttrs,
+			Char:    conv.E2A(char),
+			FldAddr: fldAddr,
+		}
+		c.buf.SetAndNext(cell)
 	}
 }
 
@@ -266,10 +270,10 @@ func (c *Consumer) eua(out *stream.Outbound) bool {
 	return c.cells.EUA(stop)
 }
 
-// TODO 🔥 GE not handled
-func (c *Consumer) ge(out *stream.Outbound) {
-	c.bus.PubPanic("🔥 GE not handled")
-	out.Next()
+// TODO 🔥 GE not properly handled -- what al character set??
+func (c *Consumer) ge(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) {
+	char, _ := out.Next()
+	c.char(char, fldAddr, fldAttrs)
 }
 
 func (c *Consumer) ic() {
