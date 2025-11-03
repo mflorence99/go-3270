@@ -108,19 +108,25 @@ export class Connector extends SignalWatcher(LitElement) {
   @consume({ context: stateContext }) state!: State;
 
   #dims: Record<string, [number, number]> = {
+    '1': [12, 40],
     '2': [24, 80],
     '3': [32, 80],
     '4': [43, 80],
-    '5': [132, 27]
+    '5': [27, 132]
   };
 
   #tn3270: Tn3270 | null = null;
 
   async connect(evt: Event): Promise<void> {
     evt.preventDefault();
-    const config = this.save();
-    // 👇 now we can connect
-    await this.connectImpl(config);
+    const params = new URLSearchParams(location.search);
+    if (params.has('test')) {
+      this.save(params.get('test')!);
+      this.dispatchEvent(new CustomEvent('connected'));
+    } else {
+      const config = this.save();
+      await this.connectImpl(config);
+    }
   }
 
   // 👁️ https://dev.to/blikblum/dry-form-handling-with-lit-19f
@@ -190,12 +196,6 @@ export class Connector extends SignalWatcher(LitElement) {
     }
   }
 
-  debug(): void {
-    // TODO 🔥 generalize to multiple test screenshots
-    this.save('ge');
-    this.dispatchEvent(new CustomEvent('connected'));
-  }
-
   disconnect(): void {
     this.#tn3270?.close();
   }
@@ -249,10 +249,6 @@ export class Connector extends SignalWatcher(LitElement) {
 
                 <md-outlined-button @click=${this.setup} type="button">
                   Setup
-                </md-outlined-button>
-
-                <md-outlined-button @click=${this.debug} type="button">
-                  Debug
                 </md-outlined-button>
               </div>
             </article>

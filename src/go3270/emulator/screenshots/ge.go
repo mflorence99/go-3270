@@ -12,7 +12,7 @@ import (
 var (
 	raw = []any{
 		consts.EW,
-		wcc.WCC{}.Byte(),
+		wcc.WCC{Alarm: true}.Byte(),
 		consts.SBA,
 		conv.Addr2Bytes(0),
 		"123-->GE",
