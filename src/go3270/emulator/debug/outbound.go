@@ -48,7 +48,7 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command) {
 	t := l.newTable(text.FgHiYellow, fmt.Sprintf("%s Outbound (App -> 3270)\nNOTE: EUA and RA orders are listed in start/stop pairs", cmd))
 	defer t.Render()
 	// 👇 table rows
-	t.AppendHeader(table.Row{"Order", "Row", "Col", "SF", "Blink", "Color", "Hidden", "Hilite", "MDT", "Num", "Prot", "Rev", "Uscore"})
+	t.AppendHeader(table.Row{"Order", "Row", "Col", "SF", "Blink", "Color", "Hidden", "Hilite", "MDT", "Num", "Prot", "Rev", "Uscore", "Out"})
 	addr := 0
 	fldAttrs := &attrs.Attrs{Protected: true}
 	// 👇 look at each byte to see if it is an order
@@ -74,7 +74,7 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command) {
 			count, _ := out.Next()
 			raw, _ := out.NextSlice(int(count) * 2)
 			fldAttrs = attrs.NewExtended(raw)
-			l.withAttrs(t, order, addr, fldAttrs, true)
+			l.withAttrs(t, order, addr, fldAttrs, true, false)
 			addr++
 
 		case consts.PT:
@@ -90,7 +90,7 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command) {
 		case consts.SA:
 			chars, _ := out.NextSlice(2)
 			fldAttrs = attrs.NewModified(fldAttrs, chars)
-			l.withAttrs(t, order, addr, fldAttrs, false)
+			l.withAttrs(t, order, addr, fldAttrs, false, false)
 
 		case consts.SBA:
 			raw, _ := out.NextSlice(2)
@@ -100,14 +100,14 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command) {
 		case consts.SF:
 			raw, _ := out.Next()
 			fldAttrs = attrs.NewBasic(raw)
-			l.withAttrs(t, order, addr, fldAttrs, true)
+			l.withAttrs(t, order, addr, fldAttrs, true, false)
 			addr++
 
 		case consts.SFE:
 			count, _ := out.Next()
 			raw, _ := out.NextSlice(int(count) * 2)
 			fldAttrs = attrs.NewExtended(raw)
-			l.withAttrs(t, order, addr, fldAttrs, true)
+			l.withAttrs(t, order, addr, fldAttrs, true, false)
 			addr++
 
 		default:

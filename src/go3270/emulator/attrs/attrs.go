@@ -14,6 +14,7 @@ type Attrs struct {
 	Protected  bool
 	Reverse    bool
 	Underscore bool
+	Outline    consts.Outline
 }
 
 // 🟦 Constructors
@@ -60,17 +61,18 @@ func (a *Attrs) fromBytes(chars []byte) {
 	for ix := 0; ix < len(chars)-1; ix += 2 {
 		chunk := chars[ix : ix+2]
 		typecode := consts.Typecode(chunk[0])
-		basic := chunk[1]
-		color := consts.Color(chunk[1])
-		highlight := consts.Highlight(chunk[1])
 		switch typecode {
+
 		case consts.BASIC:
+			basic := chunk[1]
 			a.fromByte(basic)
+
 		case consts.HIGHLIGHT:
 			a.Blink = false
 			a.Reverse = false
 			a.Underscore = false
 			a.Highlight = false
+			highlight := consts.Highlight(chunk[1])
 			switch highlight {
 			case consts.BLINK:
 				a.Blink = true
@@ -81,8 +83,14 @@ func (a *Attrs) fromBytes(chars []byte) {
 			case consts.INTENSIFY:
 				a.Highlight = true
 			}
+
 		case consts.COLOR:
+			color := consts.Color(chunk[1])
 			a.Color = color
+
+		case consts.OUTLINE:
+			outline := consts.Outline(chunk[1])
+			a.Outline = outline
 		}
 	}
 }

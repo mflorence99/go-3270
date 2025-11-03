@@ -10,7 +10,14 @@ type Fld []*Cell
 
 // 🟦 Public functions
 
-func (f Fld) StartFld() (*Cell, bool) {
+func (f Fld) FldEnd() (*Cell, bool) {
+	if len(f) > 0 {
+		return f[len(f)-1], true
+	}
+	return nil, false
+}
+
+func (f Fld) FldStart() (*Cell, bool) {
 	if len(f) > 0 {
 		return f[0], true
 	}

@@ -1,9 +1,5 @@
 package glyph
 
-import (
-	"fmt"
-)
-
 // 🟧 A glyph, as stored in the glyph cache
 
 type Glyph struct {
@@ -12,6 +8,12 @@ type Glyph struct {
 	Highlight  bool
 	Reverse    bool
 	Underscore bool
+	Outline    struct {
+		Bottom bool
+		Right  bool
+		Top    bool
+		Left   bool
+	}
 }
 
 // 🟦 Constructor
@@ -19,21 +21,4 @@ type Glyph struct {
 func NewGlyph() *Glyph {
 	g := new(Glyph)
 	return g
-}
-
-// 🟦 Stringer implementation
-
-func (g *Glyph) String() string {
-	str := fmt.Sprintf("GLYPH=[ 0x%02x %s ", g.Char, g.Color)
-	if g.Highlight {
-		str += "HILITE "
-	}
-	if g.Reverse {
-		str += "REV "
-	}
-	if g.Underscore {
-		str += "USCORE "
-	}
-	str += "]"
-	return str
 }

@@ -41,7 +41,7 @@ func (f *Flds) reset() {
 func (f *Flds) EAU() int {
 	addr := -1
 	for _, fld := range f.flds {
-		sf, ok := fld.StartFld()
+		sf, ok := fld.FldStart()
 		if ok {
 			sf.Attrs.Modified = false
 			if !sf.Attrs.Protected {
@@ -69,7 +69,7 @@ func (f *Flds) Get() []Fld {
 func (f *Flds) ReadBuffer() []byte {
 	chars := make([]byte, 0)
 	for _, fld := range f.flds {
-		sf, _ := fld.StartFld()
+		sf, _ := fld.FldStart()
 		chars = append(chars, byte(consts.SF))
 		chars = append(chars, sf.Attrs.Byte())
 		for ix := 1; ix < len(fld); ix++ {
@@ -87,7 +87,7 @@ func (f *Flds) ReadBuffer() []byte {
 func (f *Flds) ReadMDTs() []byte {
 	chars := make([]byte, 0)
 	for _, fld := range f.flds {
-		sf, _ := fld.StartFld()
+		sf, _ := fld.FldStart()
 		if sf.Attrs.Modified {
 			chars = append(chars, byte(consts.SBA))
 			chars = append(chars, conv.Addr2Bytes(sf.FldAddr+1)...)
@@ -110,7 +110,7 @@ func (f *Flds) Reset() {
 	fld := make(Fld, 0)
 	// 👇 normalize the cell at a given position in a given fld
 	fix := func(fld Fld, cell *Cell) *Cell {
-		sf, _ := fld.StartFld()
+		sf, _ := fld.FldStart()
 		if cell.FldAddr != sf.FldAddr {
 			cell.Attrs = sf.Attrs
 			cell.FldAddr = sf.FldAddr
@@ -124,6 +124,8 @@ func (f *Flds) Reset() {
 		if cell.FldStart {
 			cell.FldAddr = ix
 			if len(fld) > 0 {
+				ef, _ := fld.FldEnd()
+				ef.FldEnd = true
 				f.flds = append(f.flds, fld)
 				fld = make(Fld, 0)
 			}
@@ -142,6 +144,9 @@ func (f *Flds) Reset() {
 		for ix := 0; ix < first; ix++ {
 			cell, _ := f.buf.Peek(ix)
 			cell = fix(fld, cell)
+			if ix == first-1 {
+				cell.FldEnd = true
+			}
 			fld = append(fld, cell)
 		}
 		f.flds = append(f.flds, fld)
@@ -150,7 +155,7 @@ func (f *Flds) Reset() {
 
 func (f *Flds) ResetMDTs() {
 	for _, fld := range f.flds {
-		sf, ok := fld.StartFld()
+		sf, ok := fld.FldStart()
 		if ok {
 			sf.Attrs.Modified = false
 		}

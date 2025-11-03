@@ -42,14 +42,41 @@ func (c *Cache) ImageFor(g Glyph, box Box) image.Image {
 		temp.SetFontFace(utils.Ternary(g.Highlight, *c.cfg.BoldFace, *c.cfg.NormalFace))
 		// 👇 clear background
 		temp.SetHexColor(utils.Ternary(g.Reverse, g.Color, c.cfg.BgColor))
-		temp.Clear()
+		temp.DrawRectangle(0, 0, box.W, box.H)
+		temp.Fill()
 		// 👇 render the byte
 		temp.SetHexColor(utils.Ternary(g.Reverse, c.cfg.BgColor, g.Color))
 		temp.DrawString(string(g.Char), 0, box.Baseline-box.Y)
+		// 👇 thick line for underscore
 		if g.Underscore {
 			temp.SetLineWidth(2)
 			temp.MoveTo(0, box.H-1)
 			temp.LineTo(box.W, box.H-1)
+			temp.Stroke()
+		}
+		// 👇 thinner lines for outline
+		if g.Outline.Bottom {
+			temp.SetLineWidth(1)
+			temp.MoveTo(0, box.H)
+			temp.LineTo(box.W, box.H)
+			temp.Stroke()
+		}
+		if g.Outline.Right {
+			temp.SetLineWidth(1)
+			temp.MoveTo(box.W, 0)
+			temp.LineTo(box.W, box.H)
+			temp.Stroke()
+		}
+		if g.Outline.Top {
+			temp.SetLineWidth(1)
+			temp.MoveTo(0, 0)
+			temp.LineTo(box.W, 0)
+			temp.Stroke()
+		}
+		if g.Outline.Left {
+			temp.SetLineWidth(1)
+			temp.MoveTo(0, 0)
+			temp.LineTo(0, box.H)
 			temp.Stroke()
 		}
 		// 👇 now cache the glyph

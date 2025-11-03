@@ -10,6 +10,7 @@ type Cell struct {
 	Attrs    *attrs.Attrs
 	Char     byte
 	FldAddr  int
+	FldEnd   bool
 	FldStart bool
 }
 

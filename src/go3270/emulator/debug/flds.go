@@ -16,7 +16,7 @@ func (l *Logger) logFlds() {
 	t.AppendHeader(table.Row{"Row", "Col", "Len", "PROT", "MDT", "Data"})
 	// 👇 data rows
 	for _, fld := range l.flds.Get() {
-		sf, _ := fld.StartFld()
+		sf, _ := fld.FldStart()
 		row, col := l.cfg.Addr2RC(sf.FldAddr)
 		// 👇 gather all the chars in the fld
 		t.AppendRow(table.Row{
