@@ -3,7 +3,6 @@ package screen
 import (
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
-	"go3270/emulator/glyph"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/state"
 	"go3270/emulator/utils"
@@ -17,17 +16,17 @@ type Screen struct {
 	buf *buffer.Buffer
 	bus *pubsub.Bus
 	cfg pubsub.Config
-	gc  *glyph.Cache
+	gc  *Cache
 	st  *state.State
 
 	clean  bool
-	cps    []glyph.Box
-	glyphs []glyph.Glyph
+	cps    []Box
+	glyphs []Glyph
 }
 
 // 🟦 Constructor
 
-func NewScreen(bus *pubsub.Bus, buf *buffer.Buffer, gc *glyph.Cache, st *state.State) *Screen {
+func NewScreen(bus *pubsub.Bus, buf *buffer.Buffer, gc *Cache, st *state.State) *Screen {
 	s := new(Screen)
 	s.buf = buf
 	s.bus = bus
@@ -46,21 +45,21 @@ func NewScreen(bus *pubsub.Bus, buf *buffer.Buffer, gc *glyph.Cache, st *state.S
 func (s *Screen) configure(cfg pubsub.Config) {
 	s.cfg = cfg
 	// 👇 precompute the box for each cell
-	s.cps = make([]glyph.Box, s.cfg.Cols*s.cfg.Rows)
+	s.cps = make([]Box, s.cfg.Cols*s.cfg.Rows)
 	for ix := range s.cps {
 		row := int(ix / cfg.Cols)
 		col := ix % cfg.Cols
-		s.cps[ix] = glyph.NewBox(row, col, cfg)
+		s.cps[ix] = NewBox(row, col, cfg)
 	}
 	// 👇 optimization remembers which glyph is already drawn in each cell
-	s.glyphs = make([]glyph.Glyph, s.cfg.Cols*s.cfg.Rows)
+	s.glyphs = make([]Glyph, s.cfg.Cols*s.cfg.Rows)
 }
 
 func (s *Screen) reset() {
 	dc := gg.NewContextForRGBA(s.cfg.RGBA)
 	dc.SetHexColor(s.cfg.BgColor)
 	dc.Clear()
-	s.glyphs = make([]glyph.Glyph, s.cfg.Cols*s.cfg.Rows)
+	s.glyphs = make([]Glyph, s.cfg.Cols*s.cfg.Rows)
 	s.clean = true
 }
 
@@ -122,14 +121,14 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 	// 🔥 optimization: if the screen is clean and the char blank, skip
 	if !s.clean || char > ' ' || reverse || cell.Attrs.Outline != 0x00 {
 		// 👇 the cache will find us the glyph iself
-		g := glyph.Glyph{
+		g := Glyph{
 			Char:       char,
 			Color:      color,
 			Highlight:  highlight,
 			Reverse:    reverse,
 			Underscore: underscore,
 			// 🔥 outline is always at field level
-			Outline: glyph.Outline{
+			Outline: Outline{
 				Bottom: (sf.Attrs.Outline & consts.OUTLINE_BOTTOM) != 0b00000000,
 				Right:  ((sf.Attrs.Outline & consts.OUTLINE_RIGHT) != 0b00000000) && cell.FldEnd,
 				Top:    (sf.Attrs.Outline & consts.OUTLINE_TOP) != 0b00000000,

@@ -1,4 +1,4 @@
-package glyph
+package screen
 
 // 🟧 A glyph, as stored in the glyph cache
 

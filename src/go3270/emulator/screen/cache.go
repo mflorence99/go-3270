@@ -1,4 +1,4 @@
-package glyph
+package screen
 
 import (
 	"go3270/emulator/pubsub"

@@ -1,4 +1,4 @@
-package glyph
+package screen
 
 import (
 	"fmt"

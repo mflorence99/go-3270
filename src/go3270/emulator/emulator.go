@@ -3,7 +3,6 @@ package emulator
 import (
 	"go3270/emulator/buffer"
 	"go3270/emulator/debug"
-	"go3270/emulator/glyph"
 	"go3270/emulator/inbound"
 	"go3270/emulator/keyboard"
 	"go3270/emulator/outbound"
@@ -21,7 +20,7 @@ type Emulator struct {
 	cells *buffer.Cells
 	cfg   pubsub.Config
 	flds  *buffer.Flds
-	gc    *glyph.Cache
+	gc    *screen.Cache
 	log   *debug.Logger
 	in    *inbound.Producer
 	key   *keyboard.Keyboard
@@ -39,7 +38,7 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	// 🔥 absolutely #1 as FIFO for pubsub topics
 	e.buf = buffer.NewBuffer(e.bus)
 	// 👇 core components; need these FIRST
-	e.gc = glyph.NewCache(e.bus)
+	e.gc = screen.NewCache(e.bus)
 	e.st = state.NewState(e.bus)
 	e.cells = buffer.NewCells(e.bus, e.buf)
 	e.flds = buffer.NewFlds(e.bus, e.buf)
