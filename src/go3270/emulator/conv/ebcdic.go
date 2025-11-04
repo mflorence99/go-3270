@@ -262,13 +262,11 @@ var EBCDIC = []byte{
 // 🟦 Public functions
 
 func E2A(e byte) byte {
-	a := byte(0x00)
 	if e >= 64 {
-		a = EBCDIC[e-64]
+		return EBCDIC[e-64]
 	} else {
-		a = ' '
+		return ' '
 	}
-	return a
 }
 
 func E2As(str string) string {

@@ -16,13 +16,11 @@ func init() {
 // 🟦 Public functions
 
 func A2E(a byte) byte {
-	e := byte(0x00)
 	if a == ' ' {
-		e = 0x40
+		return 0x40
 	} else {
-		e = ASCII[a]
+		return ASCII[a]
 	}
-	return e
 }
 
 func A2Es(str string) string {

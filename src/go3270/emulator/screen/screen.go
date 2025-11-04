@@ -112,6 +112,7 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 	ix := utils.Ternary(cell.Attrs.Color == 0x00 || s.cfg.Monochrome, 0xF4, cell.Attrs.Color)
 	color := s.cfg.CLUT[ix]
 	highlight := cell.Attrs.Highlight
+	lcid := cell.Attrs.LCID
 	// 🔥 outlined field can't be reverse or underscvore
 	reverse := cell.Attrs.Reverse && sf.Attrs.Outline != 0x00
 	underscore := cell.Attrs.Underscore && sf.Attrs.Outline != 0x00
@@ -127,6 +128,7 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 			Highlight:  highlight,
 			Reverse:    reverse,
 			Underscore: underscore,
+			LCID:       lcid,
 			// 🔥 outline is always at field level
 			Outline: Outline{
 				Bottom: (sf.Attrs.Outline & consts.OUTLINE_BOTTOM) != 0b00000000,
