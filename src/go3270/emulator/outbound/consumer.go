@@ -1,7 +1,6 @@
 package outbound
 
 import (
-	"fmt"
 	"go3270/emulator/attrs"
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
@@ -200,7 +199,7 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 
 func (c *Consumer) orders(out *stream.Outbound) {
 	charAddr := -1
-	fldAddr := 0
+	fldAddr := -1
 	fldAttrs := &attrs.Attrs{Protected: true}
 outer:
 	for out.HasNext() {
@@ -277,15 +276,16 @@ func (c *Consumer) eua(out *stream.Outbound) bool {
 }
 
 func (c *Consumer) gap(charAddr, fldAddr int, fldAttrs *attrs.Attrs) {
-	if charAddr != -1 && (charAddr+1 != c.buf.Addr()) {
+	if charAddr != -1 && (charAddr+1 < c.buf.Addr()) {
 		cell := &buffer.Cell{
 			Attrs:   fldAttrs,
 			Char:    0x00,
 			FldAddr: fldAddr,
 		}
-		r1, c1 := c.cfg.Addr2RC(charAddr + 1)
-		r2, c2 := c.cfg.Addr2RC(c.buf.Addr())
-		println(fmt.Sprintf("🐞 filling gap from %d/%d to %d/%d", r1, c1, r2, c2))
+		// TODO 🔥 worried about the fragility of this algorithm, so let's keep this code -- why do we ignore wrap around (see "if" condition)?
+		// r1, c1 := c.cfg.Addr2RC(charAddr + 1)
+		// r2, c2 := c.cfg.Addr2RC(c.buf.Addr())
+		// println(fmt.Sprintf("🐞 filling gap from %d/%d to %d/%d", r1, c1, r2, c2))
 		c.cells.RA(cell, charAddr+1, c.buf.Addr())
 	}
 }

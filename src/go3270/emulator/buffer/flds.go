@@ -140,11 +140,13 @@ func (f *Flds) Reset() {
 			fld = append(fld, cell)
 		}
 	}
-	// 🔥 don't forget the last field, which includes any wrap-around
+	// 🔥 don't forget the last field, and include any cells found before the first SF or SFE
 	if len(fld) > 0 {
+		sf, _ := fld.FldStart()
 		for ix := 0; ix < first; ix++ {
 			cell, _ := f.buf.Peek(ix)
-			cell = fix(fld, cell)
+			cell.Attrs = sf.Attrs
+			cell.FldAddr = sf.FldAddr
 			if ix == first-1 {
 				cell.FldEnd = true
 			}
