@@ -27,13 +27,12 @@ func (f Fld) FldStart() (*Cell, bool) {
 // 🟦 Stringer implementation
 
 func (f Fld) String() string {
-	str := ""
+	var b strings.Builder
 	for ix := 1; ix < len(f); ix++ {
 		cell := f[ix]
 		if cell.Char >= ' ' {
-			str += string(cell.Char)
+			b.WriteByte(cell.Char)
 		}
 	}
-	str = strings.TrimSpace(str)
-	return str
+	return strings.TrimSpace(b.String())
 }

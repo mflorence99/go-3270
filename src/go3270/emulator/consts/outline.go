@@ -1,5 +1,7 @@
 package consts
 
+import "strings"
+
 // 🟧 3270 outline extended attribute
 
 type Outline byte
@@ -19,20 +21,20 @@ func OutlineFor(o Outline) string {
 	if o == 0b00000000 {
 		return "NONE"
 	} else {
-		str := ""
-		if (o & 0b00000001) != 0 {
-			str += "B"
+		var b strings.Builder
+		if (o & 0b00000001) != 0b00000000 {
+			b.WriteString("B")
 		}
-		if (o & 0b00000010) != 0 {
-			str += "R"
+		if (o & 0b00000010) != 0b00000000 {
+			b.WriteString("R")
 		}
-		if (o & 0b00000100) != 0 {
-			str += "T"
+		if (o & 0b00000100) != 0b00000000 {
+			b.WriteString("T")
 		}
-		if (o & 0b00001000) != 0 {
-			str += "L"
+		if (o & 0b00001000) != 0b00000000 {
+			b.WriteString("L")
 		}
-		return str
+		return b.String()
 	}
 }
 

@@ -2,6 +2,7 @@ package pubsub
 
 import (
 	"fmt"
+	"strings"
 )
 
 // 🟧 3270 status, as shared with Typescript UI
@@ -20,21 +21,22 @@ type Status struct {
 // 🟦 Stringer implementation
 
 func (s Status) String() string {
-	str := fmt.Sprintf("CURSOR %d ", s.CursorAt)
+	var b strings.Builder
+	fmt.Fprintf(&b, "CURSOR %d ", s.CursorAt)
 	if s.Alarm {
-		str += "ALARM "
+		b.WriteString("ALARM ")
 	}
 	if s.Locked {
-		str += "LOCKED "
+		b.WriteString("LOCKED ")
 	}
 	if s.Numeric {
-		str += "NUM "
+		b.WriteString("NUM ")
 	}
 	if s.Protected {
-		str += "PROT "
+		b.WriteString("PROT ")
 	}
 	if s.Waiting {
-		str += "WAIT "
+		b.WriteString("WAIT ")
 	}
-	return fmt.Sprintf("%s%s", str, s.Message)
+	return fmt.Sprintf("%s%s", b.String(), s.Message)
 }

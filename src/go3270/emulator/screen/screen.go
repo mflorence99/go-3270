@@ -110,7 +110,7 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 	sf, _ := s.buf.Peek(cell.FldAddr)
 	invisible := cell.Char == 0x00 || cell.FldStart || cell.Attrs.Hidden
 	// 👇 ignore color if monochrome
-	ix := utils.Ternary(cell.Attrs.Color == 0 || s.cfg.Monochrome, 0xF4, cell.Attrs.Color)
+	ix := utils.Ternary(cell.Attrs.Color == 0x00 || s.cfg.Monochrome, 0xF4, cell.Attrs.Color)
 	color := s.cfg.CLUT[ix]
 	highlight := cell.Attrs.Highlight
 	// 🔥 outlined field can't be reverse or underscvore
@@ -128,12 +128,14 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 			Highlight:  highlight,
 			Reverse:    reverse,
 			Underscore: underscore,
+			// 🔥 outline is always at field level
+			Outline: glyph.Outline{
+				Bottom: (sf.Attrs.Outline & consts.OUTLINE_BOTTOM) != 0b00000000,
+				Right:  ((sf.Attrs.Outline & consts.OUTLINE_RIGHT) != 0b00000000) && cell.FldEnd,
+				Top:    (sf.Attrs.Outline & consts.OUTLINE_TOP) != 0b00000000,
+				Left:   ((sf.Attrs.Outline & consts.OUTLINE_LEFT) != 0b00000000) && cell.FldStart,
+			},
 		}
-		// 🔥 outline is always at field level
-		g.Outline.Bottom = (sf.Attrs.Outline & consts.OUTLINE_BOTTOM) != 0
-		g.Outline.Right = ((sf.Attrs.Outline & consts.OUTLINE_RIGHT) != 0) && cell.FldEnd
-		g.Outline.Top = (sf.Attrs.Outline & consts.OUTLINE_TOP) != 0
-		g.Outline.Left = ((sf.Attrs.Outline & consts.OUTLINE_LEFT) != 0) && cell.FldStart
 		// 👇 if the glyph is already at this address, no need to redraw it
 		if g != s.glyphs[addr] {
 			img := s.gc.ImageFor(g, box)

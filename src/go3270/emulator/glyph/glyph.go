@@ -8,12 +8,13 @@ type Glyph struct {
 	Highlight  bool
 	Reverse    bool
 	Underscore bool
-	Outline    struct {
-		Bottom bool
-		Right  bool
-		Top    bool
-		Left   bool
-	}
+	Outline    Outline
+}
+type Outline struct {
+	Bottom bool
+	Right  bool
+	Top    bool
+	Left   bool
 }
 
 // 🟦 Constructor

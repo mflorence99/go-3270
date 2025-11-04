@@ -3,6 +3,7 @@ package pubsub
 import (
 	"fmt"
 	"go3270/emulator/utils"
+	"strings"
 )
 
 // 🟧 Keystroke, as submitted by Typescript UI
@@ -18,15 +19,15 @@ type Keystroke struct {
 // 🟦 Stringer implementation
 
 func (k Keystroke) String() string {
-	str := ""
+	var b strings.Builder
 	if k.CTRL {
-		str += "CTRL "
+		b.WriteString("CTRL ")
 	}
 	if k.SHIFT {
-		str += "SHIFT "
+		b.WriteString("SHIFT ")
 	}
 	if k.ALT {
-		str += "ALT "
+		b.WriteString("ALT ")
 	}
-	return fmt.Sprintf("%s%s %s", str, k.Key, utils.Ternary(k.Code != k.Key && len(k.Key) > 1, k.Code, ""))
+	return fmt.Sprintf("%s%s %s", b.String(), k.Key, utils.Ternary(k.Code != k.Key && len(k.Key) > 1, k.Code, ""))
 }
