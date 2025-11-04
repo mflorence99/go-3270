@@ -50,33 +50,28 @@ func (c *Cache) ImageFor(g Glyph, box Box) image.Image {
 		// 👇 thick line for underscore
 		if g.Underscore {
 			temp.SetLineWidth(2)
-			temp.MoveTo(0, box.H-1)
-			temp.LineTo(box.W, box.H-1)
+			temp.DrawLine(0, box.H-1, box.W, box.H-1)
 			temp.Stroke()
 		}
 		// 👇 thinner lines for outline
 		if g.Outline.Bottom {
 			temp.SetLineWidth(1)
-			temp.MoveTo(0, box.H)
-			temp.LineTo(box.W, box.H)
+			temp.DrawLine(0, box.H, box.W, box.H)
 			temp.Stroke()
 		}
 		if g.Outline.Right {
 			temp.SetLineWidth(1)
-			temp.MoveTo(box.W, 0)
-			temp.LineTo(box.W, box.H)
+			temp.DrawLine(box.W, 0, box.W, box.H)
 			temp.Stroke()
 		}
 		if g.Outline.Top {
 			temp.SetLineWidth(1)
-			temp.MoveTo(0, 0)
-			temp.LineTo(box.W, 0)
+			temp.DrawLine(0, 0, box.W, 0)
 			temp.Stroke()
 		}
 		if g.Outline.Left {
 			temp.SetLineWidth(1)
-			temp.MoveTo(0, 0)
-			temp.LineTo(0, box.H)
+			temp.DrawLine(0, 0, 0, box.H)
 			temp.Stroke()
 		}
 		// 👇 now cache the glyph

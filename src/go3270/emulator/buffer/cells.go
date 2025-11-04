@@ -43,9 +43,9 @@ func (c *Cells) reset() {
 
 // 🟦 Public functions
 
-func (c *Cells) EUA(stop int) bool {
+func (c *Cells) EUA(start, stop int) bool {
 	if stop < c.buf.Len() {
-		for addr := c.buf.Addr(); addr != stop; addr = c.buf.Seek(addr + 1) {
+		for addr := c.buf.Seek(start); addr != stop; addr = c.buf.Seek(addr + 1) {
 			cell, _ := c.buf.Get()
 			if !cell.Attrs.Protected {
 				// TODO 🔥 spec says to reset any character attributes ie revert to fld but this just makes everything blank
@@ -68,9 +68,9 @@ func (c *Cells) MF(chars []byte) {
 	c.buf.SetAndNext(cell)
 }
 
-func (c *Cells) RA(cell *Cell, stop int) bool {
+func (c *Cells) RA(cell *Cell, start, stop int) bool {
 	if stop < c.buf.Len() {
-		for addr := c.buf.Addr(); addr != stop; addr = c.buf.Seek(addr + 1) {
+		for addr := c.buf.Seek(start); addr != stop; addr = c.buf.Seek(addr + 1) {
 			copy := *cell
 			c.buf.Replace(&copy, addr)
 		}

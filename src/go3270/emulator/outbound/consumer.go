@@ -1,6 +1,7 @@
 package outbound
 
 import (
+	"fmt"
 	"go3270/emulator/attrs"
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
@@ -142,7 +143,7 @@ func (c *Consumer) wcc(out *stream.Outbound) (wcc.WCC, bool) {
 }
 
 func (c *Consumer) wsf(out *stream.Outbound) {
-	// 👇 there are a million SF types, but we are interested in READ_PARTITION
+	// TODO 🔥 there are a million SF types, but we are interested in READ_PARTITION
 	sflds := consts.SFldsFromStream(out)
 	for _, sfld := range sflds {
 		if sfld.ID == consts.READ_PARTITION {
@@ -156,7 +157,7 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 					c.bus.PubQ()
 
 				case consts.QL:
-					all := (sfld.Info[2] & 0b10000000) == 0x80
+					all := (sfld.Info[2] & 0b10000000) == 0b10000000
 					var qcodes []consts.QCode
 					if all {
 						qcodes = []consts.QCode{
@@ -198,6 +199,7 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 // 🟦 Orders
 
 func (c *Consumer) orders(out *stream.Outbound) {
+	charAddr := -1
 	fldAddr := 0
 	fldAttrs := &attrs.Attrs{Protected: true}
 outer:
@@ -216,7 +218,7 @@ outer:
 			}
 
 		case consts.GE:
-			c.ge(out, fldAddr, fldAttrs)
+			charAddr = c.ge(out, fldAddr, fldAttrs)
 
 		case consts.IC:
 			c.ic()
@@ -241,39 +243,57 @@ outer:
 			c.sba(out)
 
 		case consts.SF:
+			c.gap(charAddr, fldAddr, fldAttrs)
 			fldAddr, fldAttrs = c.sf(out)
 
 		case consts.SFE:
+			c.gap(charAddr, fldAddr, fldAttrs)
 			fldAddr, fldAttrs = c.sfe(out)
 
 		// 👇 if it isn't an order, it's data
 		default:
-			c.char(char, fldAddr, fldAttrs)
+			charAddr = c.char(char, fldAddr, fldAttrs)
 		}
 	}
 }
 
-func (c *Consumer) char(char byte, fldAddr int, fldAttrs *attrs.Attrs) {
+func (c *Consumer) char(char byte, fldAddr int, fldAttrs *attrs.Attrs) int {
 	if char == 0x00 || char >= 0x40 {
 		cell := &buffer.Cell{
 			Attrs:   fldAttrs,
 			Char:    conv.E2A(char),
 			FldAddr: fldAddr,
 		}
-		c.buf.SetAndNext(cell)
+		return c.buf.SetAndNext(cell)
+	} else {
+		return c.buf.Addr()
 	}
 }
 
 func (c *Consumer) eua(out *stream.Outbound) bool {
 	raw, _ := out.NextSlice(2)
 	stop := conv.Bytes2Addr(raw)
-	return c.cells.EUA(stop)
+	return c.cells.EUA(c.buf.Addr(), stop)
+}
+
+func (c *Consumer) gap(charAddr, fldAddr int, fldAttrs *attrs.Attrs) {
+	if charAddr != -1 && (charAddr+1 != c.buf.Addr()) {
+		cell := &buffer.Cell{
+			Attrs:   fldAttrs,
+			Char:    0x00,
+			FldAddr: fldAddr,
+		}
+		r1, c1 := c.cfg.Addr2RC(charAddr + 1)
+		r2, c2 := c.cfg.Addr2RC(c.buf.Addr())
+		println(fmt.Sprintf("🐞 filling gap from %d/%d to %d/%d", r1, c1, r2, c2))
+		c.cells.RA(cell, charAddr+1, c.buf.Addr())
+	}
 }
 
 // TODO 🔥 GE not properly handled -- what alt character set??
-func (c *Consumer) ge(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) {
+func (c *Consumer) ge(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) int {
 	char, _ := out.Next()
-	c.char(char, fldAddr, fldAttrs)
+	return c.char(char, fldAddr, fldAttrs)
 }
 
 func (c *Consumer) ic() {
@@ -302,7 +322,7 @@ func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) 
 		Char:    conv.E2A(ebcdic),
 		FldAddr: fldAddr,
 	}
-	return c.cells.RA(cell, stop)
+	return c.cells.RA(cell, c.buf.Addr(), stop)
 }
 
 func (c *Consumer) sa(out *stream.Outbound, fldAttrs *attrs.Attrs) *attrs.Attrs {

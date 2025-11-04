@@ -108,11 +108,12 @@ func (f *Flds) Reset() {
 	// 👇 prepare to gather flds
 	first := -1
 	fld := make(Fld, 0)
-	// 👇 normalize the cell at a given position in a given fld
+	// 👇 cells may be left over from an earlier W command
 	fix := func(fld Fld, cell *Cell) *Cell {
 		sf, _ := fld.FldStart()
 		if cell.FldAddr != sf.FldAddr {
 			cell.Attrs = sf.Attrs
+			cell.Char = 0x00
 			cell.FldAddr = sf.FldAddr
 		}
 		return cell
