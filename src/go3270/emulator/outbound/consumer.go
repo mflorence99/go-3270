@@ -1,6 +1,7 @@
 package outbound
 
 import (
+	"fmt"
 	"go3270/emulator/attrs"
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
@@ -141,56 +142,70 @@ func (c *Consumer) wcc(out *stream.Outbound) (wcc.WCC, bool) {
 	}
 }
 
+// 🟦 WSF (which may contain multiple commands itself)
+
 func (c *Consumer) wsf(out *stream.Outbound) {
 	// TODO 🔥 there are a million SF types, but we are interested in READ_PARTITION
 	sflds := consts.SFldsFromStream(out)
 	for _, sfld := range sflds {
-		if sfld.ID == consts.READ_PARTITION {
-			pid := sfld.Info[0]
-			if pid == 0xFF {
-				cmd := sfld.Info[1]
 
-				switch consts.Command(cmd) {
+		switch sfld.ID {
 
-				case consts.Q:
-					c.bus.PubQ()
+		case consts.READ_PARTITION:
+			c.rp(sfld)
 
-				case consts.QL:
-					all := (sfld.Info[2] & 0b10000000) == 0b10000000
-					var qcodes []consts.QCode
-					if all {
-						qcodes = []consts.QCode{
-							consts.USABLE_AREA,
-							consts.ALPHANUMERIC_PARTITIONS,
-							consts.CHARACTER_SETS,
-							consts.COLOR_SUPPORT,
-							consts.HIGHLIGHTING,
-							consts.REPLY_MODES,
-							consts.FIELD_VALIDATION,
-							consts.FIELD_OUTLINING,
-							consts.DDM,
-							consts.RPQ_NAMES,
-							consts.IMPLICIT_PARTITION,
-						}
-					} else {
-						qcodes = make([]consts.QCode, 0)
-						for ix := 3; ix < len(sfld.Info); ix++ {
-							qcodes = append(qcodes, consts.QCode(sfld.Info[ix]))
-						}
-					}
-					c.bus.PubQL(qcodes)
+		// TODO 🔥 not yet handled
+		default:
+			println(fmt.Sprintf("🔥 SFld %s not handled", sfld))
 
-				case consts.RB:
-					c.bus.PubRB(consts.INBOUND)
+		}
+	}
+}
 
-				case consts.RM:
-					c.bus.PubRM(consts.INBOUND)
+func (c *Consumer) rp(sfld consts.SFld) {
+	pid := sfld.Info[0]
+	if pid == 0xFF {
+		cmd := sfld.Info[1]
 
-				case consts.RMA:
-					c.bus.PubRMA(consts.INBOUND)
+		switch consts.Command(cmd) {
 
+		case consts.Q:
+			c.bus.PubQ()
+
+		case consts.QL:
+			all := (sfld.Info[2] & 0b10000000) == 0b10000000
+			var qcodes []consts.QCode
+			if all {
+				qcodes = []consts.QCode{
+					consts.USABLE_AREA,
+					consts.ALPHANUMERIC_PARTITIONS,
+					consts.CHARACTER_SETS,
+					consts.COLOR_SUPPORT,
+					consts.HIGHLIGHTING,
+					consts.REPLY_MODES,
+					consts.FIELD_VALIDATION,
+					consts.FIELD_OUTLINING,
+					consts.DDM,
+					consts.RPQ_NAMES,
+					consts.IMPLICIT_PARTITION,
+				}
+			} else {
+				qcodes = make([]consts.QCode, 0)
+				for ix := 3; ix < len(sfld.Info); ix++ {
+					qcodes = append(qcodes, consts.QCode(sfld.Info[ix]))
 				}
 			}
+			c.bus.PubQL(qcodes)
+
+		case consts.RB:
+			c.bus.PubRB(consts.INBOUND)
+
+		case consts.RM:
+			c.bus.PubRM(consts.INBOUND)
+
+		case consts.RMA:
+			c.bus.PubRMA(consts.INBOUND)
+
 		}
 	}
 }
@@ -199,7 +214,7 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 
 func (c *Consumer) orders(out *stream.Outbound) {
 	charAddr := -1
-	fldAddr := -1
+	fldAddr := 0
 	fldAttrs := &attrs.Attrs{Protected: true}
 outer:
 	for out.HasNext() {

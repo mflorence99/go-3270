@@ -15,6 +15,7 @@ type Attrs struct {
 	Reverse    bool
 	Underscore bool
 	Outline    consts.Outline
+	LCID       consts.LCID
 }
 
 // 🟦 Constructors
@@ -87,6 +88,10 @@ func (a *Attrs) fromBytes(chars []byte) {
 		case consts.COLOR:
 			color := consts.Color(chunk[1])
 			a.Color = color
+
+		case consts.CHARSET:
+			lcid := consts.LCID(chunk[1])
+			a.LCID = lcid
 
 		case consts.OUTLINE:
 			outline := consts.Outline(chunk[1])

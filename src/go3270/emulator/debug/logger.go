@@ -129,6 +129,7 @@ func (l *Logger) withAttrs(t table.Writer, cmd any, addr int, a *attrs.Attrs, sf
 		utils.Ternary(a.Reverse, "REV", ""),
 		utils.Ternary(a.Underscore, "USCORE", ""),
 		utils.Ternary(a.Outline != 0x00, consts.OutlineFor(a.Outline), ""),
+		utils.Ternary(a.LCID != 0x00, a.LCID.String(), ""),
 	})
 }
 

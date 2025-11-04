@@ -48,7 +48,7 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command) {
 	t := l.newTable(text.FgHiYellow, fmt.Sprintf("%s Outbound (App -> 3270)\nNOTE: EUA and RA orders are listed in start/stop pairs", cmd))
 	defer t.Render()
 	// 👇 table rows
-	t.AppendHeader(table.Row{"Order", "Row", "Col", "SF", "Blink", "Color", "Hidden", "Hilite", "MDT", "Num", "Prot", "Rev", "Uscore", "Out"})
+	t.AppendHeader(table.Row{"Order", "Row", "Col", "SF", "Blink", "Color", "Hidden", "Hilite", "MDT", "Num", "Prot", "Rev", "Uscore", "Out", "LCID"})
 	addr := 0
 	fldAttrs := &attrs.Attrs{Protected: true}
 	// 👇 look at each byte to see if it is an order
@@ -124,6 +124,6 @@ func (l *Logger) logOutboundWSF(out *stream.Outbound) {
 	t.AppendHeader(table.Row{"ID", "Info"})
 	sflds := consts.SFldsFromStream(out)
 	for _, sfld := range sflds {
-		t.AppendRow(table.Row{sfld.ID, fmt.Sprintf("% #v", sfld.Info)})
+		t.AppendRow(table.Row{sfld.ID, fmt.Sprintf("% #x", sfld.Info)})
 	}
 }
