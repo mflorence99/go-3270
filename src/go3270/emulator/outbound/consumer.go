@@ -270,7 +270,7 @@ func (c *Consumer) eua(out *stream.Outbound) bool {
 	return c.cells.EUA(stop)
 }
 
-// TODO 🔥 GE not properly handled -- what al character set??
+// TODO 🔥 GE not properly handled -- what alt character set??
 func (c *Consumer) ge(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) {
 	char, _ := out.Next()
 	c.char(char, fldAddr, fldAttrs)

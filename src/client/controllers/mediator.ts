@@ -39,7 +39,7 @@ export class Mediator implements ReactiveController {
     };
   }
 
-  async go3270Message(evt: Event): Promise<void> {
+  go3270Message(evt: Event): void {
     switch ((evt as CustomEvent).detail.eventType) {
       case 'panic':
         {
@@ -57,12 +57,15 @@ export class Mediator implements ReactiveController {
         break;
       case 'status':
         {
-          const status: Partial<Status> = (evt as CustomEvent).detail;
-          this.host.state.updateStatus(status);
-          if (status.alarm) {
-            await this.#alarm.play();
-            this.host.state.updateStatus({ alarm: false });
-          }
+          // TODO 🔥 if we don't delay this, initial cursor not shown
+          setTimeout(async () => {
+            const status: Partial<Status> = (evt as CustomEvent).detail;
+            this.host.state.updateStatus(status);
+            if (status.alarm) {
+              await this.#alarm.play();
+              this.host.state.updateStatus({ alarm: false });
+            }
+          }, 0);
         }
         break;
     }
