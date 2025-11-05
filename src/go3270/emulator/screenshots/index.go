@@ -14,4 +14,5 @@ func init() {
 	Index["ge"] = utils.Flatten2Bytes(GE, conv.A2Es)
 	Index["outline"] = utils.Flatten2Bytes(OUTLINE, conv.A2Es)
 	Index["termtest"] = TERMTEST
+	Index["termtest-help"] = TERMTEST_HELP
 }

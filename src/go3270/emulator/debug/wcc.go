@@ -19,8 +19,18 @@ func (l *Logger) logWCC(wcc wcc.WCC) {
 		{Number: 4, Align: text.AlignCenter},
 		{Number: 5, Align: text.AlignCenter},
 	})
-	t.AppendHeader(table.Row{"", "Alarm", "Reset", "ResetMDT", "Unlock"})
+	t.AppendHeader(table.Row{
+		"",
+		"Alarm",
+		"Reset",
+		"ResetMDT",
+		"Unlock",
+	})
 	t.AppendRow(table.Row{
-		"WCC", l.boolean(wcc.Alarm), l.boolean(wcc.Reset), l.boolean(wcc.ResetMDT), l.boolean(wcc.Unlock),
+		"WCC",
+		l.boolean(wcc.Alarm),
+		l.boolean(wcc.Reset),
+		l.boolean(wcc.ResetMDT),
+		l.boolean(wcc.Unlock),
 	})
 }

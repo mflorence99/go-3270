@@ -13,7 +13,14 @@ func (l *Logger) logFlds() {
 	t := l.newTable(text.FgHiBlue, "Buffer Fields")
 	defer t.Render()
 	// 👇 header rows
-	t.AppendHeader(table.Row{"Row", "Col", "Len", "PROT", "MDT", "Data"})
+	t.AppendHeader(table.Row{
+		"Row",
+		"Col",
+		"Len",
+		"PROT",
+		"MDT",
+		"Data",
+	})
 	// 👇 data rows
 	for _, fld := range l.flds.Get() {
 		sf, _ := fld.FldStart()

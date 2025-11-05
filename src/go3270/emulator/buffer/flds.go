@@ -105,19 +105,10 @@ func (f *Flds) ReadMDTs() []byte {
 
 func (f *Flds) Reset() {
 	f.reset()
+	println("🔥 building flds")
 	// 👇 prepare to gather flds
 	first := -1
 	fld := make(Fld, 0)
-	// 👇 cells may be left over from an earlier W command
-	fix := func(fld Fld, cell *Cell) *Cell {
-		sf, _ := fld.FldStart()
-		if cell.FldAddr != sf.FldAddr {
-			cell.Attrs = sf.Attrs
-			cell.Char = 0x00
-			cell.FldAddr = sf.FldAddr
-		}
-		return cell
-	}
 	// 👇 start at the beginning
 	for ix := 0; ix < f.buf.Len(); ix++ {
 		cell, _ := f.buf.Peek(ix)
@@ -136,7 +127,6 @@ func (f *Flds) Reset() {
 				first = ix
 			}
 		} else if first != -1 {
-			cell = fix(fld, cell)
 			fld = append(fld, cell)
 		}
 	}
@@ -167,6 +157,7 @@ func (f *Flds) ResetMDTs() {
 
 func (f *Flds) SetMDT(fldAddr int) bool {
 	fld, ok := f.buf.Peek(fldAddr)
+	println("🔥 SetMDT", fldAddr, ok)
 	if !fld.FldStart || !ok {
 		return false
 	}

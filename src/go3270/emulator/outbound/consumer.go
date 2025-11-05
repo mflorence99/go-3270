@@ -214,7 +214,7 @@ func (c *Consumer) rp(sfld consts.SFld) {
 
 func (c *Consumer) orders(out *stream.Outbound) {
 	charAddr := -1
-	fldAddr := 0
+	fldAddr := -1
 	fldAttrs := &attrs.Attrs{Protected: true}
 outer:
 	for out.HasNext() {
@@ -298,9 +298,9 @@ func (c *Consumer) gap(charAddr, fldAddr int, fldAttrs *attrs.Attrs) {
 			FldAddr: fldAddr,
 		}
 		// TODO 🔥 worried about the fragility of this algorithm, so let's keep this code -- why do we ignore wrap around (see "if" condition)?
-		// r1, c1 := c.cfg.Addr2RC(charAddr + 1)
-		// r2, c2 := c.cfg.Addr2RC(c.buf.Addr())
-		// println(fmt.Sprintf("🐞 filling gap from %d/%d to %d/%d", r1, c1, r2, c2))
+		r1, c1 := c.cfg.Addr2RC(charAddr + 1)
+		r2, c2 := c.cfg.Addr2RC(c.buf.Addr())
+		println(fmt.Sprintf("🐞 filling gap from %d/%d to %d/%d", r1, c1, r2, c2))
 		c.cells.RA(cell, charAddr+1, c.buf.Addr())
 	}
 }

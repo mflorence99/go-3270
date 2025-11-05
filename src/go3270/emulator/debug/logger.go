@@ -2,9 +2,7 @@ package debug
 
 import (
 	"fmt"
-	"go3270/emulator/attrs"
 	"go3270/emulator/buffer"
-	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/state"
 	"go3270/emulator/utils"
@@ -110,37 +108,6 @@ func (l *Logger) newTable(color text.Color, title string) table.Writer {
 		t.SetTitle(title)
 	}
 	return t
-}
-
-func (l *Logger) withAttrs(t table.Writer, cmd any, addr int, a *attrs.Attrs, sf bool, ef bool) {
-	row, col := l.cfg.Addr2RC(addr)
-	t.AppendRow(table.Row{
-		cmd,
-		row,
-		col,
-		l.boolean(sf || ef),
-		utils.Ternary(a.Blink, "BLINK", ""),
-		utils.Ternary(a.Color != 0x00, consts.ColorFor(a.Color), ""),
-		utils.Ternary(a.Hidden, "HIDDEN", ""),
-		utils.Ternary(a.Highlight, "HILITE", ""),
-		utils.Ternary(a.Modified, "MDT", ""),
-		utils.Ternary(a.Numeric, "NUM", ""),
-		utils.Ternary(a.Protected, "PROT", ""),
-		utils.Ternary(a.Reverse, "REV", ""),
-		utils.Ternary(a.Underscore, "USCORE", ""),
-		utils.Ternary(a.Outline != 0x00, consts.OutlineFor(a.Outline), ""),
-		utils.Ternary(a.LCID != 0x00, a.LCID.String(), ""),
-	})
-}
-
-func (l *Logger) withoutAttrs(t table.Writer, cmd any, addr int, char byte) {
-	row, col := l.cfg.Addr2RC(addr)
-	t.AppendRow(table.Row{
-		cmd,
-		row,
-		col,
-		utils.Ternary(char >= 0x20, string(char), " "),
-	})
 }
 
 func (l *Logger) wrap(w int) text.Transformer {
