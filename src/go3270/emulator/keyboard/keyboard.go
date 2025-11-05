@@ -144,18 +144,18 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 
 func (k *Keyboard) backspace() (int, bool) {
 	// 👇 validate data entry into previous cell
-	c, addr := k.buf.PrevGet()
-	prot := c.FldStart || c.Attrs.Protected
+	cell, addr := k.buf.PrevGet()
+	prot := cell.FldStart || cell.Attrs.Protected
 	if prot {
 		return -1, false
 	}
 	// 👇 reposition to previous cell and update it
 	k.buf.Seek(addr)
-	c.Char = ' '
-	c.Attrs.Modified = true
-	addr = k.buf.Set(c)
+	cell.Char = ' '
+	cell.Attrs.Modified = true
+	addr = k.buf.Set(cell)
 	// 👇 set the MDT flag at the field level
-	ok := k.flds.SetMDT(c.FldAddr)
+	ok := k.flds.SetMDT(cell)
 	if !ok {
 		return -1, false
 	}
@@ -171,19 +171,19 @@ func (k *Keyboard) focus(focussed bool) {
 }
 
 func (k *Keyboard) keyin(char byte) (int, bool) {
-	c, _ := k.buf.Get()
+	cell, _ := k.buf.Get()
 	// 👇 validate data entry into current cell
-	numlock := c.Attrs.Numeric && !strings.Contains("-0123456789.", string(char))
-	prot := c.FldStart || c.Attrs.Protected
+	numlock := cell.Attrs.Numeric && !strings.Contains("-0123456789.", string(char))
+	prot := cell.FldStart || cell.Attrs.Protected
 	if numlock || prot {
 		return -1, false
 	}
 	// 👇 update cell and advance to next
-	c.Char = char
-	c.Attrs.Modified = true
-	addr := k.buf.SetAndNext(c)
+	cell.Char = char
+	cell.Attrs.Modified = true
+	addr := k.buf.SetAndNext(cell)
 	// 👇 set the MDT flag at the field level
-	ok := k.flds.SetMDT(c.FldAddr)
+	ok := k.flds.SetMDT(cell)
 	if !ok {
 		return -1, false
 	}

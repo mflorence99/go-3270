@@ -36,7 +36,50 @@ func (f *Flds) reset() {
 	f.flds = make([]Fld, 0)
 }
 
-// 🟦 Public functions
+// 🟦 Housekeeping functions
+
+func (f *Flds) Build() {
+	// 👇 prepare to gather flds
+	first := -1
+	fld := make(Fld, 0)
+	f.flds = make([]Fld, 0)
+	// 👇 start at the beginning
+	for ix := 0; ix < f.buf.Len(); ix++ {
+		cell, _ := f.buf.Peek(ix)
+		// 👇 a field is delimited by the next field
+		if cell.FldStart {
+			cell.FldAddr = ix
+			if len(fld) > 0 {
+				f.flds = append(f.flds, fld)
+				fld = make(Fld, 0)
+			}
+			fld = append(fld, cell)
+			// 👇 bookmark where we found the first field
+			if first == -1 {
+				first = ix
+			}
+		} else if first != -1 {
+			fld = append(fld, cell)
+		}
+	}
+	// 🔥 don't forget the last field, and include any cells found before the first SF or SFE
+	if len(fld) > 0 {
+		sf, _ := fld.FldStart()
+		for ix := 0; ix < first; ix++ {
+			cell, _ := f.buf.Peek(ix)
+			cell.Attrs = sf.Attrs
+			cell.FldAddr = sf.FldAddr
+			fld = append(fld, cell)
+		}
+		f.flds = append(f.flds, fld)
+	}
+}
+
+func (f *Flds) Get() []Fld {
+	return f.flds
+}
+
+// 🟦 Public command-based functions
 
 func (f *Flds) EAU() int {
 	addr := -1
@@ -59,10 +102,6 @@ func (f *Flds) EAU() int {
 		}
 	}
 	return addr
-}
-
-func (f *Flds) Get() []Fld {
-	return f.flds
 }
 
 // TODO 🔥 *only* FIELD_MODE *not* coded
@@ -103,49 +142,6 @@ func (f *Flds) ReadMDTs() []byte {
 	return chars
 }
 
-func (f *Flds) Reset() {
-	f.reset()
-	println("🔥 building flds")
-	// 👇 prepare to gather flds
-	first := -1
-	fld := make(Fld, 0)
-	// 👇 start at the beginning
-	for ix := 0; ix < f.buf.Len(); ix++ {
-		cell, _ := f.buf.Peek(ix)
-		// 👇 a field is delimited by the next field
-		if cell.FldStart {
-			cell.FldAddr = ix
-			if len(fld) > 0 {
-				ef, _ := fld.FldEnd()
-				ef.FldEnd = true
-				f.flds = append(f.flds, fld)
-				fld = make(Fld, 0)
-			}
-			fld = append(fld, cell)
-			// 👇 bookmark where we found the first field
-			if first == -1 {
-				first = ix
-			}
-		} else if first != -1 {
-			fld = append(fld, cell)
-		}
-	}
-	// 🔥 don't forget the last field, and include any cells found before the first SF or SFE
-	if len(fld) > 0 {
-		sf, _ := fld.FldStart()
-		for ix := 0; ix < first; ix++ {
-			cell, _ := f.buf.Peek(ix)
-			cell.Attrs = sf.Attrs
-			cell.FldAddr = sf.FldAddr
-			if ix == first-1 {
-				cell.FldEnd = true
-			}
-			fld = append(fld, cell)
-		}
-		f.flds = append(f.flds, fld)
-	}
-}
-
 func (f *Flds) ResetMDTs() {
 	for _, fld := range f.flds {
 		sf, ok := fld.FldStart()
@@ -155,9 +151,8 @@ func (f *Flds) ResetMDTs() {
 	}
 }
 
-func (f *Flds) SetMDT(fldAddr int) bool {
-	fld, ok := f.buf.Peek(fldAddr)
-	println("🔥 SetMDT", fldAddr, ok)
+func (f *Flds) SetMDT(cell *Cell) bool {
+	fld, ok := f.buf.Peek(cell.FldAddr)
 	if !fld.FldStart || !ok {
 		return false
 	}

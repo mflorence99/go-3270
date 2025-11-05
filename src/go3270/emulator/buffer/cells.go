@@ -41,7 +41,7 @@ func (c *Cells) reset() {
 	}
 }
 
-// 🟦 Public functions
+// 🟦 Public order-based functions
 
 func (c *Cells) EUA(start, stop int) bool {
 	if stop < c.buf.Len() {
@@ -49,8 +49,8 @@ func (c *Cells) EUA(start, stop int) bool {
 			cell, _ := c.buf.Get()
 			if !cell.Attrs.Protected {
 				// TODO 🔥 spec says to reset any character attributes ie revert to fld but this just makes everything blank
-				// sf, _ := c.buf.Peek(cell.FldAddr)
-				// cell.Attrs = sf.Attrs
+				sf, _ := c.buf.Peek(cell.FldAddr)
+				cell.Attrs = sf.Attrs
 				cell.Char = 0x00
 				c.buf.Replace(cell, addr)
 			}

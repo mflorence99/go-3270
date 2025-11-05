@@ -37,7 +37,7 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	e.cfg = cfg
 	// 🔥 absolutely #1 as FIFO for pubsub topics
 	e.buf = buffer.NewBuffer(e.bus)
-	// 👇 core components; need these FIRST
+	// 👇 core components; need these FIRST and in THIS ORDER
 	e.gc = screen.NewCache(e.bus)
 	e.st = state.NewState(e.bus)
 	e.cells = buffer.NewCells(e.bus, e.buf)

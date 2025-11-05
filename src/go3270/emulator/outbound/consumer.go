@@ -66,7 +66,7 @@ func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 		c.ew(out)
 
 	case consts.EWA:
-		c.ew(out)
+		c.ewa(out)
 
 	case consts.RB:
 		c.rb()
@@ -100,7 +100,15 @@ func (c *Consumer) ew(out *stream.Outbound) {
 	if ok {
 		c.bus.PubReset()
 		c.orders(out)
-		c.flds.Reset()
+		c.bus.PubRender()
+	}
+}
+
+func (c *Consumer) ewa(out *stream.Outbound) {
+	_, ok := c.wcc(out)
+	if ok {
+		c.bus.PubReset()
+		c.orders(out)
 		c.bus.PubRender()
 	}
 }
@@ -120,7 +128,6 @@ func (c *Consumer) rma() {
 func (c *Consumer) w(out *stream.Outbound) {
 	c.wcc(out)
 	c.orders(out)
-	c.flds.Reset()
 	c.bus.PubRender()
 }
 
@@ -213,8 +220,7 @@ func (c *Consumer) rp(sfld consts.SFld) {
 // 🟦 Orders
 
 func (c *Consumer) orders(out *stream.Outbound) {
-	charAddr := -1
-	fldAddr := -1
+	fldAddr := 0
 	fldAttrs := &attrs.Attrs{Protected: true}
 outer:
 	for out.HasNext() {
@@ -232,7 +238,7 @@ outer:
 			}
 
 		case consts.GE:
-			charAddr = c.ge(out, fldAddr, fldAttrs)
+			c.ge(out, fldAddr, fldAttrs)
 
 		case consts.IC:
 			c.ic()
@@ -257,30 +263,28 @@ outer:
 			c.sba(out)
 
 		case consts.SF:
-			c.gap(charAddr, fldAddr, fldAttrs)
 			fldAddr, fldAttrs = c.sf(out)
 
 		case consts.SFE:
-			c.gap(charAddr, fldAddr, fldAttrs)
 			fldAddr, fldAttrs = c.sfe(out)
 
 		// 👇 if it isn't an order, it's data
 		default:
-			charAddr = c.char(char, fldAddr, fldAttrs)
+			c.char(char, fldAddr, fldAttrs)
 		}
 	}
+	// 👇 when we're done with all the orders, organize the buffer into fields
+	c.flds.Build()
 }
 
-func (c *Consumer) char(char byte, fldAddr int, fldAttrs *attrs.Attrs) int {
+func (c *Consumer) char(char byte, fldAddr int, fldAttrs *attrs.Attrs) {
 	if char == 0x00 || char >= 0x40 {
 		cell := &buffer.Cell{
 			Attrs:   fldAttrs,
 			Char:    conv.E2A(char),
 			FldAddr: fldAddr,
 		}
-		return c.buf.SetAndNext(cell)
-	} else {
-		return c.buf.Addr()
+		c.buf.SetAndNext(cell)
 	}
 }
 
@@ -290,25 +294,10 @@ func (c *Consumer) eua(out *stream.Outbound) bool {
 	return c.cells.EUA(c.buf.Addr(), stop)
 }
 
-func (c *Consumer) gap(charAddr, fldAddr int, fldAttrs *attrs.Attrs) {
-	if charAddr != -1 && (charAddr+1 < c.buf.Addr()) {
-		cell := &buffer.Cell{
-			Attrs:   fldAttrs,
-			Char:    0x00,
-			FldAddr: fldAddr,
-		}
-		// TODO 🔥 worried about the fragility of this algorithm, so let's keep this code -- why do we ignore wrap around (see "if" condition)?
-		r1, c1 := c.cfg.Addr2RC(charAddr + 1)
-		r2, c2 := c.cfg.Addr2RC(c.buf.Addr())
-		println(fmt.Sprintf("🐞 filling gap from %d/%d to %d/%d", r1, c1, r2, c2))
-		c.cells.RA(cell, charAddr+1, c.buf.Addr())
-	}
-}
-
 // TODO 🔥 GE not properly handled -- what alt character set??
-func (c *Consumer) ge(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) int {
+func (c *Consumer) ge(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) {
 	char, _ := out.Next()
-	return c.char(char, fldAddr, fldAttrs)
+	c.char(char, fldAddr, fldAttrs)
 }
 
 func (c *Consumer) ic() {

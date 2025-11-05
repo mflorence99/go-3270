@@ -62,7 +62,7 @@ func (l *Logger) logProbe(addr int) {
 	// 👇 cell
 	t.AppendRow(table.Row{
 		char,
-		l.boolean(cell.FldStart || cell.FldEnd),
+		l.boolean(cell.FldStart),
 		frow,
 		fcol,
 		crow,

@@ -62,18 +62,22 @@ func (b *Buffer) Mode() consts.Mode {
 }
 
 func (b *Buffer) Peek(addr int) (*Cell, bool) {
-	if addr >= len(b.buf) {
+	if addr < 0 || addr >= len(b.buf) {
 		return nil, false
 	}
 	return b.buf[addr], true
 }
 
-func (b *Buffer) Replace(cell *Cell, addr int) {
+func (b *Buffer) Replace(cell *Cell, addr int) (*Cell, bool) {
+	if addr < 0 || addr >= len(b.buf) {
+		return nil, false
+	}
 	b.buf[addr] = cell
+	return b.buf[addr], true
 }
 
 func (b *Buffer) Seek(addr int) int {
-	// 🔥 mot wrap around
+	// 🔥 note wrap around
 	b.addr = addr % b.Len()
 	return b.addr
 }
