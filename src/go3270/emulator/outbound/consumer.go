@@ -26,8 +26,7 @@ type Consumer struct {
 }
 
 var (
-	// 👇 each time we process orders, we create a new generation of fields
-	fldGen int
+	fldGen int // 👈 mark fields with an unique ID each generation
 )
 
 // 🟦 Constructor
@@ -225,12 +224,12 @@ func (c *Consumer) rp(sfld consts.SFld) {
 // 🟦 Orders
 
 func (c *Consumer) orders(out *stream.Outbound) {
+	fldGen++
 	fldAddr := -1
 	fldAttrs := &attrs.Attrs{Default: true}
-	fldGen++
+	// 👇 look at each byte to see if it is an order
 outer:
 	for out.HasNext() {
-		// 👇 look at each byte to see if it is an order
 		char, _ := out.Next()
 		order := consts.Order(char)
 		// 👇 dispatch on order
@@ -279,20 +278,22 @@ outer:
 			c.char(char, fldAddr, fldAttrs)
 		}
 	}
-	// 👇 when we're done with all the orders, organize the buffer into fields
+
+	// 👇 when the orders have all been processed, build the fields
 	c.flds.Build(fldGen)
 }
 
 func (c *Consumer) char(char byte, fldAddr int, fldAttrs *attrs.Attrs) {
-	if char == 0x00 || char >= 0x40 {
-		cell := &buffer.Cell{
-			Attrs:   fldAttrs,
-			Char:    conv.E2A(char),
-			FldAddr: fldAddr,
-			FldGen:  fldGen,
-		}
-		c.buf.SetAndNext(cell)
+	cell := &buffer.Cell{
+		Attrs:   fldAttrs,
+		Char:    conv.E2A(char),
+		FldAddr: fldAddr,
+		FldGen:  fldGen,
 	}
+	if fldAddr != -1 {
+		c.cells.FillLeft(cell, c.buf.Addr())
+	}
+	c.buf.SetAndNext(cell)
 }
 
 func (c *Consumer) eua(out *stream.Outbound) bool {
@@ -362,6 +363,7 @@ func (c *Consumer) sf(out *stream.Outbound) (int, *attrs.Attrs) {
 		Char:     byte(consts.SF),
 		FldAddr:  fldAddr,
 		FldStart: true,
+		FldEnd:   false, // 👈 completed by flds.Build()
 		FldGen:   fldGen,
 	}
 	c.buf.SetAndNext(sf)
@@ -379,6 +381,7 @@ func (c *Consumer) sfe(out *stream.Outbound) (int, *attrs.Attrs) {
 		Char:     byte(consts.SFE),
 		FldAddr:  fldAddr,
 		FldStart: true,
+		FldEnd:   false, // 👈 completed by flds.Build()
 		FldGen:   fldGen,
 	}
 	c.buf.SetAndNext(sf)

@@ -108,6 +108,7 @@ export class Emulator extends SignalWatcher(LitElement) {
     if (this.state.model.get().config.screenshot)
       this.dispatchEvent(new CustomEvent('done'));
     else if (
+      // TODO 🔥 can we make this a modal dialog?
       window.confirm(
         'Are you sure you want to terminate the 3270 session? You may want to logoff from any open applications before doing so.'
       )

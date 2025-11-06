@@ -114,8 +114,8 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 	highlight := cell.Attrs.Highlight
 	lcid := cell.Attrs.LCID
 	// 🔥 outlined field can't be reverse or underscvore
-	reverse := cell.Attrs.Reverse && sf.Attrs.Outline != 0x00
-	underscore := cell.Attrs.Underscore && sf.Attrs.Outline != 0x00
+	reverse := cell.Attrs.Reverse && sf.Attrs.Outline == 0x00
+	underscore := cell.Attrs.Underscore && sf.Attrs.Outline == 0x00
 	// 🔥 != is the Go idiom for XOR
 	reverse = utils.Ternary(doBlink, reverse != blinkOn, reverse != (addr == s.st.Status.CursorAt))
 	char := utils.Ternary(invisible, ' ', cell.Char)
@@ -129,13 +129,13 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 			Reverse:    reverse,
 			Underscore: underscore,
 			LCID:       lcid,
-			// 🔥 outline is always at field level
-			Outline: Outline{
-				Bottom: (sf.Attrs.Outline & consts.OUTLINE_BOTTOM) != 0b00000000,
-				Right:  ((sf.Attrs.Outline & consts.OUTLINE_RIGHT) != 0b00000000) && cell.FldEnd,
-				Top:    (sf.Attrs.Outline & consts.OUTLINE_TOP) != 0b00000000,
-				Left:   ((sf.Attrs.Outline & consts.OUTLINE_LEFT) != 0b00000000) && cell.FldStart,
-			},
+		}
+		// 🔥 outline is always at field level
+		if cell.Attrs.Outline != 0x00 {
+			g.Outline.Bottom = (sf.Attrs.Outline & consts.OUTLINE_BOTTOM) != 0
+			g.Outline.Right = ((sf.Attrs.Outline & consts.OUTLINE_RIGHT) != 0) && cell.FldEnd
+			g.Outline.Top = (sf.Attrs.Outline & consts.OUTLINE_TOP) != 0
+			g.Outline.Left = ((sf.Attrs.Outline & consts.OUTLINE_LEFT) != 0) && cell.FldStart
 		}
 		// 👇 if the glyph is already at this address, no need to redraw it
 		if g != s.glyphs[addr] {

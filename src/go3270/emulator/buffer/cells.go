@@ -41,6 +41,26 @@ func (c *Cells) reset() {
 	}
 }
 
+// 🟦 Public functions
+
+func (c *Cells) FillLeft(cell *Cell, stop int) {
+	for ix := stop; ; ix-- {
+		// 🔥 note wrap around
+		addr := (ix - 1) % c.buf.Len()
+		left, ok := c.buf.Peek(addr)
+		if ok && left.FldGen != cell.FldGen {
+			left.Attrs = cell.Attrs
+			left.Char = 0x00
+			left.FldAddr = cell.FldAddr
+			left.FldStart = false
+			left.FldEnd = false
+			left.FldGen = cell.FldGen
+		} else {
+			break
+		}
+	}
+}
+
 // 🟦 Public order-based functions
 
 func (c *Cells) EUA(start, stop int) bool {

@@ -17,7 +17,7 @@ type Attrs struct {
 	Reverse    bool
 	Underscore bool
 
-	// 🔥 initial settinmg for cells has Default: true to indicate that cell attributes can ber overridden by the containing field
+	// 🔥 initial settinmg for cells has Default: true to indicate that cell attributes can be overridden by the containing field
 	Default bool
 }
 

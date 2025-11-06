@@ -93,8 +93,8 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 			count, _ := out.Next()
 			raw, _ := out.NextSlice(int(count) * 2)
 			fldAttrs = attrs.NewExtended(raw)
-			cell := buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr}
-			l.withAttrs(t, order, addr, &cell)
+			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr}
+			l.withAttrs(t, order, addr, cell)
 			addr++
 
 		case consts.PT:
@@ -110,8 +110,8 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 		case consts.SA:
 			chars, _ := out.NextSlice(2)
 			fldAttrs = attrs.NewModified(fldAttrs, chars)
-			cell := buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr}
-			l.withAttrs(t, order, addr, &cell)
+			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr}
+			l.withAttrs(t, order, addr, cell)
 
 		case consts.SBA:
 			raw, _ := out.NextSlice(2)
@@ -122,8 +122,8 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 			raw, _ := out.Next()
 			fldAddr = addr
 			fldAttrs = attrs.NewBasic(raw)
-			cell := buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr, FldStart: true}
-			l.withAttrs(t, order, addr, &cell)
+			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr, FldStart: true}
+			l.withAttrs(t, order, addr, cell)
 			addr++
 
 		case consts.SFE:
@@ -131,8 +131,8 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 			raw, _ := out.NextSlice(int(count) * 2)
 			fldAddr = addr
 			fldAttrs = attrs.NewExtended(raw)
-			cell := buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr, FldStart: true}
-			l.withAttrs(t, order, addr, &cell)
+			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr, FldStart: true}
+			l.withAttrs(t, order, addr, cell)
 			addr++
 
 		default:

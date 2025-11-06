@@ -45,6 +45,7 @@ export class Mediator implements ReactiveController {
         {
           const { args } = (evt as CustomEvent).detail;
           this.#alarm.play();
+          // TODO 🔥 can we make this a modal dialog?
           window.alert(args);
           this.disconnect();
         }

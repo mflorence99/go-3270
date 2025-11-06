@@ -1,7 +1,6 @@
 package buffer
 
 import (
-	"fmt"
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
 	"go3270/emulator/pubsub"
@@ -41,10 +40,10 @@ func (f *Flds) reset() {
 
 func (f *Flds) Build(fldGen int) {
 	flds := f.buildInitialIndex()
-	flds = f.elideOldFlds(flds, fldGen)
 	f.flds = f.allThoseCellsAreMine(flds, fldGen)
 }
 
+// 👇 just the start point of each field
 func (f *Flds) buildInitialIndex() []Fld {
 	flds := make([]Fld, 0)
 	for ix := 0; ix < f.buf.Len(); ix++ {
@@ -58,43 +57,7 @@ func (f *Flds) buildInitialIndex() []Fld {
 	return flds
 }
 
-func (f *Flds) elideOldFlds(flds []Fld, fldGen int) []Fld {
-	temp := make([]Fld, 0)
-	for ix, fld := range flds {
-		switch {
-		// 👇 we'll keep completely new fields
-		case fld[0].FldGen == fldGen:
-			temp = append(temp, fld)
-		// 👇 we'll keep fields at the edges
-		case ix == 0 || ix == (len(flds)-1):
-			temp = append(temp, fld)
-		// 👇 we'll keep old fields not sandwiched by new ones
-		default:
-			var newBefore bool
-			for iy := ix - 1; iy >= 0; iy-- {
-				if flds[iy][0].FldGen == fldGen {
-					newBefore = true
-					break
-				}
-			}
-			var newAfter bool
-			for iy := ix + 1; iy < len(flds); iy++ {
-				if flds[iy][0].FldGen == fldGen {
-					newAfter = true
-					break
-				}
-			}
-			// 👇 here we keep the field, or lose it
-			if !newBefore || !newAfter {
-				temp = append(temp, fld)
-			} else {
-				fld[0].FldStart = false
-			}
-		}
-	}
-	return temp
-}
-
+// 👇 look at pairs of fields, this one and the next, and assign all the cells in between to this field
 func (f *Flds) allThoseCellsAreMine(flds []Fld, fldGen int) []Fld {
 	temp := make([]Fld, 0)
 	for ix, fld := range flds {
@@ -103,7 +66,6 @@ func (f *Flds) allThoseCellsAreMine(flds []Fld, fldGen int) []Fld {
 		// 👇 prepare field start
 		sf := fld[0]
 		start := sf.FldAddr
-		sf.FldGen = fldGen
 		for iy := start; ; iy++ {
 			// 🔥 note wrap around
 			addr := (iy + 1) % f.buf.Len()
@@ -111,18 +73,9 @@ func (f *Flds) allThoseCellsAreMine(flds []Fld, fldGen int) []Fld {
 				break
 			}
 			cell, _ := f.buf.Peek(addr)
-			// 👇 these are cells that got filled outside of a known  field
+			// 👇 these are cells that got filled outside of a known field
 			if cell.FldAddr == -1 || cell.Attrs.Default {
 				cell.Attrs = sf.Attrs
-				cell.FldAddr = start
-			}
-			// 👇 these are cells from a field that no longer exists
-			old, _ := f.buf.Peek(cell.FldAddr)
-			if !old.FldStart {
-				row, col := f.cfg.Addr2RC(addr)
-				println(fmt.Sprintf("Erasing cell %d/%d", row, col))
-				cell.Attrs = sf.Attrs
-				cell.Char = 0x00
 			}
 			// 👇 make the cell mine
 			cell.FldAddr = start
