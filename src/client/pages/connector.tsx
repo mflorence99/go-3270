@@ -103,7 +103,6 @@ export class Connector extends SignalWatcher(LitElement) {
     `
   ];
 
-  @query('[data-autofocus]') button!: HTMLElement;
   @state() connecting!: boolean;
   @query('#form') form!: HTMLFormElement;
   @consume({ context: stateContext }) state!: State;
@@ -237,7 +236,6 @@ export class Connector extends SignalWatcher(LitElement) {
 
               <div class="controls">
                 <md-filled-button
-                  data-autofocus
                   ?disabled=${this.connecting}
                   style="align-self: center">
                   ${this.connecting ? 'Connnecting...' : 'Connect'}
@@ -325,10 +323,5 @@ export class Connector extends SignalWatcher(LitElement) {
   setup(): void {
     this.save();
     this.dispatchEvent(new CustomEvent('setup'));
-  }
-
-  // TODO 🔥 need a real focus policy!
-  override updated(): void {
-    setTimeout(() => this.button.focus(), 0);
   }
 }

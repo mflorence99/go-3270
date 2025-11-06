@@ -58,11 +58,15 @@ export class Root extends SignalWatcher(LitElement) {
     const _mediator = new Mediator(this);
   }
 
+  flip(pageNum: number): void {
+    this.pageNum = pageNum;
+  }
+
   override render(): TemplateResult {
     return html`
       <app-connector
-        @connected=${(): any => (this.pageNum = Pages.emulator)}
-        @disconnected=${(): any => (this.pageNum = Pages.connector)}
+        @connected=${(): any => this.flip(Pages.emulator)}
+        @disconnected=${(): any => this.flip(Pages.connector)}
         @outbound=${(evt: CustomEvent): any =>
           this.emulator.outbound(evt.detail.chars)}
         @setup=${(): any => (this.pageNum = Pages.setup)}
@@ -83,7 +87,7 @@ export class Root extends SignalWatcher(LitElement) {
         })}></app-emulator>
 
       <app-setup
-        @done=${(): any => (this.pageNum = Pages.connector)}
+        @done=${(): any => this.flip(Pages.connector)}
         class="setup"
         data-page-num="${Pages.setup}"
         style=${styleMap({

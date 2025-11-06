@@ -134,7 +134,7 @@ func (f *Flds) ReadBuffer() []byte {
 			cell := fld[ix]
 			char := cell.Char
 			if char != 0x00 {
-				chars = append(chars, conv.A2E(char))
+				chars = append(chars, char)
 			}
 		}
 	}
@@ -153,7 +153,7 @@ func (f *Flds) ReadMDTs() []byte {
 				cell := fld[ix]
 				char := cell.Char
 				if char != 0x00 {
-					chars = append(chars, conv.A2E(char))
+					chars = append(chars, char)
 				}
 			}
 		}

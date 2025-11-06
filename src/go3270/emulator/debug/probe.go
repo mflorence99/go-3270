@@ -3,7 +3,6 @@ package debug
 import (
 	"fmt"
 	"go3270/emulator/consts"
-	"go3270/emulator/conv"
 	"go3270/emulator/utils"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -58,7 +57,7 @@ func (l *Logger) logProbe(addr int) {
 	cell, _ := l.buf.Peek(addr)
 	crow, ccol := l.cfg.Addr2RC(addr)
 	frow, fcol := l.cfg.Addr2RC(cell.FldAddr)
-	char := fmt.Sprintf("%#02x '%s'", conv.A2E(cell.Char), utils.Ternary(cell.Char >= 0x20, string(cell.Char), " "))
+	char := fmt.Sprintf("%#02x '%s'", cell.Char, utils.Ternary(cell.Char >= 0x20, string(cell.Char), " "))
 	// 👇 cell
 	t.AppendRow(table.Row{
 		char,

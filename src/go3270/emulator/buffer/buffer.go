@@ -7,7 +7,7 @@ import (
 
 // 🟧 Basic buffer operations
 
-// 🔥 NOTE: the buffer will always hold ASCII characters
+// 🔥 NOTE: the buffer will always hold the original EBCDIC encodings
 
 type Buffer struct {
 	addr int

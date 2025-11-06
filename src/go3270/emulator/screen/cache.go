@@ -1,6 +1,7 @@
 package screen
 
 import (
+	"go3270/emulator/conv"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/utils"
 	"image"
@@ -46,7 +47,7 @@ func (c *Cache) ImageFor(g Glyph, box Box) image.Image {
 		temp.Fill()
 		// 👇 render the byte
 		temp.SetHexColor(utils.Ternary(g.Reverse, c.cfg.BgColor, g.Color))
-		temp.DrawString(string(g.Char), 0, box.Baseline-box.Y)
+		temp.DrawString(string(conv.E2A(g.Char)), 0, box.Baseline-box.Y)
 		// 👇 lines for outline/underscore
 		if g.Underscore || g.Outline.Bottom {
 			temp.SetLineWidth(1)
