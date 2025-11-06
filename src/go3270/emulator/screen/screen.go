@@ -107,20 +107,22 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 	box := s.cps[addr]
 	cell, _ := s.buf.Peek(addr)
 	sf, _ := s.buf.Peek(cell.FldAddr)
-	invisible := cell.Char == 0x00 || cell.FldStart || cell.Attrs.Hidden
 	// 👇 ignore color if monochrome
 	ix := utils.Ternary(cell.Attrs.Color == 0x00 || s.cfg.Monochrome, 0xF4, cell.Attrs.Color)
 	color := s.cfg.CLUT[ix]
+	hidden := cell.Attrs.Hidden
 	highlight := cell.Attrs.Highlight
 	lcid := cell.Attrs.LCID
-	// 🔥 outlined field can't be reverse or underscvore
-	reverse := cell.Attrs.Reverse && sf.Attrs.Outline == 0x00
-	underscore := cell.Attrs.Underscore && sf.Attrs.Outline == 0x00
+	// 🔥 outlined field can't be reverse or underscore
+	outline := sf.Attrs.Outline != 0x00
+	reverse := cell.Attrs.Reverse && !outline
+	underscore := cell.Attrs.Underscore && !outline && !cell.FldStart
 	// 🔥 != is the Go idiom for XOR
 	reverse = utils.Ternary(doBlink, reverse != blinkOn, reverse != (addr == s.st.Status.CursorAt))
+	invisible := cell.Char == 0x00 || cell.FldStart || hidden
 	char := utils.Ternary(invisible, ' ', cell.Char)
 	// 🔥 optimization: if the screen is clean and the char blank, skip
-	if !s.clean || char > ' ' || reverse || cell.Attrs.Outline != 0x00 {
+	if !s.clean || char > ' ' || outline || reverse || underscore {
 		// 👇 the cache will find us the glyph iself
 		g := Glyph{
 			Char:       char,
@@ -131,7 +133,7 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 			LCID:       lcid,
 		}
 		// 🔥 outline is always at field level
-		if cell.Attrs.Outline != 0x00 {
+		if outline {
 			g.Outline.Bottom = (sf.Attrs.Outline & consts.OUTLINE_BOTTOM) != 0
 			g.Outline.Right = ((sf.Attrs.Outline & consts.OUTLINE_RIGHT) != 0) && cell.FldEnd
 			g.Outline.Top = (sf.Attrs.Outline & consts.OUTLINE_TOP) != 0

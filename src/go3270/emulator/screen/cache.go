@@ -47,14 +47,8 @@ func (c *Cache) ImageFor(g Glyph, box Box) image.Image {
 		// 👇 render the byte
 		temp.SetHexColor(utils.Ternary(g.Reverse, c.cfg.BgColor, g.Color))
 		temp.DrawString(string(g.Char), 0, box.Baseline-box.Y)
-		// 👇 thick line for underscore
-		if g.Underscore {
-			temp.SetLineWidth(2)
-			temp.DrawLine(0, box.H-1, box.W, box.H-1)
-			temp.Stroke()
-		}
-		// 👇 thinner lines for outline
-		if g.Outline.Bottom {
+		// 👇 lines for outline/underscore
+		if g.Underscore || g.Outline.Bottom {
 			temp.SetLineWidth(1)
 			temp.DrawLine(0, box.H, box.W, box.H)
 			temp.Stroke()

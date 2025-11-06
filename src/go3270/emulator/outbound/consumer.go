@@ -309,8 +309,11 @@ func (c *Consumer) ge(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) 
 }
 
 func (c *Consumer) ic() {
+	cell, _ := c.buf.Get()
 	c.st.Patch(state.Patch{
-		CursorAt: utils.IntPtr(c.buf.Addr()),
+		CursorAt:  utils.IntPtr(c.buf.Addr()),
+		Numeric:   utils.BoolPtr(cell.Attrs.Numeric),
+		Protected: utils.BoolPtr(cell.Attrs.Protected || cell.FldStart),
 	})
 }
 
