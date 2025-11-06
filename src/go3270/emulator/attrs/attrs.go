@@ -9,13 +9,16 @@ type Attrs struct {
 	Color      consts.Color
 	Hidden     bool
 	Highlight  bool
+	LCID       consts.LCID
 	Modified   bool
 	Numeric    bool
+	Outline    consts.Outline
 	Protected  bool
 	Reverse    bool
 	Underscore bool
-	Outline    consts.Outline
-	LCID       consts.LCID
+
+	// 🔥 initial settinmg for cells has Default: true to indicate that cell attributes can ber overridden by the containing field
+	Default bool
 }
 
 // 🟦 Constructors

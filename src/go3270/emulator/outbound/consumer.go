@@ -25,6 +25,11 @@ type Consumer struct {
 	st    *state.State
 }
 
+var (
+	// 👇 each time we process orders, we create a new generation of fields
+	fldGen int
+)
+
 // 🟦 Constructor
 
 func NewConsumer(bus *pubsub.Bus, buf *buffer.Buffer, cells *buffer.Cells, flds *buffer.Flds, st *state.State) *Consumer {
@@ -220,8 +225,9 @@ func (c *Consumer) rp(sfld consts.SFld) {
 // 🟦 Orders
 
 func (c *Consumer) orders(out *stream.Outbound) {
-	fldAddr := 0
-	fldAttrs := &attrs.Attrs{Protected: true}
+	fldAddr := -1
+	fldAttrs := &attrs.Attrs{Default: true}
+	fldGen++
 outer:
 	for out.HasNext() {
 		// 👇 look at each byte to see if it is an order
@@ -274,7 +280,7 @@ outer:
 		}
 	}
 	// 👇 when we're done with all the orders, organize the buffer into fields
-	c.flds.Build()
+	c.flds.Build(fldGen)
 }
 
 func (c *Consumer) char(char byte, fldAddr int, fldAttrs *attrs.Attrs) {
@@ -283,6 +289,7 @@ func (c *Consumer) char(char byte, fldAddr int, fldAttrs *attrs.Attrs) {
 			Attrs:   fldAttrs,
 			Char:    conv.E2A(char),
 			FldAddr: fldAddr,
+			FldGen:  fldGen,
 		}
 		c.buf.SetAndNext(cell)
 	}
@@ -325,6 +332,7 @@ func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) 
 		Attrs:   fldAttrs,
 		Char:    conv.E2A(ebcdic),
 		FldAddr: fldAddr,
+		FldGen:  fldGen,
 	}
 	return c.cells.RA(cell, c.buf.Addr(), stop)
 }
@@ -348,7 +356,15 @@ func (c *Consumer) sf(out *stream.Outbound) (int, *attrs.Attrs) {
 	c.buf.SetMode(consts.FIELD_MODE)
 	raw, _ := out.Next()
 	fldAttrs := attrs.NewBasic(raw)
-	fldAddr := c.buf.StartFld(fldAttrs)
+	fldAddr := c.buf.Addr()
+	sf := &buffer.Cell{
+		Attrs:    fldAttrs,
+		Char:     byte(consts.SF),
+		FldAddr:  fldAddr,
+		FldStart: true,
+		FldGen:   fldGen,
+	}
+	c.buf.SetAndNext(sf)
 	return fldAddr, fldAttrs
 }
 
@@ -357,6 +373,14 @@ func (c *Consumer) sfe(out *stream.Outbound) (int, *attrs.Attrs) {
 	count, _ := out.Next()
 	raw, _ := out.NextSlice(int(count) * 2)
 	fldAttrs := attrs.NewExtended(raw)
-	fldAddr := c.buf.StartFld(fldAttrs)
+	fldAddr := c.buf.Addr()
+	sf := &buffer.Cell{
+		Attrs:    fldAttrs,
+		Char:     byte(consts.SFE),
+		FldAddr:  fldAddr,
+		FldStart: true,
+		FldGen:   fldGen,
+	}
+	c.buf.SetAndNext(sf)
 	return fldAddr, fldAttrs
 }

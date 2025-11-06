@@ -1,7 +1,6 @@
 package buffer
 
 import (
-	"go3270/emulator/attrs"
 	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
 )
@@ -119,36 +118,25 @@ func (b *Buffer) PrevGet() (*Cell, int) {
 
 //    Set() cell at current address, no side effects
 //    SetAndNext() replace cell at current address, then advance to next
-//    StartFld() like SetAndNext(), but for a pre-fab'd SF field
 //    PrevAndSet() point to previous cell then replace it
 
-func (b *Buffer) Set(c *Cell) int {
-	b.buf[b.addr] = c
+func (b *Buffer) Set(cell *Cell) int {
+	b.buf[b.addr] = cell
 	return b.addr
 }
 
-func (b *Buffer) SetAndNext(c *Cell) int {
-	addr := b.Set(c)
+func (b *Buffer) SetAndNext(cell *Cell) int {
+	addr := b.Set(cell)
 	if b.addr++; b.addr >= len(b.buf) {
 		b.addr = 0
 	}
 	return addr
 }
 
-func (b *Buffer) StartFld(a *attrs.Attrs) int {
-	c := Cell{
-		Attrs:    a,
-		Char:     byte(consts.SF),
-		FldAddr:  b.addr,
-		FldStart: true,
-	}
-	return b.SetAndNext(&c)
-}
-
-func (b *Buffer) PrevAndSet(c *Cell) int {
+func (b *Buffer) PrevAndSet(cell *Cell) int {
 	if b.addr--; b.addr < 0 {
 		b.addr = len(b.buf) - 1
 	}
-	addr := b.Set(c)
+	addr := b.Set(cell)
 	return addr
 }

@@ -12,12 +12,13 @@ type Cell struct {
 	FldAddr  int
 	FldStart bool
 	FldEnd   bool
+	FldGen   int
 }
 
 // 🟦 Constructor
 
 func NewCell() *Cell {
 	c := new(Cell)
-	c.Attrs = attrs.NewBasic(0)
+	c.Attrs = &attrs.Attrs{Default: true}
 	return c
 }
