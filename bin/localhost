@@ -1,0 +1,2 @@
+#!/bin/bash
+(cd .. && bun run dist/server/index.js --root dist/client --port 3000)

@@ -1,0 +1,2 @@
+#!/bin/bash
+(cd .. && bun run src/builder/index.ts "$@")

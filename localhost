@@ -1,2 +1,0 @@
-#!/bin/bash
-bun run /home/markf/mflorence99/go-3270/dist/server/index.js --root /home/markf/mflorence99/go-3270/dist/client --port 3000
