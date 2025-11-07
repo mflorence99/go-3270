@@ -38,7 +38,7 @@ func (l *Logger) logBuffer() {
 					if cell.FldStart {
 						row += utils.Ternary(cell.Attrs.Protected, "\u00b6", "\u00bb")
 					} else {
-						row += string(utils.Ternary(cell.Char <= 0x40, ' ', conv.E2A(cell.Char)))
+						row += string(utils.Ternary(cell.Char <= 0x40, ' ', conv.E2Rune(cell.Attrs.LCID, cell.Char)))
 					}
 				}
 			}

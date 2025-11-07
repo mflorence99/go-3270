@@ -32,7 +32,7 @@ func (f Fld) String() string {
 	for ix := 1; ix < len(f); ix++ {
 		cell := f[ix]
 		if cell.Char >= 0x40 {
-			b.WriteByte(conv.E2A(cell.Char))
+			b.WriteRune(conv.E2Rune(cell.Attrs.LCID, cell.Char))
 		}
 	}
 	return strings.TrimSpace(b.String())

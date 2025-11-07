@@ -43,7 +43,7 @@ func (c *Cells) reset() {
 
 // 🟦 Public functions
 
-func (c *Cells) FillLeft(cell *Cell, stop int) {
+func (c *Cells) FillOlder2Left(cell *Cell, stop int) {
 	for ix := stop; ; ix-- {
 		// 🔥 note wrap around
 		addr := (ix - 1) % c.buf.Len()

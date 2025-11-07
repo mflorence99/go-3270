@@ -3,6 +3,7 @@ package consts
 // 🟧 3270 field and extended attributes
 
 type Attrs struct {
+	Autoskip   bool
 	Blink      bool
 	Color      Color
 	Hidden     bool
@@ -46,6 +47,7 @@ func (a *Attrs) fromByte(char byte) {
 	a.Modified = (char & 0b00000001) != 0
 	a.Numeric = (char & 0b00010000) != 0
 	a.Protected = (char & 0b00100000) != 0
+	a.Autoskip = a.Protected && a.Numeric
 	// 🔥 set the default color attributes - ignored if monochrome -- checking for "hidden" is a more accurate reading of the spec, but only affects the cursor color
 	switch {
 	case !a.Protected && (a.Highlight || a.Hidden):

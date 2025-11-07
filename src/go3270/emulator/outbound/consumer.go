@@ -164,9 +164,9 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 		case consts.READ_PARTITION:
 			c.rp(sfld)
 
-		// TODO 🔥 not yet handled
+		// TODO 🔥 only READ_PARTITION is implemented
 		default:
-			println(fmt.Sprintf("🔥 SFld %s not handled", sfld))
+			c.bus.PubPanic(fmt.Sprintf("🔥 SFld %s not implemented", sfld))
 
 		}
 	}
@@ -223,9 +223,10 @@ func (c *Consumer) rp(sfld consts.SFld) {
 // 🟦 Orders
 
 func (c *Consumer) orders(out *stream.Outbound) {
-	fldGen++
 	fldAddr := -1
 	fldAttrs := &consts.Attrs{Default: true}
+	// 👇 each stream of orders is given an unique ID to help us separate fields after a W command
+	fldGen++
 	// 👇 look at each byte to see if it is an order
 outer:
 	for out.HasNext() {
@@ -290,7 +291,7 @@ func (c *Consumer) char(char byte, fldAddr int, fldAttrs *consts.Attrs) {
 		FldGen:  fldGen,
 	}
 	if fldAddr != -1 {
-		c.cells.FillLeft(cell, c.buf.Addr())
+		c.cells.FillOlder2Left(cell, c.buf.Addr())
 	}
 	c.buf.SetAndNext(cell)
 }
@@ -301,9 +302,9 @@ func (c *Consumer) eua(out *stream.Outbound) bool {
 	return c.cells.EUA(c.buf.Addr(), stop)
 }
 
-// TODO 🔥 GE not properly handled -- what alt character set??
 func (c *Consumer) ge(out *stream.Outbound, fldAddr int, fldAttrs *consts.Attrs) {
 	char, _ := out.Next()
+	// TODO 🔥 GE not properly handled -- what alt character set??
 	fldAttrs.LCID = 0xf1
 	c.char(char, fldAddr, fldAttrs)
 }
@@ -325,7 +326,7 @@ func (c *Consumer) mf(out *stream.Outbound) {
 
 // TODO 🔥 PT not handled
 func (c *Consumer) pt() {
-	c.bus.PubPanic("🔥 PT not handled")
+	c.bus.PubPanic("🔥 PT not implemented")
 }
 
 func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *consts.Attrs) bool {
@@ -366,15 +367,7 @@ func (c *Consumer) sf(out *stream.Outbound) (int, *consts.Attrs) {
 	raw, _ := out.Next()
 	fldAttrs := consts.NewBasicAttrs(raw)
 	fldAddr := c.buf.Addr()
-	sf := &buffer.Cell{
-		Attrs:    fldAttrs,
-		Char:     byte(consts.SF),
-		FldAddr:  fldAddr,
-		FldStart: true,
-		FldEnd:   false, // 👈 completed by flds.Build()
-		FldGen:   fldGen,
-	}
-	c.buf.SetAndNext(sf)
+	c.sfImpl(fldAddr, fldAttrs)
 	return fldAddr, fldAttrs
 }
 
@@ -384,14 +377,23 @@ func (c *Consumer) sfe(out *stream.Outbound) (int, *consts.Attrs) {
 	raw, _ := out.NextSlice(int(count) * 2)
 	fldAttrs := consts.NewExtendedAttrs(raw)
 	fldAddr := c.buf.Addr()
+	c.sfImpl(fldAddr, fldAttrs)
+	return fldAddr, fldAttrs
+}
+
+func (c *Consumer) sfImpl(fldAddr int, fldAttrs *consts.Attrs) {
+	// 🔥 as per spec, if we start a new field at r1/c1 then treat like an EW -- if we get here after a real EW, we'll reset a second time -- the clarirt of the code outweighs any small perf hit
+	if c.buf.Addr() == 0 {
+		c.bus.PubReset()
+	}
+	// 👇 now we can insert the Sf
 	sf := &buffer.Cell{
 		Attrs:    fldAttrs,
-		Char:     byte(consts.SFE),
+		Char:     byte(consts.SF),
 		FldAddr:  fldAddr,
 		FldStart: true,
 		FldEnd:   false, // 👈 completed by flds.Build()
 		FldGen:   fldGen,
 	}
 	c.buf.SetAndNext(sf)
-	return fldAddr, fldAttrs
 }

@@ -73,8 +73,8 @@ func (f *Flds) allThoseCellsAreMine(flds []Fld, fldGen int) []Fld {
 				break
 			}
 			cell, _ := f.buf.Peek(addr)
-			// 👇 these are cells that got filled outside of a known field
-			if cell.FldAddr == -1 || cell.Attrs.Default {
+			// 👇 use the field attributes for cells that were never initialized, or those that used to belong to a now-overwritten field
+			if cell.Attrs.Default || sf.FldAddr != cell.FldAddr {
 				cell.Attrs = sf.Attrs
 			}
 			// 👇 make the cell mine

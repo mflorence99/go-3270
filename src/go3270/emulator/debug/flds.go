@@ -17,8 +17,10 @@ func (l *Logger) logFlds() {
 		"Row",
 		"Col",
 		"Len",
-		"PROT",
+		"Gen",
+		"HIDDEN",
 		"MDT",
+		"PROT",
 		"Data",
 	})
 	// 👇 data rows
@@ -30,8 +32,10 @@ func (l *Logger) logFlds() {
 			row,
 			col,
 			len(fld),
-			utils.Ternary(sf.Attrs.Protected, "PROT", ""),
+			sf.FldGen,
+			utils.Ternary(sf.Attrs.Hidden, "HIDDEN", ""),
 			utils.Ternary(sf.Attrs.Modified, "MDT", ""),
+			utils.Ternary(sf.Attrs.Protected, "PROT", ""),
 			utils.Truncate(fld.String(), 60),
 		})
 	}
