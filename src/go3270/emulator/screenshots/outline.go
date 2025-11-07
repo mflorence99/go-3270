@@ -1,7 +1,6 @@
 package screenshots
 
 import (
-	"go3270/emulator/attrs"
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
 	"go3270/emulator/wcc"
@@ -18,7 +17,7 @@ var OUTLINE = []any{
 	consts.SFE,
 	0x03,
 	consts.BASIC,
-	(&attrs.Attrs{Protected: true}).Byte(),
+	(&consts.Attrs{Protected: true}).Byte(),
 	consts.HIGHLIGHT,
 	consts.INTENSIFY,
 	consts.OUTLINE,
@@ -30,14 +29,14 @@ var OUTLINE = []any{
 	consts.SFE,
 	0x03,
 	consts.BASIC,
-	(&attrs.Attrs{Protected: true}).Byte(),
+	(&consts.Attrs{Protected: true}).Byte(),
 	consts.HIGHLIGHT,
 	consts.INTENSIFY,
 	consts.OUTLINE,
 	consts.OUTLINE_BOTTOM | consts.OUTLINE_LEFT,
 	"Header 2",
 	consts.SF,
-	(&attrs.Attrs{Protected: true}).Byte(),
+	(&consts.Attrs{Protected: true}).Byte(),
 
 	consts.SBA,
 	conv.Addr2Bytes(80),
@@ -55,7 +54,7 @@ var OUTLINE = []any{
 	consts.OUTLINE_TOP | consts.OUTLINE_LEFT,
 	"Cell 1/2",
 	consts.SF,
-	(&attrs.Attrs{Protected: true}).Byte(),
+	(&consts.Attrs{Protected: true}).Byte(),
 
 	consts.SBA,
 	conv.Addr2Bytes(160),
@@ -73,7 +72,7 @@ var OUTLINE = []any{
 	consts.OUTLINE_TOP | consts.OUTLINE_LEFT,
 	"Cell 2/2",
 	consts.SF,
-	(&attrs.Attrs{Protected: true}).Byte(),
+	(&consts.Attrs{Protected: true}).Byte(),
 
 	consts.SBA,
 	conv.Addr2Bytes(240),
@@ -91,12 +90,12 @@ var OUTLINE = []any{
 	consts.OUTLINE_TOP | consts.OUTLINE_LEFT,
 	"Cell 3/2",
 	consts.SF,
-	(&attrs.Attrs{Protected: true}).Byte(),
+	(&consts.Attrs{Protected: true}).Byte(),
 
 	consts.SBA,
 	conv.Addr2Bytes(240),
 	consts.SF,
-	(&attrs.Attrs{Protected: true}).Byte(),
+	(&consts.Attrs{Protected: true}).Byte(),
 	"Ooops, I wanted data here",
 
 	consts.SBA,

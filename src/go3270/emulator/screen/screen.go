@@ -106,7 +106,6 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 	// 👇 gather related data
 	box := s.cps[addr]
 	cell, _ := s.buf.Peek(addr)
-	sf, _ := s.buf.Peek(cell.FldAddr)
 	// 👇 ignore color if monochrome
 	ix := utils.Ternary(cell.Attrs.Color == 0x00 || s.cfg.Monochrome, 0xF4, cell.Attrs.Color)
 	color := s.cfg.CLUT[ix]
@@ -114,7 +113,8 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 	highlight := cell.Attrs.Highlight
 	lcid := cell.Attrs.LCID
 	// 🔥 outlined field can't be reverse or underscore
-	outline := sf.Attrs.Outline != 0x00
+	sf, ok := s.buf.Peek(cell.FldAddr)
+	outline := ok && sf.Attrs.Outline != 0x00
 	reverse := cell.Attrs.Reverse && !outline
 	underscore := cell.Attrs.Underscore && !outline && !cell.FldStart
 	// 🔥 != is the Go idiom for XOR

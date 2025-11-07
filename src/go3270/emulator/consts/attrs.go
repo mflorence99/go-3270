@@ -1,18 +1,16 @@
-package attrs
-
-import "go3270/emulator/consts"
+package consts
 
 // 🟧 3270 field and extended attributes
 
 type Attrs struct {
 	Blink      bool
-	Color      consts.Color
+	Color      Color
 	Hidden     bool
 	Highlight  bool
-	LCID       consts.LCID
+	LCID       LCID
 	Modified   bool
 	Numeric    bool
-	Outline    consts.Outline
+	Outline    Outline
 	Protected  bool
 	Reverse    bool
 	Underscore bool
@@ -23,20 +21,20 @@ type Attrs struct {
 
 // 🟦 Constructors
 
-func NewBasic(char byte) *Attrs {
+func NewBasicAttrs(char byte) *Attrs {
 	a := new(Attrs)
 	a.fromByte(char)
 	return a
 }
 
-func NewExtended(chars []byte) *Attrs {
+func NewExtendedAttrs(chars []byte) *Attrs {
 	a := new(Attrs)
 	a.fromBytes(chars)
 	return a
 }
 
 // 🔥 note that we are taking a copy and overwriting deltas
-func NewModified(attrs *Attrs, chars []byte) *Attrs {
+func NewModifiedAttrs(attrs *Attrs, chars []byte) *Attrs {
 	a := *attrs
 	a.fromBytes(chars)
 	return &a
@@ -64,40 +62,40 @@ func (a *Attrs) fromByte(char byte) {
 func (a *Attrs) fromBytes(chars []byte) {
 	for ix := 0; ix < len(chars)-1; ix += 2 {
 		chunk := chars[ix : ix+2]
-		typecode := consts.Typecode(chunk[0])
+		typecode := Typecode(chunk[0])
 		switch typecode {
 
-		case consts.BASIC:
+		case BASIC:
 			basic := chunk[1]
 			a.fromByte(basic)
 
-		case consts.HIGHLIGHT:
+		case HIGHLIGHT:
 			a.Blink = false
 			a.Reverse = false
 			a.Underscore = false
 			a.Highlight = false
-			highlight := consts.Highlight(chunk[1])
+			highlight := Highlight(chunk[1])
 			switch highlight {
-			case consts.BLINK:
+			case BLINK:
 				a.Blink = true
-			case consts.REVERSE:
+			case REVERSE:
 				a.Reverse = true
-			case consts.UNDERSCORE:
+			case UNDERSCORE:
 				a.Underscore = true
-			case consts.INTENSIFY:
+			case INTENSIFY:
 				a.Highlight = true
 			}
 
-		case consts.COLOR:
-			color := consts.Color(chunk[1])
+		case COLOR:
+			color := Color(chunk[1])
 			a.Color = color
 
-		case consts.CHARSET:
-			lcid := consts.LCID(chunk[1])
+		case CHARSET:
+			lcid := LCID(chunk[1])
 			a.LCID = lcid
 
-		case consts.OUTLINE:
-			outline := consts.Outline(chunk[1])
+		case OUTLINE:
+			outline := Outline(chunk[1])
 			a.Outline = outline
 		}
 	}

@@ -2,6 +2,7 @@ package debug
 
 import (
 	"fmt"
+	"go3270/emulator/conv"
 	"go3270/emulator/utils"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -37,7 +38,7 @@ func (l *Logger) logBuffer() {
 					if cell.FldStart {
 						row += utils.Ternary(cell.Attrs.Protected, "\u00b6", "\u00bb")
 					} else {
-						row += string(utils.Ternary(cell.Char <= ' ', ' ', cell.Char))
+						row += string(utils.Ternary(cell.Char <= 0x40, ' ', conv.E2A(cell.Char)))
 					}
 				}
 			}

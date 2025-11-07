@@ -1,13 +1,13 @@
 package buffer
 
 import (
-	"go3270/emulator/attrs"
+	"go3270/emulator/consts"
 )
 
 // 🟧 Cell in buffer
 
 type Cell struct {
-	Attrs    *attrs.Attrs
+	Attrs    *consts.Attrs
 	Char     byte
 	FldAddr  int
 	FldStart bool
@@ -19,6 +19,6 @@ type Cell struct {
 
 func NewCell() *Cell {
 	c := new(Cell)
-	c.Attrs = &attrs.Attrs{Default: true}
+	c.Attrs = &consts.Attrs{Default: true}
 	return c
 }

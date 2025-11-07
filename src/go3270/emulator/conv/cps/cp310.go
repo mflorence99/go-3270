@@ -1,10 +1,10 @@
 package cps
 
+// 🟧 CP 037
+
+// 👁️ https://en.wikipedia.org/wiki/Digital_encoding_of_APL_symbols?utm_source=chatgpt.com#Code_page_310
+
 var CP310 = []rune{
-	// start on line 64 to make reconciliation easier
-	// start on line 64 to make reconciliation easier
-	// start on line 64 to make reconciliation easier
-	// start on line 64 to make reconciliation easier
 	// start on line 64 to make reconciliation easier
 	// start on line 64 to make reconciliation easier
 	// start on line 64 to make reconciliation easier

@@ -2,7 +2,6 @@ package debug
 
 import (
 	"fmt"
-	"go3270/emulator/attrs"
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
@@ -51,7 +50,7 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 	defer t.Render()
 	addr := 0
 	fldAddr := 0
-	fldAttrs := &attrs.Attrs{Protected: true}
+	fldAttrs := &consts.Attrs{Protected: true}
 	// 👇 header
 	t.AppendHeader(table.Row{
 		"",
@@ -92,7 +91,7 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 		case consts.MF:
 			count, _ := out.Next()
 			raw, _ := out.NextSlice(int(count) * 2)
-			fldAttrs = attrs.NewExtended(raw)
+			fldAttrs = consts.NewExtendedAttrs(raw)
 			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr}
 			l.withAttrs(t, order, addr, cell)
 			addr++
@@ -103,13 +102,17 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 		case consts.RA:
 			raw, _ := out.NextSlice(2)
 			char, _ := out.Next()
+			if consts.Order(char) == consts.GE {
+				char, _ = out.Next()
+				l.withoutAttrs(t, consts.GE, addr, conv.E2A(char))
+			}
 			l.withoutAttrs(t, order, addr, conv.E2A(char))
 			addr = conv.Bytes2Addr(raw)
 			l.withoutAttrs(t, order, addr, conv.E2A(char))
 
 		case consts.SA:
 			chars, _ := out.NextSlice(2)
-			fldAttrs = attrs.NewModified(fldAttrs, chars)
+			fldAttrs = consts.NewModifiedAttrs(fldAttrs, chars)
 			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr}
 			l.withAttrs(t, order, addr, cell)
 
@@ -121,7 +124,7 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 		case consts.SF:
 			raw, _ := out.Next()
 			fldAddr = addr
-			fldAttrs = attrs.NewBasic(raw)
+			fldAttrs = consts.NewBasicAttrs(raw)
 			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr, FldStart: true}
 			l.withAttrs(t, order, addr, cell)
 			addr++
@@ -130,7 +133,7 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 			count, _ := out.Next()
 			raw, _ := out.NextSlice(int(count) * 2)
 			fldAddr = addr
-			fldAttrs = attrs.NewExtended(raw)
+			fldAttrs = consts.NewExtendedAttrs(raw)
 			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr, FldStart: true}
 			l.withAttrs(t, order, addr, cell)
 			addr++

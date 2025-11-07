@@ -3,6 +3,7 @@ package keyboard
 import (
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
+	"go3270/emulator/conv"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/state"
 	"go3270/emulator/utils"
@@ -151,7 +152,7 @@ func (k *Keyboard) backspace() (int, bool) {
 	}
 	// 👇 reposition to previous cell and update it
 	k.buf.Seek(addr)
-	cell.Char = ' '
+	cell.Char = 0x40
 	cell.Attrs.Modified = true
 	addr = k.buf.Set(cell)
 	// 👇 set the MDT flag at the field level
@@ -179,7 +180,7 @@ func (k *Keyboard) keyin(char byte) (int, bool) {
 		return -1, false
 	}
 	// 👇 update cell and advance to next
-	cell.Char = char
+	cell.Char = conv.A2E(char)
 	cell.Attrs.Modified = true
 	addr := k.buf.SetAndNext(cell)
 	// 👇 set the MDT flag at the field level

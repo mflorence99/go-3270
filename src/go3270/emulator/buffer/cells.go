@@ -2,7 +2,7 @@ package buffer
 
 import (
 	"fmt"
-	"go3270/emulator/attrs"
+	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
 )
 
@@ -84,7 +84,7 @@ func (c *Cells) EUA(start, stop int) bool {
 
 func (c *Cells) MF(chars []byte) {
 	cell, _ := c.buf.Get()
-	cell.Attrs = attrs.NewModified(cell.Attrs, chars)
+	cell.Attrs = consts.NewModifiedAttrs(cell.Attrs, chars)
 	c.buf.SetAndNext(cell)
 }
 

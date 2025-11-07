@@ -2,7 +2,6 @@ package outbound
 
 import (
 	"fmt"
-	"go3270/emulator/attrs"
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
@@ -226,7 +225,7 @@ func (c *Consumer) rp(sfld consts.SFld) {
 func (c *Consumer) orders(out *stream.Outbound) {
 	fldGen++
 	fldAddr := -1
-	fldAttrs := &attrs.Attrs{Default: true}
+	fldAttrs := &consts.Attrs{Default: true}
 	// 👇 look at each byte to see if it is an order
 outer:
 	for out.HasNext() {
@@ -283,7 +282,7 @@ outer:
 	c.flds.Build(fldGen)
 }
 
-func (c *Consumer) char(char byte, fldAddr int, fldAttrs *attrs.Attrs) {
+func (c *Consumer) char(char byte, fldAddr int, fldAttrs *consts.Attrs) {
 	cell := &buffer.Cell{
 		Attrs:   fldAttrs,
 		Char:    char,
@@ -303,8 +302,9 @@ func (c *Consumer) eua(out *stream.Outbound) bool {
 }
 
 // TODO 🔥 GE not properly handled -- what alt character set??
-func (c *Consumer) ge(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) {
+func (c *Consumer) ge(out *stream.Outbound, fldAddr int, fldAttrs *consts.Attrs) {
 	char, _ := out.Next()
+	fldAttrs.LCID = 0xf1
 	c.char(char, fldAddr, fldAttrs)
 }
 
@@ -328,10 +328,15 @@ func (c *Consumer) pt() {
 	c.bus.PubPanic("🔥 PT not handled")
 }
 
-func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) bool {
+func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *consts.Attrs) bool {
 	raw, _ := out.NextSlice(2)
 	stop := conv.Bytes2Addr(raw)
 	char, _ := out.Next()
+	if consts.Order(char) == consts.GE {
+		// TODO 🔥 GE not properly handled -- what alt character set??
+		fldAttrs.LCID = 0xf1
+		char, _ = out.Next()
+	}
 	cell := &buffer.Cell{
 		Attrs:   fldAttrs,
 		Char:    char,
@@ -341,10 +346,10 @@ func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *attrs.Attrs) 
 	return c.cells.RA(cell, c.buf.Addr(), stop)
 }
 
-func (c *Consumer) sa(out *stream.Outbound, fldAttrs *attrs.Attrs) *attrs.Attrs {
+func (c *Consumer) sa(out *stream.Outbound, fldAttrs *consts.Attrs) *consts.Attrs {
 	c.buf.SetMode(consts.CHARACTER_MODE)
 	chars, _ := out.NextSlice(2)
-	return attrs.NewModified(fldAttrs, chars)
+	return consts.NewModifiedAttrs(fldAttrs, chars)
 }
 
 func (c *Consumer) sba(out *stream.Outbound) {
@@ -356,10 +361,10 @@ func (c *Consumer) sba(out *stream.Outbound) {
 	c.buf.Seek(addr)
 }
 
-func (c *Consumer) sf(out *stream.Outbound) (int, *attrs.Attrs) {
+func (c *Consumer) sf(out *stream.Outbound) (int, *consts.Attrs) {
 	c.buf.SetMode(consts.FIELD_MODE)
 	raw, _ := out.Next()
-	fldAttrs := attrs.NewBasic(raw)
+	fldAttrs := consts.NewBasicAttrs(raw)
 	fldAddr := c.buf.Addr()
 	sf := &buffer.Cell{
 		Attrs:    fldAttrs,
@@ -373,11 +378,11 @@ func (c *Consumer) sf(out *stream.Outbound) (int, *attrs.Attrs) {
 	return fldAddr, fldAttrs
 }
 
-func (c *Consumer) sfe(out *stream.Outbound) (int, *attrs.Attrs) {
+func (c *Consumer) sfe(out *stream.Outbound) (int, *consts.Attrs) {
 	c.buf.SetMode(consts.EXTENDED_FIELD_MODE)
 	count, _ := out.Next()
 	raw, _ := out.NextSlice(int(count) * 2)
-	fldAttrs := attrs.NewExtended(raw)
+	fldAttrs := consts.NewExtendedAttrs(raw)
 	fldAddr := c.buf.Addr()
 	sf := &buffer.Cell{
 		Attrs:    fldAttrs,

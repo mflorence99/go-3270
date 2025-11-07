@@ -1,6 +1,7 @@
 package buffer
 
 import (
+	"go3270/emulator/conv"
 	"strings"
 )
 
@@ -30,8 +31,8 @@ func (f Fld) String() string {
 	var b strings.Builder
 	for ix := 1; ix < len(f); ix++ {
 		cell := f[ix]
-		if cell.Char >= ' ' {
-			b.WriteByte(cell.Char)
+		if cell.Char >= 0x40 {
+			b.WriteByte(conv.E2A(cell.Char))
 		}
 	}
 	return strings.TrimSpace(b.String())
