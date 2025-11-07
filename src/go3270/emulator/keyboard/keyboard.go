@@ -188,6 +188,11 @@ func (k *Keyboard) keyin(char byte) (int, bool) {
 	if !ok {
 		return -1, false
 	}
+	// 👇 if we typed into a field start with autoskip, tab to next
+	next, _ := k.buf.Get()
+	if next.FldStart && next.Attrs.Autoskip {
+		return k.tab(+1)
+	}
 	return addr, true
 }
 
