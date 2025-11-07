@@ -16,14 +16,14 @@
   font-family: Terminal;
   font-style: normal;
   font-weight: normal;
-  src: url('$client/fonts/IBMPlexMono-Regular.ttf') format('truetype');
+  src: url('$client/fonts/NotoSansMono-Regular.ttf') format('truetype');
 }
 
 @font-face {
   font-family: Terminal;
   font-style: normal;
   font-weight: bold;
-  src: url('$client/fonts/IBMPlexMono-Bold.ttf') format('truetype');
+  src: url('$client/fonts/NotoSansMono-Bold.ttf') format('truetype');
 }
 
 @font-face {
