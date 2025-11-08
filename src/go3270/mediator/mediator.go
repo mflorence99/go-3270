@@ -20,9 +20,9 @@ import (
 // 🔥 Hack alert! we must use extension {js, wasm} and we can't use symlinks, so this file is a copy of the font renamed
 
 var (
-	//go:embed NotoSansMono-Regular.ttf.wasm
+	//go:embed JuliaMono-Regular.ttf.wasm
 	normalFontEmbed []byte
-	//go:embed NotoSansMono-Bold.ttf.wasm
+	//go:embed JuliaMono-Bold.ttf.wasm
 	boldFontEmbed []byte
 )
 
