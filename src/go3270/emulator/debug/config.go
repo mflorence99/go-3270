@@ -12,7 +12,7 @@ import (
 func (l *Logger) logConfig() {
 	t := l.newTable(text.FgHiBlue, "Config")
 	defer t.Render()
-	// 👇 table rows
+
 	t.AppendHeader(table.Row{
 		"",
 		"",
@@ -39,6 +39,7 @@ func (l *Logger) logConfig() {
 		"Height",
 		"Test",
 	})
+
 	t.AppendRow(table.Row{
 		"CFG",
 		l.cfg.Rows,

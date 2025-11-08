@@ -12,6 +12,7 @@ import (
 func (l *Logger) logFlds() {
 	t := l.newTable(text.FgHiBlue, "Buffer Fields")
 	defer t.Render()
+
 	// 👇 header rows
 	t.AppendHeader(table.Row{
 		"Row",
@@ -23,6 +24,7 @@ func (l *Logger) logFlds() {
 		"PROT",
 		"Data",
 	})
+
 	// 👇 data rows
 	for _, fld := range l.flds.Get() {
 		sf, _ := fld.FldStart()

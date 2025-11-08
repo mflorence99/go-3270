@@ -12,13 +12,14 @@ import (
 func (l *Logger) logWCC(wcc wcc.WCC) {
 	t := l.newTable(text.FgHiBlue, "")
 	defer t.Render()
-	// 👇 table rows
+
 	t.SetColumnConfigs([]table.ColumnConfig{
 		{Number: 2, Align: text.AlignCenter},
 		{Number: 3, Align: text.AlignCenter},
 		{Number: 4, Align: text.AlignCenter},
 		{Number: 5, Align: text.AlignCenter},
 	})
+
 	t.AppendHeader(table.Row{
 		"",
 		"Alarm",
@@ -26,6 +27,7 @@ func (l *Logger) logWCC(wcc wcc.WCC) {
 		"ResetMDT",
 		"Unlock",
 	})
+
 	t.AppendRow(table.Row{
 		"WCC",
 		l.boolean(wcc.Alarm),

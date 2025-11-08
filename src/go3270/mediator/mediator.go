@@ -174,7 +174,7 @@ func (m *Mediator) jsInterface() js.Value {
 	return js.ValueOf(functions)
 }
 
-// 🟦 Forward messages to UI from subscriptions via dispatchEvent
+// 🟦 Forward messages from subscriptions to UI via dispatchEvent
 
 func (m *Mediator) dispatchEvent(params map[string]any) {
 	event := js.Global().Get("CustomEvent").New("go3270", map[string]any{

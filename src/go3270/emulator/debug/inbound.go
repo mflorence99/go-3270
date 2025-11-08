@@ -25,15 +25,18 @@ func (l *Logger) logInbound(chars []byte) {
 	if ok {
 		t := l.newTable(text.FgHiGreen, fmt.Sprintf("%s Inbound (3270 -> App)", aid))
 		defer t.Render()
+
 		// 👇 table rows
 		t.AppendHeader(table.Row{"Row", "Col", "Data"})
 		t.SetColumnConfigs([]table.ColumnConfig{
 			{Number: 3, Transformer: l.wrap(80), WidthMax: 80},
 		})
+
 		// 👇 one row just for the cursor
 		cursorAt := conv.Bytes2Addr(raw)
 		row, col := l.cfg.Addr2RC(cursorAt)
 		t.AppendRow(table.Row{row, col, "(cursorAt)"})
+
 		// 👇 we will aggregate data delimited by SBA's
 		data := make([]byte, 0)
 		// 👇 look at each byte to see if it is an order
@@ -56,6 +59,7 @@ func (l *Logger) logInbound(chars []byte) {
 
 			}
 		}
+
 		// 👇 don't forget the last field
 		if len(data) > 0 {
 			t.AppendRow(table.Row{row, col, string(data)})
@@ -70,17 +74,21 @@ func (l *Logger) logInbound(chars []byte) {
 func (l *Logger) logInboundWSF(chars []byte) {
 	t := l.newTable(text.FgHiGreen, ("Inbound WSF (3270 -> App)"))
 	defer t.Render()
+
 	// 👇 convert into a stream for convenience
 	slice, _, ok := bytes.Cut(chars, consts.LT)
 	in := stream.NewOutbound(utils.Ternary(ok, slice, chars))
+
 	// 👇 eat the AID
 	in.Next()
+
 	// 👇 table rows
 	t.AppendHeader(table.Row{"ID", "Type", "Info"})
 	t.SetColumnConfigs([]table.ColumnConfig{
 		{Number: 3, Transformer: l.wrap(60), WidthMax: 60},
 	})
 	sflds := consts.SFldsFromStream(in)
+
 	for _, sfld := range sflds {
 		switch {
 

@@ -15,6 +15,7 @@ import (
 func (l *Logger) logProbe(addr int) {
 	t := l.newTable(text.FgHiRed, "")
 	defer t.Render()
+
 	// 👇 header
 	t.AppendHeader(table.Row{
 		"",
@@ -59,11 +60,13 @@ func (l *Logger) logProbe(addr int) {
 		"Out",
 		"LCID",
 	})
+
 	// 👇 extract data
 	cell, _ := l.buf.Peek(addr)
 	crow, ccol := l.cfg.Addr2RC(addr)
 	frow, fcol := l.cfg.Addr2RC(cell.FldAddr)
 	char := fmt.Sprintf("%#02x '%s'", cell.Char, utils.Ternary(cell.Char >= 0x40, string(conv.E2A(cell.Char)), " "))
+
 	// 👇 cell
 	t.AppendRow(table.Row{
 		char,

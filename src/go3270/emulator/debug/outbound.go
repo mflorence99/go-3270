@@ -51,6 +51,7 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 	addr := 0
 	fldAddr := 0
 	fldAttrs := &consts.Attrs{Protected: true}
+
 	// 👇 header
 	t.AppendHeader(table.Row{
 		"",
@@ -70,6 +71,7 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 		"Out",
 		"LCID",
 	})
+
 	// 👇 look at each byte to see if it is an order
 	for out.HasNext() {
 		char, _ := out.Next()
@@ -149,6 +151,7 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 func (l *Logger) logOutboundWSF(out *stream.Outbound, color text.Color) {
 	t := l.newTable(color, "Outbound WSF (App -> 3270)")
 	defer t.Render()
+
 	// 👇 table rows
 	t.AppendHeader(table.Row{"ID", "Info"})
 	sflds := consts.SFldsFromStream(out)
