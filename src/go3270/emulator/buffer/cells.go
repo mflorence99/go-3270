@@ -65,7 +65,7 @@ func (c *Cells) FillOlder2Left(cell *Cell, stop int) {
 
 func (c *Cells) EUA(start, stop int) bool {
 	if stop < c.buf.Len() {
-		for addr := c.buf.Seek(start); addr != stop; addr = c.buf.Seek(addr + 1) {
+		for addr := c.buf.MustSeek(start); addr != stop; addr = c.buf.MustSeek(addr + 1) {
 			cell, _ := c.buf.Get()
 			if !cell.Attrs.Protected {
 				sf, _ := c.buf.Peek(cell.FldAddr)
@@ -89,7 +89,7 @@ func (c *Cells) MF(chars []byte) {
 
 func (c *Cells) RA(cell *Cell, start, stop int) bool {
 	if stop < c.buf.Len() {
-		for addr := c.buf.Seek(start); addr != stop; addr = c.buf.Seek(addr + 1) {
+		for addr := c.buf.MustSeek(start); addr != stop; addr = c.buf.MustSeek(addr + 1) {
 			copy := *cell
 			c.buf.Replace(&copy, addr)
 		}

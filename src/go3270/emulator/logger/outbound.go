@@ -5,6 +5,7 @@ import (
 	"go3270/emulator/buffer"
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
+	"go3270/emulator/sfld"
 	"go3270/emulator/stream"
 	"go3270/emulator/utils"
 
@@ -16,7 +17,7 @@ import (
 
 func (l *Logger) logOutbound(chars []byte) {
 	// 👇 analyze the commands in the stream
-	out := stream.NewOutbound(chars)
+	out := stream.NewOutbound(chars, l.bus)
 	char, _ := out.Next()
 	cmd := consts.Command(char)
 	// 👇 now we can analyze commands with data
@@ -154,7 +155,7 @@ func (l *Logger) logOutboundWSF(out *stream.Outbound, color text.Color) {
 
 	// 👇 table rows
 	t.AppendHeader(table.Row{"ID", "Info"})
-	sflds := consts.SFldsFromStream(out)
+	sflds := sfld.SFldsFromStream(out)
 	for _, sfld := range sflds {
 		t.AppendRow(table.Row{sfld.ID, fmt.Sprintf("% #x", sfld.Info)})
 	}

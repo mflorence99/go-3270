@@ -6,6 +6,7 @@ import (
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
 	"go3270/emulator/pubsub"
+	"go3270/emulator/sfld"
 	"go3270/emulator/state"
 	"go3270/emulator/stream"
 	"go3270/emulator/utils"
@@ -50,7 +51,7 @@ func (c *Consumer) configure(cfg pubsub.Config) {
 func (c *Consumer) consume(chars []byte) {
 	defer utils.ElapsedTime(time.Now())
 	// 👇 process the commands in the stream
-	out := stream.NewOutbound(chars)
+	out := stream.NewOutbound(chars, c.bus)
 	char, _ := out.Next()
 	cmd := consts.Command(char)
 	c.commands(out, cmd)
@@ -91,7 +92,7 @@ func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 func (c *Consumer) eau() {
 	addr := c.flds.EAU()
 	if addr != -1 {
-		c.buf.Seek(addr + 1)
+		c.buf.MustSeek(addr + 1)
 		c.st.Patch(state.Patch{
 			CursorAt: utils.IntPtr(c.buf.Addr()),
 		})
@@ -156,7 +157,7 @@ func (c *Consumer) wcc(out *stream.Outbound) (wcc.WCC, bool) {
 
 func (c *Consumer) wsf(out *stream.Outbound) {
 	// TODO 🔥 there are a million SF types, but we are interested in READ_PARTITION
-	sflds := consts.SFldsFromStream(out)
+	sflds := sfld.SFldsFromStream(out)
 	for _, sfld := range sflds {
 
 		switch sfld.ID {
@@ -172,7 +173,7 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 	}
 }
 
-func (c *Consumer) rp(sfld consts.SFld) {
+func (c *Consumer) rp(sfld sfld.SFld) {
 	pid := sfld.Info[0]
 	if pid == 0xFF {
 		cmd := sfld.Info[1]
@@ -359,7 +360,7 @@ func (c *Consumer) sba(out *stream.Outbound) {
 	if addr >= c.buf.Len() {
 		c.bus.PubPanic("🔥 Data requires a device with a larger screen")
 	}
-	c.buf.Seek(addr)
+	c.buf.MustSeek(addr)
 }
 
 func (c *Consumer) sf(out *stream.Outbound) (int, *consts.Attrs) {

@@ -2,19 +2,24 @@ package stream
 
 import (
 	"bytes"
+	"encoding/binary"
+	"fmt"
+	"go3270/emulator/pubsub"
 )
 
 // 🟧 Outbound (3270 <- app) data stream
 
 type Outbound struct {
+	bus   *pubsub.Bus
 	chars []byte
 	ix    int
 }
 
 // 🟦 Constructor
 
-func NewOutbound(chars []byte) *Outbound {
+func NewOutbound(chars []byte, bus *pubsub.Bus) *Outbound {
 	out := new(Outbound)
+	out.bus = bus
 	out.chars = chars
 	out.ix = 0
 	return out
@@ -39,15 +44,11 @@ func (out *Outbound) Next() (byte, bool) {
 }
 
 func (out *Outbound) Next16() (uint16, bool) {
-	hi, ok := out.Next()
+	slice, ok := out.NextSlice(2)
 	if !ok {
 		return 0, false
 	}
-	lo, ok := out.Next()
-	if !ok {
-		return 0, false
-	}
-	return (uint16(hi) * 256) + uint16(lo), true
+	return binary.BigEndian.Uint16(slice), true
 }
 
 func (out *Outbound) NextSlice(count int) ([]byte, bool) {
@@ -119,4 +120,24 @@ func (out *Outbound) nextSliceUntilImpl(matches []byte, peek bool) ([]byte, bool
 		}
 		return slice, true
 	}
+}
+
+// 🟦 "Must" functions
+
+func (out *Outbound) MustNext() byte {
+	return out.mustNextImpl(false)
+}
+
+// 🟦 "Must" Helpers
+
+func (out *Outbound) mustNextImpl(peek bool) byte {
+	char, ok := out.nextImpl(peek)
+	if !ok {
+		out.mustPanic()
+	}
+	return char
+}
+
+func (out *Outbound) mustPanic() {
+	out.bus.PubPanic(fmt.Sprintf("🔥 Internal error: outbound data stream corrupted at offset %d", out.ix))
 }

@@ -1,6 +1,7 @@
 package buffer
 
 import (
+	"fmt"
 	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
 )
@@ -75,10 +76,12 @@ func (b *Buffer) Replace(cell *Cell, addr int) (*Cell, bool) {
 	return b.buf[addr], true
 }
 
-func (b *Buffer) Seek(addr int) int {
-	// 🔥 note wrap around
-	b.addr = addr % b.Len()
-	return b.addr
+func (b *Buffer) Seek(addr int) (int, bool) {
+	if addr < 0 || addr >= len(b.buf) {
+		return 0, false
+	}
+	b.addr = addr
+	return b.addr, true
 }
 
 func (b *Buffer) SetMode(mode consts.Mode) consts.Mode {
@@ -86,6 +89,29 @@ func (b *Buffer) SetMode(mode consts.Mode) consts.Mode {
 		b.mode = mode
 	}
 	return b.mode
+}
+
+// 🟦 "Must" functions
+
+//    MustPeek() panics if invaliud addr supplied
+//    MustSeek() treats addr as a circular ref and wraps
+
+func (b *Buffer) MustPeek(addr int) *Cell {
+	cell, ok := b.Peek(addr)
+	if !ok {
+		b.mustAddr(addr)
+	}
+	return cell
+}
+
+func (b *Buffer) MustSeek(addr int) int {
+	b.addr = addr % b.Len()
+	return b.addr
+}
+
+func (b *Buffer) mustAddr(addr int) {
+	row, col := b.cfg.Addr2RC(addr)
+	b.bus.PubPanic(fmt.Sprintf("🔥 Internal error: buffer addr %d/%d out of range", row, col))
 }
 
 // 🟦 Get functions

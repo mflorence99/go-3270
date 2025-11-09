@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
+	"go3270/emulator/sfld"
 	"go3270/emulator/stream"
 	"go3270/emulator/utils"
 
@@ -17,7 +18,7 @@ import (
 func (l *Logger) logInbound(chars []byte) {
 	// 👇 convert into a stream for convenience
 	slice, _, ok := bytes.Cut(chars, consts.LT)
-	in := stream.NewOutbound(utils.Ternary(ok, slice, chars))
+	in := stream.NewOutbound(utils.Ternary(ok, slice, chars), l.bus)
 	char, _ := in.Next()
 	aid := consts.AID(char)
 	// 👇 short reads only contain the AID
@@ -78,7 +79,7 @@ func (l *Logger) logInboundWSF(chars []byte) {
 
 	// 👇 convert into a stream for convenience
 	slice, _, ok := bytes.Cut(chars, consts.LT)
-	in := stream.NewOutbound(utils.Ternary(ok, slice, chars))
+	in := stream.NewOutbound(utils.Ternary(ok, slice, chars), l.bus)
 
 	// 👇 eat the AID
 	in.Next()
@@ -88,7 +89,7 @@ func (l *Logger) logInboundWSF(chars []byte) {
 	t.SetColumnConfigs([]table.ColumnConfig{
 		{Number: 3, Transformer: l.wrap(60), WidthMax: 60},
 	})
-	sflds := consts.SFldsFromStream(in)
+	sflds := sfld.SFldsFromStream(in)
 
 	for _, sfld := range sflds {
 		switch {

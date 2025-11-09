@@ -50,7 +50,7 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 	// 👇 maintain a stack of changed cells
 	deltas := utils.NewStack[int](1)
 	// 👇 make sure we know where to start
-	k.buf.Seek(cursorAt)
+	k.buf.MustSeek(cursorAt)
 	// 👇 pre-analyze AID key
 	aid := consts.AIDOf(key.Key, key.ALT, key.CTRL, key.SHIFT)
 
@@ -126,7 +126,7 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 	if cursorTo != cursorAt {
 		deltas.Push(cursorAt)
 		deltas.Push(cursorTo)
-		k.buf.Seek(cursorTo)
+		k.buf.MustSeek(cursorTo)
 		// 👇 update the status depending on the new cell
 		cell, _ := k.buf.Get()
 		k.st.Patch(state.Patch{
@@ -151,7 +151,7 @@ func (k *Keyboard) backspace() (int, bool) {
 		return -1, false
 	}
 	// 👇 reposition to previous cell and update it
-	k.buf.Seek(addr)
+	k.buf.MustSeek(addr)
 	cell.Char = 0x40
 	cell.Attrs.MDT = true
 	addr = k.buf.Set(cell)
@@ -218,13 +218,13 @@ func (k *Keyboard) tab(dir int) (int, bool) {
 			if dir < 0 && ix == 0 {
 				continue
 			}
-			k.buf.Seek(addr) // 👈 go to FldStart
+			k.buf.MustSeek(addr) // 👈 go to FldStart
 			cell, addr := k.buf.GetNext()
 			// 👇 if the next cell is also a field start (two contiguous SFs) it also doesn't count
 			if cell.FldStart {
 				continue
 			}
-			k.buf.Seek(addr) // 👈 now to first char
+			k.buf.MustSeek(addr) // 👈 now to first char
 			return addr, true
 		}
 	}
