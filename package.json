@@ -1,6 +1,6 @@
 {
   "name": "go-3270",
-  "description": "Go-accelerated 3270 Emulator",
+  "description": "Go-accelerated, browser-hosted IBM 3270 Emulator",
   "license": "MIT",
   "repository": {
     "type": "git",
