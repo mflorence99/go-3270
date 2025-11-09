@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
+	"go3270/emulator/utils"
 )
 
 // 🟧 View the buffer as an array of cells
@@ -46,7 +47,7 @@ func (c *Cells) reset() {
 func (c *Cells) FillOlder2Left(cell *Cell, stop int) {
 	for ix := stop; ; ix-- {
 		// 🔥 note wrap around
-		addr := (ix - 1) % c.buf.Len()
+		addr := utils.Ternary(ix == 0, c.buf.Len()-1, ix-1)
 		left, ok := c.buf.Peek(addr)
 		if ok && left.FldGen != cell.FldGen {
 			left.Attrs = cell.Attrs
@@ -76,7 +77,7 @@ func (c *Cells) EUA(start, stop int) bool {
 		}
 		return true
 	} else {
-		println(fmt.Sprintf("🔥 Inavlid stop address %d in EUA order terminates write", stop))
+		println(fmt.Sprintf("🔥 Invalid stop address %d in EUA order terminates write", stop))
 		return false
 	}
 }
@@ -95,7 +96,7 @@ func (c *Cells) RA(cell *Cell, start, stop int) bool {
 		}
 		return true
 	} else {
-		println(fmt.Sprintf("🔥 Inavlid stop address %d in RA order terminates write", stop))
+		println(fmt.Sprintf("🔥 Invalid stop address %d in RA order terminates write", stop))
 		return false
 	}
 }
