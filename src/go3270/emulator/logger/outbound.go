@@ -18,7 +18,7 @@ import (
 func (l *Logger) logOutbound(chars []byte) {
 	// 👇 analyze the commands in the stream
 	out := stream.NewOutbound(chars, l.bus)
-	char, _ := out.Next()
+	char := out.MustNext()
 	cmd := consts.Command(char)
 	// 👇 now we can analyze commands with data
 	switch cmd {
@@ -75,26 +75,26 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 
 	// 👇 look at each byte to see if it is an order
 	for out.HasNext() {
-		char, _ := out.Next()
+		char := out.MustNext()
 		order := consts.Order(char)
 		switch order {
 
 		case consts.EUA:
-			raw, _ := out.NextSlice(2)
+			raw := out.MustNextSlice(2)
 			l.withoutAttrs(t, order, addr, ' ')
 			addr = conv.Bytes2Addr(raw)
 			l.withoutAttrs(t, order, addr, ' ')
 
 		case consts.GE:
-			char, _ := out.Next()
+			char := out.MustNext()
 			l.withoutAttrs(t, order, addr, conv.E2A(char))
 
 		case consts.IC:
 			l.withoutAttrs(t, order, addr, ' ')
 
 		case consts.MF:
-			count, _ := out.Next()
-			raw, _ := out.NextSlice(int(count) * 2)
+			count := out.MustNext()
+			raw := out.MustNextSlice(int(count) * 2)
 			fldAttrs = consts.NewExtendedAttrs(raw)
 			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr}
 			l.withAttrs(t, order, addr, cell)
@@ -104,10 +104,10 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 			l.withoutAttrs(t, order, addr, ' ')
 
 		case consts.RA:
-			raw, _ := out.NextSlice(2)
-			char, _ := out.Next()
+			raw := out.MustNextSlice(2)
+			char := out.MustNext()
 			if consts.Order(char) == consts.GE {
-				char, _ = out.Next()
+				char = out.MustNext()
 				l.withoutAttrs(t, consts.GE, addr, conv.E2A(char))
 			}
 			l.withoutAttrs(t, order, addr, conv.E2A(char))
@@ -115,18 +115,18 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 			l.withoutAttrs(t, order, addr, conv.E2A(char))
 
 		case consts.SA:
-			chars, _ := out.NextSlice(2)
+			chars := out.MustNextSlice(2)
 			fldAttrs = consts.NewModifiedAttrs(fldAttrs, chars)
 			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr}
 			l.withAttrs(t, order, addr, cell)
 
 		case consts.SBA:
-			raw, _ := out.NextSlice(2)
+			raw := out.MustNextSlice(2)
 			addr = conv.Bytes2Addr(raw)
 			l.withoutAttrs(t, order, addr, 0)
 
 		case consts.SF:
-			raw, _ := out.Next()
+			raw := out.MustNext()
 			fldAddr = addr
 			fldAttrs = consts.NewBasicAttrs(raw)
 			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr, FldStart: true}
@@ -134,8 +134,8 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 			addr++
 
 		case consts.SFE:
-			count, _ := out.Next()
-			raw, _ := out.NextSlice(int(count) * 2)
+			count := out.MustNext()
+			raw := out.MustNextSlice(int(count) * 2)
 			fldAddr = addr
 			fldAttrs = consts.NewExtendedAttrs(raw)
 			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr, FldStart: true}

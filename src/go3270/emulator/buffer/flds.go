@@ -47,7 +47,7 @@ func (f *Flds) Build(fldGen int) {
 func (f *Flds) buildInitialIndex() []Fld {
 	flds := make([]Fld, 0)
 	for ix := 0; ix < f.buf.Len(); ix++ {
-		cell, _ := f.buf.Peek(ix)
+		cell := f.buf.MustPeek(ix)
 		if cell.FldStart {
 			fld := make(Fld, 1)
 			fld[0] = cell
@@ -72,7 +72,7 @@ func (f *Flds) allThoseCellsAreMine(flds []Fld, fldGen int) []Fld {
 			if addr == stop {
 				break
 			}
-			cell, _ := f.buf.Peek(addr)
+			cell := f.buf.MustPeek(addr)
 			// 👇 use the field attributes for cells that were never initialized, or which have (potentially) another field's attributes, or those that used to belong to a now-overwritten field,
 			if cell.Attrs.Default || !cell.Attrs.CharAttr || sf.FldAddr != cell.FldAddr {
 				cell.Attrs = sf.Attrs
@@ -127,14 +127,16 @@ func (f *Flds) EAU() int {
 func (f *Flds) ReadBuffer() []byte {
 	chars := make([]byte, 0)
 	for _, fld := range f.flds {
-		sf, _ := fld.FldStart()
-		chars = append(chars, byte(consts.SF))
-		chars = append(chars, sf.Attrs.Byte())
-		for ix := 1; ix < len(fld); ix++ {
-			cell := fld[ix]
-			char := cell.Char
-			if char != 0x00 {
-				chars = append(chars, char)
+		sf, ok := fld.FldStart()
+		if ok {
+			chars = append(chars, byte(consts.SF))
+			chars = append(chars, sf.Attrs.Byte())
+			for ix := 1; ix < len(fld); ix++ {
+				cell := fld[ix]
+				char := cell.Char
+				if char != 0x00 {
+					chars = append(chars, char)
+				}
 			}
 		}
 	}
@@ -145,8 +147,8 @@ func (f *Flds) ReadBuffer() []byte {
 func (f *Flds) ReadMDTs() []byte {
 	chars := make([]byte, 0)
 	for _, fld := range f.flds {
-		sf, _ := fld.FldStart()
-		if sf.Attrs.MDT {
+		sf, ok := fld.FldStart()
+		if ok && sf.Attrs.MDT {
 			chars = append(chars, byte(consts.SBA))
 			chars = append(chars, conv.Addr2Bytes(sf.FldAddr+1)...)
 			for ix := 1; ix < len(fld); ix++ {

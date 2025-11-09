@@ -52,7 +52,7 @@ func (c *Consumer) consume(chars []byte) {
 	defer utils.ElapsedTime(time.Now())
 	// 👇 process the commands in the stream
 	out := stream.NewOutbound(chars, c.bus)
-	char, _ := out.Next()
+	char := out.MustNext()
 	cmd := consts.Command(char)
 	c.commands(out, cmd)
 }
@@ -231,7 +231,7 @@ func (c *Consumer) orders(out *stream.Outbound) {
 	// 👇 look at each byte to see if it is an order
 outer:
 	for out.HasNext() {
-		char, _ := out.Next()
+		char := out.MustNext()
 		order := consts.Order(char)
 		// 👇 dispatch on order
 		switch order {
@@ -298,13 +298,13 @@ func (c *Consumer) char(char byte, fldAddr int, fldAttrs *consts.Attrs) {
 }
 
 func (c *Consumer) eua(out *stream.Outbound) bool {
-	raw, _ := out.NextSlice(2)
+	raw := out.MustNextSlice(2)
 	stop := conv.Bytes2Addr(raw)
 	return c.cells.EUA(c.buf.Addr(), stop)
 }
 
 func (c *Consumer) ge(out *stream.Outbound, fldAddr int, fldAttrs *consts.Attrs) {
-	char, _ := out.Next()
+	char := out.MustNext()
 	// TODO 🔥 GE not properly handled -- what alt character set??
 	fldAttrs.LCID = 0xf1
 	c.char(char, fldAddr, fldAttrs)
@@ -320,8 +320,8 @@ func (c *Consumer) ic() {
 }
 
 func (c *Consumer) mf(out *stream.Outbound) {
-	count, _ := out.Next()
-	raw, _ := out.NextSlice(int(count) * 2)
+	count := out.MustNext()
+	raw := out.MustNextSlice(int(count) * 2)
 	c.cells.MF(raw)
 }
 
@@ -331,13 +331,13 @@ func (c *Consumer) pt() {
 }
 
 func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *consts.Attrs) bool {
-	raw, _ := out.NextSlice(2)
+	raw := out.MustNextSlice(2)
 	stop := conv.Bytes2Addr(raw)
-	char, _ := out.Next()
+	char := out.MustNext()
 	if consts.Order(char) == consts.GE {
 		// TODO 🔥 GE not properly handled -- what alt character set??
 		fldAttrs.LCID = 0xf1
-		char, _ = out.Next()
+		char = out.MustNext()
 	}
 	cell := &buffer.Cell{
 		Attrs:   fldAttrs,
@@ -350,12 +350,12 @@ func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *consts.Attrs)
 
 func (c *Consumer) sa(out *stream.Outbound, fldAttrs *consts.Attrs) *consts.Attrs {
 	c.buf.SetMode(consts.CHARACTER_MODE)
-	chars, _ := out.NextSlice(2)
+	chars := out.MustNextSlice(2)
 	return consts.NewModifiedAttrs(fldAttrs, chars)
 }
 
 func (c *Consumer) sba(out *stream.Outbound) {
-	raw, _ := out.NextSlice(2)
+	raw := out.MustNextSlice(2)
 	addr := conv.Bytes2Addr(raw)
 	if addr >= c.buf.Len() {
 		c.bus.PubPanic("🔥 Data requires a device with a larger screen")
@@ -365,7 +365,7 @@ func (c *Consumer) sba(out *stream.Outbound) {
 
 func (c *Consumer) sf(out *stream.Outbound) (int, *consts.Attrs) {
 	c.buf.SetMode(consts.FIELD_MODE)
-	raw, _ := out.Next()
+	raw := out.MustNext()
 	fldAttrs := consts.NewBasicAttrs(raw)
 	fldAddr := c.buf.Addr()
 	c.sfImpl(fldAddr, fldAttrs)
@@ -374,8 +374,8 @@ func (c *Consumer) sf(out *stream.Outbound) (int, *consts.Attrs) {
 
 func (c *Consumer) sfe(out *stream.Outbound) (int, *consts.Attrs) {
 	c.buf.SetMode(consts.EXTENDED_FIELD_MODE)
-	count, _ := out.Next()
-	raw, _ := out.NextSlice(int(count) * 2)
+	count := out.MustNext()
+	raw := out.MustNextSlice(int(count) * 2)
 	fldAttrs := consts.NewExtendedAttrs(raw)
 	fldAddr := c.buf.Addr()
 	c.sfImpl(fldAddr, fldAttrs)

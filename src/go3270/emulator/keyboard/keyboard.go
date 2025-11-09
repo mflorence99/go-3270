@@ -212,7 +212,7 @@ func (k *Keyboard) tab(dir int) (int, bool) {
 			addr = 0
 		}
 		// 👇 see if we've hit an unprotected field start
-		cell, _ := k.buf.Peek(addr)
+		cell := k.buf.MustPeek(addr)
 		if cell.FldStart && !cell.Attrs.Protected {
 			// 👇 if going backwards, and we hit in the first try, it doesn't count
 			if dir < 0 && ix == 0 {

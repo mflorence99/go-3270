@@ -70,7 +70,7 @@ func (s *Screen) blink(counter int) {
 	// 👇 find all the blinkers
 	blinkers := utils.NewStack[int](1)
 	for addr := 0; addr < s.buf.Len(); addr++ {
-		cell, _ := s.buf.Peek(addr)
+		cell := s.buf.MustPeek(addr)
 		if !cell.FldStart && cell.Attrs.Blink {
 			blinkers.Push(addr)
 		}
@@ -96,8 +96,10 @@ func (s *Screen) renderDeltas(addrs *utils.Stack[int], doBlink bool, blinkOn boo
 	dc := gg.NewContextForRGBA(s.cfg.RGBA)
 	// 👇 iterate over all requested cells
 	for !addrs.Empty() {
-		addr, _ := addrs.Pop()
-		s.renderImpl(dc, addr, doBlink, blinkOn)
+		addr, ok := addrs.Pop()
+		if ok {
+			s.renderImpl(dc, addr, doBlink, blinkOn)
+		}
 	}
 	s.clean = false
 }
@@ -105,7 +107,7 @@ func (s *Screen) renderDeltas(addrs *utils.Stack[int], doBlink bool, blinkOn boo
 func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool) {
 	// 👇 gather related data
 	box := s.cps[addr]
-	cell, _ := s.buf.Peek(addr)
+	cell := s.buf.MustPeek(addr)
 	// 👇 ignore color if monochrome
 	ix := utils.Ternary(cell.Attrs.Color == 0x00 || s.cfg.Monochrome, 0xF4, cell.Attrs.Color)
 	color := s.cfg.CLUT[ix]

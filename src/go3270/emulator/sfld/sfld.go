@@ -19,19 +19,19 @@ type SFld struct {
 func SFldsFromStream(out *stream.Outbound) []SFld {
 	sflds := make([]SFld, 0)
 	for out.HasNext() {
-		len, _ := out.Next16()
+		len := out.MustNext16()
 		id, ok := out.Next()
 		// 👇 there must be an ID
 		if ok {
 			// TODO 🔥 we can't account for this extra 0xFF!
-			xtra, _ := out.Peek()
+			xtra := out.MustPeek()
 			if xtra == 0xFF {
-				out.Skip(1)
+				out.MustSkip(1)
 			}
 			var info []byte
 			// 👇 a zero length can indicate the last field
 			if len > 0 {
-				info, _ = out.NextSlice(int(len) - 3)
+				info = out.MustNextSlice(int(len) - 3)
 			} else {
 				info = out.Rest()
 			}

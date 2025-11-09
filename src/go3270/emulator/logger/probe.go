@@ -13,7 +13,7 @@ import (
 // 🟧 Debugger: log cell contents
 
 func (l *Logger) logProbe(addr int) {
-	cell, _ := l.buf.Peek(addr)
+	cell := l.buf.MustPeek(addr)
 	t := l.newTable(utils.Ternary(cell.Attrs.CharAttr, text.FgRed, text.FgHiRed), "")
 	defer t.Render()
 

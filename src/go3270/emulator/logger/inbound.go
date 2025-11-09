@@ -19,7 +19,7 @@ func (l *Logger) logInbound(chars []byte) {
 	// 👇 convert into a stream for convenience
 	slice, _, ok := bytes.Cut(chars, consts.LT)
 	in := stream.NewOutbound(utils.Ternary(ok, slice, chars), l.bus)
-	char, _ := in.Next()
+	char := in.MustNext()
 	aid := consts.AID(char)
 	// 👇 short reads only contain the AID
 	raw, ok := in.NextSlice(2)
@@ -42,7 +42,7 @@ func (l *Logger) logInbound(chars []byte) {
 		data := make([]byte, 0)
 		// 👇 look at each byte to see if it is an order
 		for in.HasNext() {
-			char, _ := in.Next()
+			char := in.MustNext()
 			order := consts.Order(char)
 			switch order {
 
@@ -51,7 +51,7 @@ func (l *Logger) logInbound(chars []byte) {
 					t.AppendRow(table.Row{row, col, string(data)})
 					data = make([]byte, 0)
 				}
-				raw, _ := in.NextSlice(2)
+				raw := in.MustNextSlice(2)
 				addr := conv.Bytes2Addr(raw)
 				row, col = l.cfg.Addr2RC(addr)
 

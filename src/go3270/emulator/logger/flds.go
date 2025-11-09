@@ -27,18 +27,20 @@ func (l *Logger) logFlds() {
 
 	// 👇 data rows
 	for _, fld := range l.flds.Get() {
-		sf, _ := fld.FldStart()
-		row, col := l.cfg.Addr2RC(sf.FldAddr)
-		// 👇 gather all the chars in the fld
-		t.AppendRow(table.Row{
-			row,
-			col,
-			len(fld),
-			sf.FldGen,
-			utils.Ternary(sf.Attrs.Hidden, "HIDDEN", ""),
-			utils.Ternary(sf.Attrs.MDT, "MDT", ""),
-			utils.Ternary(sf.Attrs.Protected, "PROT", ""),
-			utils.Truncate(fld.String(), 60),
-		})
+		sf, ok := fld.FldStart()
+		if ok {
+			row, col := l.cfg.Addr2RC(sf.FldAddr)
+			// 👇 gather all the chars in the fld
+			t.AppendRow(table.Row{
+				row,
+				col,
+				len(fld),
+				sf.FldGen,
+				utils.Ternary(sf.Attrs.Hidden, "HIDDEN", ""),
+				utils.Ternary(sf.Attrs.MDT, "MDT", ""),
+				utils.Ternary(sf.Attrs.Protected, "PROT", ""),
+				utils.Truncate(fld.String(), 60),
+			})
+		}
 	}
 }

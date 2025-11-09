@@ -76,8 +76,12 @@ func (out *Outbound) Rest() []byte {
 	return rest
 }
 
-func (out *Outbound) Skip(count int) {
-	out.ix += count
+func (out *Outbound) Skip(count int) bool {
+	if out.HasEnough(count) {
+		out.ix += count
+		return true
+	}
+	return false
 }
 
 // 🟦 Helpers
@@ -128,6 +132,41 @@ func (out *Outbound) MustNext() byte {
 	return out.mustNextImpl(false)
 }
 
+func (out *Outbound) MustNext16() uint16 {
+	u16, ok := out.Next16()
+	if !ok {
+		out.mustPanic()
+	}
+	return u16
+}
+
+func (out *Outbound) MustNextSlice(count int) []byte {
+	return out.mustNextSliceImpl(count, false)
+}
+
+func (out *Outbound) MustNextSliceUntil(matches []byte) []byte {
+	return out.mustNextSliceUntilImpl(matches, false)
+}
+
+func (out *Outbound) MustPeek() byte {
+	return out.mustNextImpl(true)
+}
+
+func (out *Outbound) MustPeekSlice(count int) []byte {
+	return out.mustNextSliceImpl(count, true)
+}
+
+func (out *Outbound) MustPeekSliceUntil(matches []byte) []byte {
+	return out.mustNextSliceUntilImpl(matches, true)
+}
+
+func (out *Outbound) MustSkip(count int) {
+	ok := out.Skip(count)
+	if !ok {
+		out.mustPanic()
+	}
+}
+
 // 🟦 "Must" Helpers
 
 func (out *Outbound) mustNextImpl(peek bool) byte {
@@ -136,6 +175,22 @@ func (out *Outbound) mustNextImpl(peek bool) byte {
 		out.mustPanic()
 	}
 	return char
+}
+
+func (out *Outbound) mustNextSliceImpl(count int, peek bool) []byte {
+	slice, ok := out.nextSliceImpl(count, peek)
+	if !ok {
+		out.mustPanic()
+	}
+	return slice
+}
+
+func (out *Outbound) mustNextSliceUntilImpl(matches []byte, peek bool) []byte {
+	slice, ok := out.nextSliceUntilImpl(matches, peek)
+	if !ok {
+		out.mustPanic()
+	}
+	return slice
 }
 
 func (out *Outbound) mustPanic() {

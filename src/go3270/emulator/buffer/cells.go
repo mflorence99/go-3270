@@ -33,7 +33,7 @@ func (c *Cells) configure(cfg pubsub.Config) {
 
 func (c *Cells) reset() {
 	for addr := 0; addr < c.buf.Len(); addr++ {
-		cell, _ := c.buf.Peek(addr)
+		cell := c.buf.MustPeek(addr)
 		if cell == nil {
 			cell = NewCell()
 			c.buf.Replace(cell, addr)
@@ -68,7 +68,7 @@ func (c *Cells) EUA(start, stop int) bool {
 		for addr := c.buf.MustSeek(start); addr != stop; addr = c.buf.MustSeek(addr + 1) {
 			cell, _ := c.buf.Get()
 			if !cell.Attrs.Protected {
-				sf, _ := c.buf.Peek(cell.FldAddr)
+				sf := c.buf.MustPeek(cell.FldAddr)
 				cell.Attrs = sf.Attrs
 				cell.Char = 0x00
 				c.buf.Replace(cell, addr)
