@@ -1,4 +1,4 @@
-package debug
+package logger
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"github.com/jedib0t/go-pretty/v6/text"
 )
 
-// 🟧 Debugger: log cell contents (STRL+arrow)
+// 🟧 Debugger: log cell contents
 
 func (l *Logger) logProbe(addr int) {
 	t := l.newTable(text.FgHiRed, "")

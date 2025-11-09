@@ -1,4 +1,4 @@
-package debug
+package logger
 
 import (
 	"fmt"
@@ -51,6 +51,8 @@ func (l *Logger) configure(cfg pubsub.Config) {
 }
 
 func (l *Logger) inbound(chars []byte, wsf bool) {
+	// 👇 supplement with an old-fashioned core dump
+	l.dump(text.FgHiGreen, "Inbound Datastream", chars)
 	if wsf {
 		l.logInboundWSF(chars)
 	} else {
@@ -59,6 +61,8 @@ func (l *Logger) inbound(chars []byte, wsf bool) {
 }
 
 func (l *Logger) outbound(chars []byte) {
+	// 👇 supplement with an old-fashioned core dump
+	l.dump(text.FgYellow, "Outbound Datastream", chars)
 	l.logOutbound(chars)
 }
 

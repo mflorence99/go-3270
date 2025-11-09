@@ -1,4 +1,4 @@
-package debug
+package logger
 
 import (
 	"go3270/emulator/wcc"

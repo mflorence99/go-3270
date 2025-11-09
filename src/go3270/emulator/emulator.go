@@ -2,9 +2,9 @@ package emulator
 
 import (
 	"go3270/emulator/buffer"
-	"go3270/emulator/debug"
 	"go3270/emulator/inbound"
 	"go3270/emulator/keyboard"
+	"go3270/emulator/logger"
 	"go3270/emulator/outbound"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/screen"
@@ -21,7 +21,7 @@ type Emulator struct {
 	cfg   pubsub.Config
 	flds  *buffer.Flds
 	gc    *screen.Cache
-	log   *debug.Logger
+	log   *logger.Logger
 	in    *inbound.Producer
 	key   *keyboard.Keyboard
 	out   *outbound.Consumer
@@ -42,7 +42,7 @@ func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
 	e.st = state.NewState(e.bus)
 	e.cells = buffer.NewCells(e.bus, e.buf)
 	e.flds = buffer.NewFlds(e.bus, e.buf)
-	e.log = debug.NewLogger(e.bus, e.buf, e.flds, e.st)
+	e.log = logger.NewLogger(e.bus, e.buf, e.flds, e.st)
 	// 👇 rendering components
 	e.scr = screen.NewScreen(e.bus, e.buf, e.gc, e.st)
 	// 👇 i/o components

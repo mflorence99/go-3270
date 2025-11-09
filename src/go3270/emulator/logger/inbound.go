@@ -1,4 +1,4 @@
-package debug
+package logger
 
 import (
 	"bytes"
@@ -64,6 +64,7 @@ func (l *Logger) logInbound(chars []byte) {
 		if len(data) > 0 {
 			t.AppendRow(table.Row{row, col, string(data)})
 		}
+
 	} else {
 		println(fmt.Sprintf("🐞 %s Short Read (3270 -> App)", aid))
 	}

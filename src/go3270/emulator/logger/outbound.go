@@ -1,4 +1,4 @@
-package debug
+package logger
 
 import (
 	"fmt"
@@ -25,13 +25,13 @@ func (l *Logger) logOutbound(chars []byte) {
 	case consts.EW:
 		_, ok := out.Next() // 👈 eat the WCC
 		if ok {
-			l.logOutboundOrders(out, cmd, text.FgHiYellow)
+			l.logOutboundOrders(out, cmd, text.FgYellow)
 		}
 
 	case consts.EWA:
 		_, ok := out.Next() // 👈 eat the WCC
 		if ok {
-			l.logOutboundOrders(out, cmd, text.FgHiYellow)
+			l.logOutboundOrders(out, cmd, text.FgYellow)
 		}
 
 	case consts.W:
