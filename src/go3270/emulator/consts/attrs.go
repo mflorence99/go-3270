@@ -23,6 +23,13 @@ type Attrs struct {
 	Default bool
 }
 
+var DEFAULT_ATTRS = &Attrs{
+	Autoskip:  true,
+	Default:   true,
+	Protected: true,
+	Numeric:   true,
+}
+
 // 🟦 Constructors
 
 func NewBasicAttrs(char byte) *Attrs {

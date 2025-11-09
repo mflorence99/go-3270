@@ -25,10 +25,6 @@ type Consumer struct {
 	st    *state.State
 }
 
-var (
-	fldGen int // 👈 mark fields with an unique ID each generation
-)
-
 // 🟦 Constructor
 
 func NewConsumer(bus *pubsub.Bus, buf *buffer.Buffer, cells *buffer.Cells, flds *buffer.Flds, st *state.State) *Consumer {
@@ -225,9 +221,7 @@ func (c *Consumer) rp(sfld sfld.SFld) {
 
 func (c *Consumer) orders(out *stream.Outbound) {
 	fldAddr := -1
-	fldAttrs := &consts.Attrs{Default: true}
-	// 👇 each stream of orders is given an unique ID to help us separate fields after a W command
-	fldGen++
+	fldAttrs := consts.DEFAULT_ATTRS
 	// 👇 look at each byte to see if it is an order
 outer:
 	for out.HasNext() {
@@ -281,7 +275,7 @@ outer:
 	}
 
 	// 👇 when the orders have all been processed, build the fields
-	c.flds.Build(fldGen)
+	c.flds.Build()
 }
 
 func (c *Consumer) char(char byte, fldAddr int, fldAttrs *consts.Attrs) {
@@ -289,10 +283,6 @@ func (c *Consumer) char(char byte, fldAddr int, fldAttrs *consts.Attrs) {
 		Attrs:   fldAttrs,
 		Char:    char,
 		FldAddr: fldAddr,
-		FldGen:  fldGen,
-	}
-	if fldAddr != -1 {
-		c.cells.FillOlder2Left(cell, c.buf.Addr())
 	}
 	c.buf.SetAndNext(cell)
 }
@@ -343,7 +333,6 @@ func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *consts.Attrs)
 		Attrs:   fldAttrs,
 		Char:    char,
 		FldAddr: fldAddr,
-		FldGen:  fldGen,
 	}
 	return c.cells.RA(cell, c.buf.Addr(), stop)
 }
@@ -394,7 +383,6 @@ func (c *Consumer) sfImpl(fldAddr int, fldAttrs *consts.Attrs) {
 		FldAddr:  fldAddr,
 		FldStart: true,
 		FldEnd:   false, // 👈 completed by flds.Build()
-		FldGen:   fldGen,
 	}
 	c.buf.SetAndNext(sf)
 }

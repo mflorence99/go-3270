@@ -38,9 +38,9 @@ func (f *Flds) reset() {
 
 // 🟦 Builder functions
 
-func (f *Flds) Build(fldGen int) {
+func (f *Flds) Build() {
 	flds := f.buildInitialIndex()
-	f.flds = f.allThoseCellsAreMine(flds, fldGen)
+	f.flds = f.allThoseCellsAreMine(flds)
 }
 
 // 👇 just the start point of each field
@@ -58,7 +58,7 @@ func (f *Flds) buildInitialIndex() []Fld {
 }
 
 // 👇 look at pairs of fields, this one and the next, and assign all the cells in between to this field
-func (f *Flds) allThoseCellsAreMine(flds []Fld, fldGen int) []Fld {
+func (f *Flds) allThoseCellsAreMine(flds []Fld) []Fld {
 	temp := make([]Fld, 0)
 	for ix, fld := range flds {
 		next := flds[(ix+1)%len(flds)]
@@ -81,7 +81,6 @@ func (f *Flds) allThoseCellsAreMine(flds []Fld, fldGen int) []Fld {
 			cell.FldAddr = start
 			cell.FldStart = false
 			cell.FldEnd = false
-			cell.FldGen = fldGen
 			fld = append(fld, cell)
 		}
 		// 👇 mark field end

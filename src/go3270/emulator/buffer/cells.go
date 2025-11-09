@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
-	"go3270/emulator/utils"
 )
 
 // 🟧 View the buffer as an array of cells
@@ -38,26 +37,6 @@ func (c *Cells) reset() {
 		if cell == nil {
 			cell = NewCell()
 			c.buf.Replace(cell, addr)
-		}
-	}
-}
-
-// 🟦 Public functions
-
-func (c *Cells) FillOlder2Left(cell *Cell, stop int) {
-	for ix := stop; ; ix-- {
-		// 🔥 note wrap around
-		addr := utils.Ternary(ix == 0, c.buf.Len()-1, ix-1)
-		left, ok := c.buf.Peek(addr)
-		if ok && left.FldGen != cell.FldGen {
-			left.Attrs = cell.Attrs
-			left.Char = 0x00
-			left.FldAddr = cell.FldAddr
-			left.FldStart = false
-			left.FldEnd = false
-			left.FldGen = cell.FldGen
-		} else {
-			break
 		}
 	}
 }

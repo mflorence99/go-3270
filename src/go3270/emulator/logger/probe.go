@@ -38,7 +38,6 @@ func (l *Logger) logProbe(addr int) {
 		"",
 		"",
 		"",
-		"",
 	})
 	t.AppendHeader(table.Row{
 		"",
@@ -48,7 +47,6 @@ func (l *Logger) logProbe(addr int) {
 		"Col",
 		"Row",
 		"Col",
-		"Gen",
 		"SA",
 		"",
 		"",
@@ -78,7 +76,6 @@ func (l *Logger) logProbe(addr int) {
 		fcol,
 		crow,
 		ccol,
-		cell.FldGen,
 		l.boolean(cell.Attrs.CharAttr),
 		utils.Ternary(cell.Attrs.Autoskip, "SKIP", ""),
 		utils.Ternary(cell.Attrs.Blink, "BLINK", ""),
