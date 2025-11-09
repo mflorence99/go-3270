@@ -1,3 +1,3 @@
 # go-3270
 
-Placeholder
+Go-powered, browser-hosted 3270 emulator.
