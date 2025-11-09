@@ -61,10 +61,6 @@ var EBCDIC = []byte{
 	// start on line 64 to make reconciliation easier
 	// start on line 64 to make reconciliation easier
 	// start on line 64 to make reconciliation easier
-	// start on line 64 to make reconciliation easier
-	// start on line 64 to make reconciliation easier
-	// start on line 64 to make reconciliation easier
-	// start on line 64 to make reconciliation easier
 	' ',
 	' ',
 	' ',

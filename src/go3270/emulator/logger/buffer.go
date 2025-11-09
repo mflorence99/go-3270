@@ -51,10 +51,19 @@ func (l *Logger) logBuffer() {
 				// 👇 or the cell contents, best as we can
 				cell, ok := l.buf.Peek(ix + ((iy - 1) * l.cfg.Cols) - 1)
 				if cell != nil && ok {
+
 					if cell.FldStart {
 						b.WriteString(utils.Ternary(cell.Attrs.Protected, protected, unprotected))
+
 					} else {
-						b.WriteRune(utils.Ternary(cell.Char <= 0x40, ' ', conv.E2Rune(cell.Attrs.LCID, cell.Char)))
+						str := " "
+						if cell.Char > 0x40 {
+							str = string(conv.E2Rune(cell.Attrs.LCID, cell.Char))
+						}
+						if cell.Attrs.CharAttr {
+							str = fmt.Sprintf("%s%s", text.FgYellow.Sprint(str), text.FgWhite.Sprint("\u200b"))
+						}
+						b.WriteString(str)
 					}
 				}
 			}

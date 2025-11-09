@@ -9,14 +9,17 @@ type Attrs struct {
 	Hidden     bool
 	Highlight  bool
 	LCID       LCID
-	Modified   bool
+	MDT        bool
 	Numeric    bool
 	Outline    Outline
 	Protected  bool
 	Reverse    bool
 	Underscore bool
 
-	// 🔥 initial settinmg for cells has Default: true to indicate that cell attributes can be overridden by the containing field
+	// 🔥 character attributes are distinguished from field attributes
+	CharAttr bool
+
+	// 🔥 initial setting for cells has Default: true to indicate that cell attributes can be overridden by the containing field
 	Default bool
 }
 
@@ -38,13 +41,14 @@ func NewExtendedAttrs(chars []byte) *Attrs {
 func NewModifiedAttrs(attrs *Attrs, chars []byte) *Attrs {
 	a := *attrs
 	a.fromBytes(chars)
+	a.CharAttr = true
 	return &a
 }
 
 func (a *Attrs) fromByte(char byte) {
 	a.Hidden = ((char & 0b00001000) != 0) && ((char & 0b00000100) != 0)
 	a.Highlight = ((char & 0b00001000) != 0) && ((char & 0b00000100) == 0)
-	a.Modified = (char & 0b00000001) != 0
+	a.MDT = (char & 0b00000001) != 0
 	a.Numeric = (char & 0b00010000) != 0
 	a.Protected = (char & 0b00100000) != 0
 	a.Autoskip = a.Protected && a.Numeric
@@ -113,7 +117,7 @@ func (a *Attrs) Byte() byte {
 	if a.Highlight {
 		char |= 0b00001000
 	}
-	if a.Modified {
+	if a.MDT {
 		char |= 0b00000001
 	}
 	if a.Numeric {

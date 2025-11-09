@@ -172,7 +172,7 @@ func (l *Logger) withAttrs(t table.Writer, cmd any, addr int, cell *buffer.Cell)
 		utils.Ternary(cell.Attrs.Color != 0x00, consts.ColorFor(cell.Attrs.Color), ""),
 		utils.Ternary(cell.Attrs.Hidden, "HIDDEN", ""),
 		utils.Ternary(cell.Attrs.Highlight, "HILITE", ""),
-		utils.Ternary(cell.Attrs.Modified, "MDT", ""),
+		utils.Ternary(cell.Attrs.MDT, "MDT", ""),
 		utils.Ternary(cell.Attrs.Numeric, "NUM", ""),
 		utils.Ternary(cell.Attrs.Protected, "PROT", ""),
 		utils.Ternary(cell.Attrs.Reverse, "REV", ""),

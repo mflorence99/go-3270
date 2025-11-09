@@ -68,7 +68,6 @@ func (c *Cells) EUA(start, stop int) bool {
 		for addr := c.buf.Seek(start); addr != stop; addr = c.buf.Seek(addr + 1) {
 			cell, _ := c.buf.Get()
 			if !cell.Attrs.Protected {
-				// TODO 🔥 spec says to reset any character attributes ie revert to fld but this just makes everything blank
 				sf, _ := c.buf.Peek(cell.FldAddr)
 				cell.Attrs = sf.Attrs
 				cell.Char = 0x00

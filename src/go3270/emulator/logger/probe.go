@@ -13,7 +13,8 @@ import (
 // 🟧 Debugger: log cell contents
 
 func (l *Logger) logProbe(addr int) {
-	t := l.newTable(text.FgHiRed, "")
+	cell, _ := l.buf.Peek(addr)
+	t := l.newTable(utils.Ternary(cell.Attrs.CharAttr, text.FgRed, text.FgHiRed), "")
 	defer t.Render()
 
 	// 👇 header
@@ -37,6 +38,7 @@ func (l *Logger) logProbe(addr int) {
 		"",
 		"",
 		"",
+		"",
 	})
 	t.AppendHeader(table.Row{
 		"",
@@ -47,6 +49,7 @@ func (l *Logger) logProbe(addr int) {
 		"Row",
 		"Col",
 		"Gen",
+		"SA",
 		"",
 		"",
 		"",
@@ -62,7 +65,6 @@ func (l *Logger) logProbe(addr int) {
 	})
 
 	// 👇 extract data
-	cell, _ := l.buf.Peek(addr)
 	crow, ccol := l.cfg.Addr2RC(addr)
 	frow, fcol := l.cfg.Addr2RC(cell.FldAddr)
 	char := fmt.Sprintf("%#02x '%s'", cell.Char, utils.Ternary(cell.Char >= 0x40, string(conv.E2A(cell.Char)), " "))
@@ -77,12 +79,13 @@ func (l *Logger) logProbe(addr int) {
 		crow,
 		ccol,
 		cell.FldGen,
+		l.boolean(cell.Attrs.CharAttr),
 		utils.Ternary(cell.Attrs.Autoskip, "SKIP", ""),
 		utils.Ternary(cell.Attrs.Blink, "BLINK", ""),
 		utils.Ternary(cell.Attrs.Color != 0x00, consts.ColorFor(cell.Attrs.Color), ""),
 		utils.Ternary(cell.Attrs.Hidden, "HIDDEN", ""),
 		utils.Ternary(cell.Attrs.Highlight, "HILITE", ""),
-		utils.Ternary(cell.Attrs.Modified, "MDT", ""),
+		utils.Ternary(cell.Attrs.MDT, "MDT", ""),
 		utils.Ternary(cell.Attrs.Numeric, "NUM", ""),
 		utils.Ternary(cell.Attrs.Protected, "PROT", ""),
 		utils.Ternary(cell.Attrs.Reverse, "REV", ""),

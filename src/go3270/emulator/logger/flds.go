@@ -36,7 +36,7 @@ func (l *Logger) logFlds() {
 			len(fld),
 			sf.FldGen,
 			utils.Ternary(sf.Attrs.Hidden, "HIDDEN", ""),
-			utils.Ternary(sf.Attrs.Modified, "MDT", ""),
+			utils.Ternary(sf.Attrs.MDT, "MDT", ""),
 			utils.Ternary(sf.Attrs.Protected, "PROT", ""),
 			utils.Truncate(fld.String(), 60),
 		})

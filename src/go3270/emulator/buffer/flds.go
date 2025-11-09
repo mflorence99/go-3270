@@ -73,8 +73,8 @@ func (f *Flds) allThoseCellsAreMine(flds []Fld, fldGen int) []Fld {
 				break
 			}
 			cell, _ := f.buf.Peek(addr)
-			// 👇 use the field attributes for cells that were never initialized, or those that used to belong to a now-overwritten field
-			if cell.Attrs.Default || sf.FldAddr != cell.FldAddr {
+			// 👇 use the field attributes for cells that were never initialized, or which have (potentially) another field's attributes, or those that used to belong to a now-overwritten field,
+			if cell.Attrs.Default || !cell.Attrs.CharAttr || sf.FldAddr != cell.FldAddr {
 				cell.Attrs = sf.Attrs
 			}
 			// 👇 make the cell mine
@@ -105,7 +105,7 @@ func (f *Flds) EAU() int {
 	for _, fld := range f.flds {
 		sf, ok := fld.FldStart()
 		if ok {
-			sf.Attrs.Modified = false
+			sf.Attrs.MDT = false
 			if !sf.Attrs.Protected {
 				// 👇 capture address of first unprotected field
 				if addr == -1 {
@@ -146,7 +146,7 @@ func (f *Flds) ReadMDTs() []byte {
 	chars := make([]byte, 0)
 	for _, fld := range f.flds {
 		sf, _ := fld.FldStart()
-		if sf.Attrs.Modified {
+		if sf.Attrs.MDT {
 			chars = append(chars, byte(consts.SBA))
 			chars = append(chars, conv.Addr2Bytes(sf.FldAddr+1)...)
 			for ix := 1; ix < len(fld); ix++ {
@@ -165,7 +165,7 @@ func (f *Flds) ResetMDTs() {
 	for _, fld := range f.flds {
 		sf, ok := fld.FldStart()
 		if ok {
-			sf.Attrs.Modified = false
+			sf.Attrs.MDT = false
 		}
 	}
 }
@@ -175,6 +175,6 @@ func (f *Flds) SetMDT(cell *Cell) bool {
 	if !fld.FldStart || !ok {
 		return false
 	}
-	fld.Attrs.Modified = true
+	fld.Attrs.MDT = true
 	return true
 }

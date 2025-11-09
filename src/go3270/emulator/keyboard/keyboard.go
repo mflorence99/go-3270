@@ -153,7 +153,7 @@ func (k *Keyboard) backspace() (int, bool) {
 	// 👇 reposition to previous cell and update it
 	k.buf.Seek(addr)
 	cell.Char = 0x40
-	cell.Attrs.Modified = true
+	cell.Attrs.MDT = true
 	addr = k.buf.Set(cell)
 	// 👇 set the MDT flag at the field level
 	ok := k.flds.SetMDT(cell)
@@ -181,7 +181,7 @@ func (k *Keyboard) keyin(char byte) (int, bool) {
 	}
 	// 👇 update cell and advance to next
 	cell.Char = conv.A2E(char)
-	cell.Attrs.Modified = true
+	cell.Attrs.MDT = true
 	addr := k.buf.SetAndNext(cell)
 	// 👇 set the MDT flag at the field level
 	ok := k.flds.SetMDT(cell)
