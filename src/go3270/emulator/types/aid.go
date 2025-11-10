@@ -1,4 +1,4 @@
-package consts
+package types
 
 import (
 	"go3270/emulator/utils"

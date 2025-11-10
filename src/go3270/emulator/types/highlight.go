@@ -1,4 +1,4 @@
-package consts
+package types
 
 // 🟧 3270 highlight extended attribute
 

@@ -2,15 +2,15 @@ package qr
 
 import (
 	"encoding/binary"
-	"go3270/emulator/consts"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 )
 
 // 🟧 Query Reply structured field
 
 type DDM struct {
-	SFID   consts.SFID
-	QCode  consts.QCode
+	SFID   types.SFID
+	QCode  types.QCode
 	Flags  []byte
 	LimIn  uint16
 	LimOut uint16
@@ -22,8 +22,8 @@ type DDM struct {
 
 func NewDDM() DDM {
 	return DDM{
-		SFID:   consts.QUERY_REPLY,
-		QCode:  consts.DDM,
+		SFID:   types.QUERY_REPLY,
+		QCode:  types.DDM,
 		Flags:  []byte{0x00, 0x00},
 		LimIn:  uint16(4096 * 4),
 		LimOut: uint16(4096 * 4),

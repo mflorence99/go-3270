@@ -12,8 +12,8 @@ import (
 	"github.com/golang/freetype/truetype"
 
 	"go3270/emulator"
-	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
+	"go3270/emulator/types"
 	"syscall/js"
 )
 
@@ -73,19 +73,19 @@ func (m *Mediator) close() {
 	m.bus.UnsubscribeAll()
 }
 
-func (m *Mediator) configure(args []js.Value) pubsub.Config {
+func (m *Mediator) configure(args []js.Value) types.Config {
 	// 👇 from the args
 	canvas := args[0]
 	bgColor := args[1].String()
 	monochrome := args[2].Bool()
 	obj := args[3]
-	clut := make(map[consts.Color]string)
+	clut := make(map[types.Color]string)
 	keys := js.Global().Get("Object").Call("keys", obj)
 	for ix := 0; ix < keys.Length(); ix++ {
 		k := keys.Index(ix).String()
 		v := obj.Get(k).Index(0).String()
 		c, _ := strconv.ParseUint(k, 10, 8)
-		clut[consts.Color(c)] = v
+		clut[types.Color(c)] = v
 	}
 	fontSize := args[4].Float()
 	rows := args[5].Int()
@@ -120,7 +120,7 @@ func (m *Mediator) configure(args []js.Value) pubsub.Config {
 	m.rcLoop(canvas, rgba, maxFPS)
 	m.tickLoop(tickMs)
 	// 👇 finally!
-	cfg := pubsub.Config{
+	cfg := types.Config{
 		BgColor:      bgColor,
 		BoldFace:     &boldFace,
 		CLUT:         clut,
@@ -154,7 +154,7 @@ func (m *Mediator) jsInterface() js.Value {
 			return nil
 		}),
 		"keystroke": js.FuncOf(func(this js.Value, args []js.Value) any {
-			key := pubsub.Keystroke{
+			key := types.Keystroke{
 				Code:  args[0].String(),
 				Key:   args[1].String(),
 				ALT:   args[2].Bool(),
@@ -168,7 +168,7 @@ func (m *Mediator) jsInterface() js.Value {
 			chars := make([]byte, args[0].Get("length").Int())
 			js.CopyBytesToGo(chars, args[0])
 			// 👇 data can be split into multiple frames
-			slices := bytes.Split(chars, consts.LT)
+			slices := bytes.Split(chars, types.LT)
 			for _, slice := range slices {
 				if len(slice) > 0 {
 					m.bus.PubOutbound(slice)
@@ -207,7 +207,7 @@ func (m *Mediator) panic(msg string) {
 	m.dispatchEvent(params)
 }
 
-func (m *Mediator) status(stat *pubsub.Status) {
+func (m *Mediator) status(stat *types.Status) {
 	params := map[string]any{
 		"eventType": "status",
 		"alarm":     stat.Alarm,

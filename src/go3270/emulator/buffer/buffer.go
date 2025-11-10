@@ -2,8 +2,8 @@ package buffer
 
 import (
 	"fmt"
-	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
+	"go3270/emulator/types"
 )
 
 // 🟧 Basic buffer operations
@@ -14,8 +14,8 @@ type Buffer struct {
 	addr int
 	bus  *pubsub.Bus
 	buf  []*Cell
-	cfg  pubsub.Config
-	mode consts.Mode
+	cfg  types.Config
+	mode types.Mode
 }
 
 // 🟦 Constructor
@@ -29,14 +29,14 @@ func NewBuffer(bus *pubsub.Bus) *Buffer {
 	return b
 }
 
-func (b *Buffer) configure(cfg pubsub.Config) {
+func (b *Buffer) configure(cfg types.Config) {
 	b.cfg = cfg
 	b.reset()
 }
 
 func (b *Buffer) reset() {
 	b.buf = make([]*Cell, b.cfg.Cols*b.cfg.Rows)
-	b.mode = consts.FIELD_MODE
+	b.mode = types.FIELD_MODE
 }
 
 // 🟦 Housekeeping functions
@@ -58,7 +58,7 @@ func (b *Buffer) Len() int {
 	return len(b.buf)
 }
 
-func (b *Buffer) Mode() consts.Mode {
+func (b *Buffer) Mode() types.Mode {
 	return b.mode
 }
 
@@ -85,7 +85,7 @@ func (b *Buffer) Seek(addr int) (int, bool) {
 	return b.addr, true
 }
 
-func (b *Buffer) SetMode(mode consts.Mode) consts.Mode {
+func (b *Buffer) SetMode(mode types.Mode) types.Mode {
 	if mode > b.mode {
 		b.mode = mode
 	}

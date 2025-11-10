@@ -2,15 +2,15 @@ package qr
 
 import (
 	"encoding/binary"
-	"go3270/emulator/consts"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 )
 
 // 🟧 Query Reply structured field
 
 type ImplicitPartition struct {
-	SFID   consts.SFID
-	QCode  consts.QCode
+	SFID   types.SFID
+	QCode  types.QCode
 	Flags1 []byte
 	L      byte
 	SDPID  byte
@@ -25,8 +25,8 @@ type ImplicitPartition struct {
 
 func NewImplicitPartition(cols, rows int) ImplicitPartition {
 	return ImplicitPartition{
-		SFID:   consts.QUERY_REPLY,
-		QCode:  consts.IMPLICIT_PARTITION,
+		SFID:   types.QUERY_REPLY,
+		QCode:  types.IMPLICIT_PARTITION,
 		Flags1: []byte{0x00, 0x00},
 		L:      0x0B,
 		SDPID:  0x01,

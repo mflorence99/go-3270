@@ -2,10 +2,10 @@ package keyboard
 
 import (
 	"go3270/emulator/buffer"
-	"go3270/emulator/consts"
 	"go3270/emulator/conv"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/state"
+	"go3270/emulator/types"
 	"go3270/emulator/utils"
 
 	"strings"
@@ -16,7 +16,7 @@ import (
 type Keyboard struct {
 	bus  *pubsub.Bus
 	buf  *buffer.Buffer
-	cfg  pubsub.Config
+	cfg  types.Config
 	flds *buffer.Flds
 	st   *state.State
 }
@@ -36,13 +36,13 @@ func NewKeyboard(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds, st *sta
 	return k
 }
 
-func (k *Keyboard) configure(cfg pubsub.Config) {
+func (k *Keyboard) configure(cfg types.Config) {
 	k.cfg = cfg
 }
 
 // 🟦 Dispatch action per key code
 
-func (k *Keyboard) keystroke(key pubsub.Keystroke) {
+func (k *Keyboard) keystroke(key types.Keystroke) {
 	// 👇 prepare to move the cursor -- most keystrokes do this
 	cursorAt := k.st.Status.CursorAt
 	cursorTo := cursorAt
@@ -52,14 +52,14 @@ func (k *Keyboard) keystroke(key pubsub.Keystroke) {
 	// 👇 make sure we know where to start
 	k.buf.WrappingSeek(cursorAt)
 	// 👇 pre-analyze AID key
-	aid := consts.AIDOf(key.Key, key.ALT, key.CTRL, key.SHIFT)
+	aid := types.AIDOf(key.Key, key.ALT, key.CTRL, key.SHIFT)
 
 	switch {
 
-	case aid == consts.CLEAR:
+	case aid == types.CLEAR:
 		k.bus.PubAttn(aid)
 
-	case aid == consts.ENTER:
+	case aid == types.ENTER:
 		k.bus.PubRM(aid)
 
 	case aid.PAx():

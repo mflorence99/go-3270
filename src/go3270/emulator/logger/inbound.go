@@ -3,10 +3,10 @@ package logger
 import (
 	"bytes"
 	"fmt"
-	"go3270/emulator/consts"
 	"go3270/emulator/conv"
 	"go3270/emulator/sfld"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 	"go3270/emulator/utils"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -17,10 +17,10 @@ import (
 
 func (l *Logger) logInbound(chars []byte) {
 	// 👇 convert into a stream for convenience
-	slice, _, ok := bytes.Cut(chars, consts.LT)
+	slice, _, ok := bytes.Cut(chars, types.LT)
 	in := stream.NewOutbound(utils.Ternary(ok, slice, chars), l.bus)
 	char := in.MustNext()
-	aid := consts.AID(char)
+	aid := types.AID(char)
 	// 👇 short reads only contain the AID
 	raw, ok := in.NextSlice(2)
 	if ok {
@@ -43,10 +43,10 @@ func (l *Logger) logInbound(chars []byte) {
 		// 👇 look at each byte to see if it is an order
 		for in.HasNext() {
 			char := in.MustNext()
-			order := consts.Order(char)
+			order := types.Order(char)
 			switch order {
 
-			case consts.SBA:
+			case types.SBA:
 				if len(data) > 0 {
 					t.AppendRow(table.Row{row, col, string(data)})
 					data = make([]byte, 0)
@@ -78,7 +78,7 @@ func (l *Logger) logInboundWSF(chars []byte) {
 	defer t.Render()
 
 	// 👇 convert into a stream for convenience
-	slice, _, ok := bytes.Cut(chars, consts.LT)
+	slice, _, ok := bytes.Cut(chars, types.LT)
 	in := stream.NewOutbound(utils.Ternary(ok, slice, chars), l.bus)
 
 	// 👇 eat the AID
@@ -94,8 +94,8 @@ func (l *Logger) logInboundWSF(chars []byte) {
 	for _, sfld := range sflds {
 		switch {
 
-		case sfld.ID == consts.QUERY_REPLY:
-			qcode := consts.QCode(sfld.Info[0])
+		case sfld.ID == types.QUERY_REPLY:
+			qcode := types.QCode(sfld.Info[0])
 			t.AppendRow(table.Row{sfld.ID, qcode, fmt.Sprintf("% 02x", sfld.Info[1:])})
 
 		default:

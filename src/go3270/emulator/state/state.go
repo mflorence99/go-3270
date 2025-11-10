@@ -1,18 +1,18 @@
 package state
 
 import (
-	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
+	"go3270/emulator/types"
 	"go3270/emulator/utils"
 )
 
 // 🟧 3270 status (as shared with the Typescript UI)
 
 type State struct {
-	Status *pubsub.Status
+	Status *types.Status
 
 	bus *pubsub.Bus
-	cfg pubsub.Config
+	cfg types.Config
 }
 
 // 🟦 Constructor
@@ -29,9 +29,9 @@ func NewState(bus *pubsub.Bus) *State {
 	return s
 }
 
-func (s *State) configure(cfg pubsub.Config) {
+func (s *State) configure(cfg types.Config) {
 	s.cfg = cfg
-	s.Status = &pubsub.Status{}
+	s.Status = &types.Status{}
 }
 
 func (s *State) reset() {
@@ -63,7 +63,7 @@ func (s *State) unlock(_ []byte) {
 	})
 }
 
-func (s *State) wcc(wcc consts.WCC) {
+func (s *State) wcc(wcc types.WCC) {
 	// 👇 honor WCC instructions
 	s.Patch(Patch{
 		Alarm:  utils.BoolPtr(wcc.Alarm),

@@ -3,10 +3,10 @@ package logger
 import (
 	"fmt"
 	"go3270/emulator/buffer"
-	"go3270/emulator/consts"
 	"go3270/emulator/conv"
 	"go3270/emulator/sfld"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 	"go3270/emulator/utils"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -19,39 +19,39 @@ func (l *Logger) logOutbound(chars []byte) {
 	// 👇 analyze the commands in the stream
 	out := stream.NewOutbound(chars, l.bus)
 	char := out.MustNext()
-	cmd := consts.Command(char)
+	cmd := types.Command(char)
 	// 👇 now we can analyze commands with data
 	switch cmd {
 
-	case consts.EW:
+	case types.EW:
 		_, ok := out.Next() // 👈 eat the WCC
 		if ok {
 			l.logOutboundOrders(out, cmd, text.FgYellow)
 		}
 
-	case consts.EWA:
+	case types.EWA:
 		_, ok := out.Next() // 👈 eat the WCC
 		if ok {
 			l.logOutboundOrders(out, cmd, text.FgYellow)
 		}
 
-	case consts.W:
+	case types.W:
 		_, ok := out.Next() // 👈 eat the WCC
 		if ok {
 			l.logOutboundOrders(out, cmd, text.FgYellow)
 		}
 
-	case consts.WSF:
+	case types.WSF:
 		l.logOutboundWSF(out, text.FgCyan)
 	}
 }
 
-func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, color text.Color) {
+func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd types.Command, color text.Color) {
 	t := l.newTable(color, fmt.Sprintf("%s Outbound (App -> 3270)\nNOTE: EUA and RA orders are listed in start/stop pairs", cmd))
 	defer t.Render()
 	addr := 0
 	fldAddr := 0
-	fldAttrs := &consts.Attrs{Protected: true}
+	fldAttrs := &types.Attrs{Protected: true}
 
 	// 👇 header
 	t.AppendHeader(table.Row{
@@ -76,68 +76,68 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd consts.Command, col
 	// 👇 look at each byte to see if it is an order
 	for out.HasNext() {
 		char := out.MustNext()
-		order := consts.Order(char)
+		order := types.Order(char)
 		switch order {
 
-		case consts.EUA:
+		case types.EUA:
 			raw := out.MustNextSlice(2)
 			l.withoutAttrs(t, order, addr, ' ')
 			addr = conv.Bytes2Addr(raw)
 			l.withoutAttrs(t, order, addr, ' ')
 
-		case consts.GE:
+		case types.GE:
 			char := out.MustNext()
 			l.withoutAttrs(t, order, addr, conv.E2A(char))
 
-		case consts.IC:
+		case types.IC:
 			l.withoutAttrs(t, order, addr, ' ')
 
-		case consts.MF:
+		case types.MF:
 			count := out.MustNext()
 			raw := out.MustNextSlice(int(count) * 2)
-			fldAttrs = consts.NewExtendedAttrs(raw)
+			fldAttrs = types.NewExtendedAttrs(raw)
 			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr}
 			l.withAttrs(t, order, addr, cell)
 			addr++
 
-		case consts.PT:
+		case types.PT:
 			l.withoutAttrs(t, order, addr, ' ')
 
-		case consts.RA:
+		case types.RA:
 			raw := out.MustNextSlice(2)
 			char := out.MustNext()
-			if consts.Order(char) == consts.GE {
+			if types.Order(char) == types.GE {
 				char = out.MustNext()
-				l.withoutAttrs(t, consts.GE, addr, conv.E2A(char))
+				l.withoutAttrs(t, types.GE, addr, conv.E2A(char))
 			}
 			l.withoutAttrs(t, order, addr, conv.E2A(char))
 			addr = conv.Bytes2Addr(raw)
 			l.withoutAttrs(t, order, addr, conv.E2A(char))
 
-		case consts.SA:
+		case types.SA:
 			chars := out.MustNextSlice(2)
-			fldAttrs = consts.NewModifiedAttrs(fldAttrs, chars)
+			fldAttrs = types.NewModifiedAttrs(fldAttrs, chars)
 			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr}
 			l.withAttrs(t, order, addr, cell)
 
-		case consts.SBA:
+		case types.SBA:
 			raw := out.MustNextSlice(2)
 			addr = conv.Bytes2Addr(raw)
 			l.withoutAttrs(t, order, addr, 0)
 
-		case consts.SF:
+		case types.SF:
 			raw := out.MustNext()
 			fldAddr = addr
-			fldAttrs = consts.NewBasicAttrs(raw)
+			fldAttrs = types.NewBasicAttrs(raw)
 			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr, FldStart: true}
 			l.withAttrs(t, order, addr, cell)
 			addr++
 
-		case consts.SFE:
+		case types.SFE:
 			count := out.MustNext()
 			raw := out.MustNextSlice(int(count) * 2)
 			fldAddr = addr
-			fldAttrs = consts.NewExtendedAttrs(raw)
+			fldAttrs = types.NewExtendedAttrs(raw)
 			cell := &buffer.Cell{Attrs: fldAttrs, FldAddr: fldAddr, FldStart: true}
 			l.withAttrs(t, order, addr, cell)
 			addr++
@@ -170,7 +170,7 @@ func (l *Logger) withAttrs(t table.Writer, cmd any, addr int, cell *buffer.Cell)
 		l.boolean(cell.FldStart),
 		utils.Ternary(cell.Attrs.Autoskip, "SKIP", ""),
 		utils.Ternary(cell.Attrs.Blink, "BLINK", ""),
-		utils.Ternary(cell.Attrs.Color != 0x00, consts.ColorFor(cell.Attrs.Color), ""),
+		utils.Ternary(cell.Attrs.Color != 0x00, types.ColorFor(cell.Attrs.Color), ""),
 		utils.Ternary(cell.Attrs.Hidden, "HIDDEN", ""),
 		utils.Ternary(cell.Attrs.Highlight, "HILITE", ""),
 		utils.Ternary(cell.Attrs.MDT, "MDT", ""),
@@ -178,7 +178,7 @@ func (l *Logger) withAttrs(t table.Writer, cmd any, addr int, cell *buffer.Cell)
 		utils.Ternary(cell.Attrs.Protected, "PROT", ""),
 		utils.Ternary(cell.Attrs.Reverse, "REV", ""),
 		utils.Ternary(cell.Attrs.Underscore, "USCORE", ""),
-		utils.Ternary(cell.Attrs.Outline != 0x00, consts.OutlineFor(cell.Attrs.Outline), ""),
+		utils.Ternary(cell.Attrs.Outline != 0x00, types.OutlineFor(cell.Attrs.Outline), ""),
 		utils.Ternary(cell.Attrs.LCID != 0x00, cell.Attrs.LCID.String(), ""),
 	})
 }

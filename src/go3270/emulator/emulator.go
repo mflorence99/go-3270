@@ -10,6 +10,7 @@ import (
 	"go3270/emulator/screen"
 	"go3270/emulator/screenshots"
 	"go3270/emulator/state"
+	"go3270/emulator/types"
 )
 
 // 🟧 3270 emulator itself, in pure go test-able code
@@ -18,7 +19,7 @@ type Emulator struct {
 	bus   *pubsub.Bus
 	buf   *buffer.Buffer
 	cells *buffer.Cells
-	cfg   pubsub.Config
+	cfg   types.Config
 	flds  *buffer.Flds
 	gc    *screen.Cache
 	log   *logger.Logger
@@ -31,7 +32,7 @@ type Emulator struct {
 
 // 🟦 Constructor
 
-func NewEmulator(bus *pubsub.Bus, cfg pubsub.Config) *Emulator {
+func NewEmulator(bus *pubsub.Bus, cfg types.Config) *Emulator {
 	e := new(Emulator)
 	e.bus = bus
 	e.cfg = cfg

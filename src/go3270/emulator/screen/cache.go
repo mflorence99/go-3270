@@ -3,6 +3,7 @@ package screen
 import (
 	"go3270/emulator/conv"
 	"go3270/emulator/pubsub"
+	"go3270/emulator/types"
 	"go3270/emulator/utils"
 	"image"
 
@@ -14,7 +15,7 @@ import (
 type Cache struct {
 	bus   *pubsub.Bus
 	cache map[Glyph]image.Image
-	cfg   pubsub.Config
+	cfg   types.Config
 }
 
 // 🟦 Constructor
@@ -27,7 +28,7 @@ func NewCache(bus *pubsub.Bus) *Cache {
 	return c
 }
 
-func (c *Cache) configure(cfg pubsub.Config) {
+func (c *Cache) configure(cfg types.Config) {
 	c.cfg = cfg
 	c.cache = make(map[Glyph]image.Image)
 }

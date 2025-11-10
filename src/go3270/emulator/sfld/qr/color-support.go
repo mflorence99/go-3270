@@ -1,16 +1,16 @@
 package qr
 
 import (
-	"go3270/emulator/consts"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 	"go3270/emulator/utils"
 )
 
 // 🟧 Query Reply structured field
 
 type ColorSupport struct {
-	SFID  consts.SFID
-	QCode consts.QCode
+	SFID  types.SFID
+	QCode types.QCode
 	Flags byte
 	NP    byte
 	CAVs  []byte
@@ -27,8 +27,8 @@ func NewColorSupport(monochrome bool) ColorSupport {
 		cavs = append(cavs, []byte{byte(ix + 240), utils.Ternary(monochrome, 0x00, byte(ix+240))}...)
 	}
 	return ColorSupport{
-		SFID:  consts.QUERY_REPLY,
-		QCode: consts.COLOR_SUPPORT,
+		SFID:  types.QUERY_REPLY,
+		QCode: types.COLOR_SUPPORT,
 		// 👇 flags appropriate for "not a printer"
 		Flags: 0x00,
 		NP:    byte(len(cavs) / 2),

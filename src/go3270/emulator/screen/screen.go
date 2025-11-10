@@ -2,9 +2,9 @@ package screen
 
 import (
 	"go3270/emulator/buffer"
-	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/state"
+	"go3270/emulator/types"
 	"go3270/emulator/utils"
 
 	"github.com/fogleman/gg"
@@ -16,7 +16,7 @@ import (
 type Screen struct {
 	buf *buffer.Buffer
 	bus *pubsub.Bus
-	cfg pubsub.Config
+	cfg types.Config
 	gc  *Cache
 	st  *state.State
 
@@ -43,7 +43,7 @@ func NewScreen(bus *pubsub.Bus, buf *buffer.Buffer, gc *Cache, st *state.State) 
 	return s
 }
 
-func (s *Screen) configure(cfg pubsub.Config) {
+func (s *Screen) configure(cfg types.Config) {
 	s.cfg = cfg
 	// 👇 precompute the box for each cell
 	s.cps = make([]Box, s.cfg.Cols*s.cfg.Rows)
@@ -137,10 +137,10 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 		}
 		// 🔥 outline is always at field level
 		if outline {
-			g.Outline.Bottom = (sf.Attrs.Outline & consts.OUTLINE_BOTTOM) != 0
-			g.Outline.Right = ((sf.Attrs.Outline & consts.OUTLINE_RIGHT) != 0) && cell.FldEnd
-			g.Outline.Top = (sf.Attrs.Outline & consts.OUTLINE_TOP) != 0
-			g.Outline.Left = ((sf.Attrs.Outline & consts.OUTLINE_LEFT) != 0) && cell.FldStart
+			g.Outline.Bottom = (sf.Attrs.Outline & types.OUTLINE_BOTTOM) != 0
+			g.Outline.Right = ((sf.Attrs.Outline & types.OUTLINE_RIGHT) != 0) && cell.FldEnd
+			g.Outline.Top = (sf.Attrs.Outline & types.OUTLINE_TOP) != 0
+			g.Outline.Left = ((sf.Attrs.Outline & types.OUTLINE_LEFT) != 0) && cell.FldStart
 		}
 		// 👇 if the glyph is already at this address, no need to redraw it
 		if g != s.glyphs[addr] {

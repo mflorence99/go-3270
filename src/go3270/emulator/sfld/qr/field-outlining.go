@@ -1,15 +1,15 @@
 package qr
 
 import (
-	"go3270/emulator/consts"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 )
 
 // 🟧 Query Reply structured field
 
 type FieldOutlining struct {
-	SFID  consts.SFID
-	QCode consts.QCode
+	SFID  types.SFID
+	QCode types.QCode
 	Flag  byte
 	Sep   byte
 	VPOS  byte
@@ -22,8 +22,8 @@ type FieldOutlining struct {
 
 func NewFieldOutlining() FieldOutlining {
 	return FieldOutlining{
-		SFID:  consts.QUERY_REPLY,
-		QCode: consts.FIELD_OUTLINING,
+		SFID:  types.QUERY_REPLY,
+		QCode: types.FIELD_OUTLINING,
 		// 👇 fill as best we can for a non-printer
 		Flag:  0x00,
 		Sep:   0b10000000,

@@ -1,15 +1,15 @@
 package qr
 
 import (
-	"go3270/emulator/consts"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 )
 
 // 🟧 Query Reply structured field
 
 type Highlighting struct {
-	SFID  consts.SFID
-	QCode consts.QCode
+	SFID  types.SFID
+	QCode types.QCode
 	NP    byte
 	HAVs  [][]byte
 }
@@ -18,14 +18,14 @@ type Highlighting struct {
 
 func NewHighlighting() Highlighting {
 	havs := make([][]byte, 5)
-	havs[0] = []byte{0x00, byte(consts.NO_HILITE)}
-	havs[1] = []byte{0xF1, byte(consts.BLINK)}
-	havs[2] = []byte{0xF2, byte(consts.REVERSE)}
-	havs[3] = []byte{0xF4, byte(consts.UNDERSCORE)}
-	havs[4] = []byte{0xF8, byte(consts.INTENSIFY)}
+	havs[0] = []byte{0x00, byte(types.NO_HILITE)}
+	havs[1] = []byte{0xF1, byte(types.BLINK)}
+	havs[2] = []byte{0xF2, byte(types.REVERSE)}
+	havs[3] = []byte{0xF4, byte(types.UNDERSCORE)}
+	havs[4] = []byte{0xF8, byte(types.INTENSIFY)}
 	return Highlighting{
-		SFID:  consts.QUERY_REPLY,
-		QCode: consts.HIGHLIGHTING,
+		SFID:  types.QUERY_REPLY,
+		QCode: types.HIGHLIGHTING,
 		NP:    0x05,
 		HAVs:  havs,
 	}

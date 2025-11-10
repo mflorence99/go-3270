@@ -1,16 +1,16 @@
 package qr
 
 import (
-	"go3270/emulator/consts"
 	"go3270/emulator/conv"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 )
 
 // 🟧 Query Reply structured field
 
 type RPQNames struct {
-	SFID    consts.SFID
-	QCode   consts.QCode
+	SFID    types.SFID
+	QCode   types.QCode
 	Device  []byte
 	Model   []byte
 	RPQName string
@@ -20,8 +20,8 @@ type RPQNames struct {
 
 func NewRPQNames() RPQNames {
 	return RPQNames{
-		SFID:    consts.QUERY_REPLY,
-		QCode:   consts.RPQ_NAMES,
+		SFID:    types.QUERY_REPLY,
+		QCode:   types.RPQ_NAMES,
 		Device:  []byte{0x00, 0x00, 0x00, 0x00},
 		Model:   []byte{0x00, 0x00, 0x00, 0x00},
 		RPQName: "go3270",

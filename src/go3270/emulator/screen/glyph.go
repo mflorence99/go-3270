@@ -1,6 +1,6 @@
 package screen
 
-import "go3270/emulator/consts"
+import "go3270/emulator/types"
 
 // 🟧 A glyph, as stored in the glyph cache
 
@@ -11,7 +11,7 @@ type Glyph struct {
 	Reverse    bool
 	Underscore bool
 	Outline    Outline
-	LCID       consts.LCID
+	LCID       types.LCID
 }
 type Outline struct {
 	Bottom bool

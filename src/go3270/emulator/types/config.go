@@ -1,7 +1,6 @@
-package pubsub
+package types
 
 import (
-	"go3270/emulator/consts"
 	"image"
 
 	"golang.org/x/image/font"
@@ -12,7 +11,7 @@ import (
 type Config struct {
 	BgColor      string
 	BoldFace     *font.Face
-	CLUT         map[consts.Color]string
+	CLUT         map[Color]string
 	Cols         int
 	FontHeight   float64
 	FontSize     float64

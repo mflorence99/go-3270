@@ -2,15 +2,15 @@ package qr
 
 import (
 	"encoding/binary"
-	"go3270/emulator/consts"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 )
 
 // 🟧 Query Reply structured field
 
 type UsableArea struct {
-	SFID   consts.SFID
-	QCode  consts.QCode
+	SFID   types.SFID
+	QCode  types.QCode
 	Flags1 byte
 	Flags2 byte
 	W      uint16
@@ -21,8 +21,8 @@ type UsableArea struct {
 
 func NewUsableArea(cols, rows int) UsableArea {
 	return UsableArea{
-		SFID:  consts.QUERY_REPLY,
-		QCode: consts.USABLE_AREA,
+		SFID:  types.QUERY_REPLY,
+		QCode: types.USABLE_AREA,
 		// 👇 12/14 bit addressing
 		Flags1: 0b00000001,
 		// 👇 dimensions in cells (not pells)

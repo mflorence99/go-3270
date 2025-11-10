@@ -2,7 +2,7 @@ package screen
 
 import (
 	"fmt"
-	"go3270/emulator/pubsub"
+	"go3270/emulator/types"
 	"math"
 )
 
@@ -18,7 +18,7 @@ type Box struct {
 
 // 🟦 Constructor
 
-func NewBox(row, col int, cfg pubsub.Config) Box {
+func NewBox(row, col int, cfg types.Config) Box {
 	w := math.Round(cfg.FontWidth * cfg.PaddedWidth)
 	h := math.Round(cfg.FontHeight * cfg.PaddedHeight)
 	x := math.Round(float64(col) * w)

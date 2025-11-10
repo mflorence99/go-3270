@@ -3,12 +3,12 @@ package outbound
 import (
 	"fmt"
 	"go3270/emulator/buffer"
-	"go3270/emulator/consts"
 	"go3270/emulator/conv"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/sfld"
 	"go3270/emulator/state"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 	"go3270/emulator/utils"
 	"time"
 )
@@ -19,7 +19,7 @@ type Consumer struct {
 	buf   *buffer.Buffer
 	bus   *pubsub.Bus
 	cells *buffer.Cells
-	cfg   pubsub.Config
+	cfg   types.Config
 	flds  *buffer.Flds
 	st    *state.State
 }
@@ -39,7 +39,7 @@ func NewConsumer(bus *pubsub.Bus, buf *buffer.Buffer, cells *buffer.Cells, flds 
 	return c
 }
 
-func (c *Consumer) configure(cfg pubsub.Config) {
+func (c *Consumer) configure(cfg types.Config) {
 	c.cfg = cfg
 }
 
@@ -48,38 +48,38 @@ func (c *Consumer) consume(chars []byte) {
 	// 👇 process the commands in the stream
 	out := stream.NewOutbound(chars, c.bus)
 	char := out.MustNext()
-	cmd := consts.Command(char)
+	cmd := types.Command(char)
 	c.commands(out, cmd)
 }
 
 // 🟦 Commands
 
-func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
+func (c *Consumer) commands(out *stream.Outbound, cmd types.Command) {
 	// 👇 dispatch on command
 	switch cmd {
 
-	case consts.EAU:
+	case types.EAU:
 		c.eau()
 
-	case consts.EW:
+	case types.EW:
 		c.ew(out)
 
-	case consts.EWA:
+	case types.EWA:
 		c.ewa(out)
 
-	case consts.RB:
+	case types.RB:
 		c.rb()
 
-	case consts.RM:
+	case types.RM:
 		c.rm()
 
-	case consts.RMA:
+	case types.RMA:
 		c.rma()
 
-	case consts.W:
+	case types.W:
 		c.w(out)
 
-	case consts.WSF:
+	case types.WSF:
 		c.wsf(out)
 	}
 }
@@ -113,15 +113,15 @@ func (c *Consumer) ewa(out *stream.Outbound) {
 }
 
 func (c *Consumer) rb() {
-	c.bus.PubRB(consts.INBOUND)
+	c.bus.PubRB(types.INBOUND)
 }
 
 func (c *Consumer) rm() {
-	c.bus.PubRM(consts.INBOUND)
+	c.bus.PubRM(types.INBOUND)
 }
 
 func (c *Consumer) rma() {
-	c.bus.PubRMA(consts.INBOUND)
+	c.bus.PubRMA(types.INBOUND)
 }
 
 func (c *Consumer) w(out *stream.Outbound) {
@@ -130,10 +130,10 @@ func (c *Consumer) w(out *stream.Outbound) {
 	c.bus.PubRender()
 }
 
-func (c *Consumer) wcc(out *stream.Outbound) (consts.WCC, bool) {
+func (c *Consumer) wcc(out *stream.Outbound) (types.WCC, bool) {
 	char, ok := out.Next()
 	if ok {
-		wcc := consts.NewWCC(char)
+		wcc := types.NewWCC(char)
 		// TODO 🔥 not yet handled
 		if wcc.Reset {
 			println("🔥 WCC Reset not implemented")
@@ -144,7 +144,7 @@ func (c *Consumer) wcc(out *stream.Outbound) (consts.WCC, bool) {
 		c.bus.PubWCC(wcc)
 		return wcc, true
 	} else {
-		return consts.WCC{}, false
+		return types.WCC{}, false
 	}
 }
 
@@ -158,7 +158,7 @@ func (c *Consumer) wsf(out *stream.Outbound) {
 
 		switch sfld.ID {
 
-		case consts.READ_PARTITION:
+		case types.READ_PARTITION:
 			c.rp(sfld)
 
 		// TODO 🔥 only READ_PARTITION is implemented
@@ -174,44 +174,44 @@ func (c *Consumer) rp(sfld sfld.SFld) {
 	if pid == 0xFF {
 		cmd := sfld.Info[1]
 
-		switch consts.Command(cmd) {
+		switch types.Command(cmd) {
 
-		case consts.Q:
+		case types.Q:
 			c.bus.PubQ()
 
-		case consts.QL:
+		case types.QL:
 			all := (sfld.Info[2] & 0b10000000) == 0b10000000
-			var qcodes []consts.QCode
+			var qcodes []types.QCode
 			if all {
-				qcodes = []consts.QCode{
-					consts.USABLE_AREA,
-					consts.ALPHANUMERIC_PARTITIONS,
-					consts.CHARACTER_SETS,
-					consts.COLOR_SUPPORT,
-					consts.HIGHLIGHTING,
-					consts.REPLY_MODES,
-					consts.FIELD_VALIDATION,
-					consts.FIELD_OUTLINING,
-					consts.DDM,
-					consts.RPQ_NAMES,
-					consts.IMPLICIT_PARTITION,
+				qcodes = []types.QCode{
+					types.USABLE_AREA,
+					types.ALPHANUMERIC_PARTITIONS,
+					types.CHARACTER_SETS,
+					types.COLOR_SUPPORT,
+					types.HIGHLIGHTING,
+					types.REPLY_MODES,
+					types.FIELD_VALIDATION,
+					types.FIELD_OUTLINING,
+					types.DDM,
+					types.RPQ_NAMES,
+					types.IMPLICIT_PARTITION,
 				}
 			} else {
-				qcodes = make([]consts.QCode, 0)
+				qcodes = make([]types.QCode, 0)
 				for ix := 3; ix < len(sfld.Info); ix++ {
-					qcodes = append(qcodes, consts.QCode(sfld.Info[ix]))
+					qcodes = append(qcodes, types.QCode(sfld.Info[ix]))
 				}
 			}
 			c.bus.PubQL(qcodes)
 
-		case consts.RB:
-			c.bus.PubRB(consts.INBOUND)
+		case types.RB:
+			c.bus.PubRB(types.INBOUND)
 
-		case consts.RM:
-			c.bus.PubRM(consts.INBOUND)
+		case types.RM:
+			c.bus.PubRM(types.INBOUND)
 
-		case consts.RMA:
-			c.bus.PubRMA(consts.INBOUND)
+		case types.RMA:
+			c.bus.PubRMA(types.INBOUND)
 
 		}
 	}
@@ -221,51 +221,51 @@ func (c *Consumer) rp(sfld sfld.SFld) {
 
 func (c *Consumer) orders(out *stream.Outbound) {
 	fldAddr := -1
-	fldAttrs := consts.DEFAULT_ATTRS
+	fldAttrs := types.DEFAULT_ATTRS
 	// 👇 look at each byte to see if it is an order
 outer:
 	for out.HasNext() {
 		char := out.MustNext()
-		order := consts.Order(char)
+		order := types.Order(char)
 		// 👇 dispatch on order
 		switch order {
 
 		// 🔥 per spec invalid EUA terminates write operation
-		case consts.EUA:
+		case types.EUA:
 			ok := c.eua(out)
 			if !ok {
 				break outer
 			}
 
-		case consts.GE:
+		case types.GE:
 			c.ge(out, fldAddr, fldAttrs)
 
-		case consts.IC:
+		case types.IC:
 			c.ic()
 
-		case consts.MF:
+		case types.MF:
 			c.mf(out)
 
-		case consts.PT:
+		case types.PT:
 			c.pt()
 
 		// 🔥 per spec invalid RA terminates write operation
-		case consts.RA:
+		case types.RA:
 			ok := c.ra(out, fldAddr, fldAttrs)
 			if !ok {
 				break outer
 			}
 
-		case consts.SA:
+		case types.SA:
 			fldAttrs = c.sa(out, fldAttrs)
 
-		case consts.SBA:
+		case types.SBA:
 			c.sba(out)
 
-		case consts.SF:
+		case types.SF:
 			fldAddr, fldAttrs = c.sf(out)
 
-		case consts.SFE:
+		case types.SFE:
 			fldAddr, fldAttrs = c.sfe(out)
 
 		// 👇 if it isn't an order, it's data
@@ -278,7 +278,7 @@ outer:
 	c.flds.Build()
 }
 
-func (c *Consumer) char(char byte, fldAddr int, fldAttrs *consts.Attrs) {
+func (c *Consumer) char(char byte, fldAddr int, fldAttrs *types.Attrs) {
 	cell := &buffer.Cell{
 		Attrs:   fldAttrs,
 		Char:    char,
@@ -293,7 +293,7 @@ func (c *Consumer) eua(out *stream.Outbound) bool {
 	return c.cells.EUA(c.buf.Addr(), stop)
 }
 
-func (c *Consumer) ge(out *stream.Outbound, fldAddr int, fldAttrs *consts.Attrs) {
+func (c *Consumer) ge(out *stream.Outbound, fldAddr int, fldAttrs *types.Attrs) {
 	char := out.MustNext()
 	// TODO 🔥 GE not properly handled -- what alt character set??
 	fldAttrs.LCID = 0xf1
@@ -320,11 +320,11 @@ func (c *Consumer) pt() {
 	c.bus.PubPanic("🔥 PT not implemented")
 }
 
-func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *consts.Attrs) bool {
+func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *types.Attrs) bool {
 	raw := out.MustNextSlice(2)
 	stop := conv.Bytes2Addr(raw)
 	char := out.MustNext()
-	if consts.Order(char) == consts.GE {
+	if types.Order(char) == types.GE {
 		// TODO 🔥 GE not properly handled -- what alt character set??
 		fldAttrs.LCID = 0xf1
 		char = out.MustNext()
@@ -337,10 +337,10 @@ func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *consts.Attrs)
 	return c.cells.RA(cell, c.buf.Addr(), stop)
 }
 
-func (c *Consumer) sa(out *stream.Outbound, fldAttrs *consts.Attrs) *consts.Attrs {
-	c.buf.SetMode(consts.CHARACTER_MODE)
+func (c *Consumer) sa(out *stream.Outbound, fldAttrs *types.Attrs) *types.Attrs {
+	c.buf.SetMode(types.CHARACTER_MODE)
 	chars := out.MustNextSlice(2)
-	return consts.NewModifiedAttrs(fldAttrs, chars)
+	return types.NewModifiedAttrs(fldAttrs, chars)
 }
 
 func (c *Consumer) sba(out *stream.Outbound) {
@@ -352,26 +352,26 @@ func (c *Consumer) sba(out *stream.Outbound) {
 	c.buf.WrappingSeek(addr)
 }
 
-func (c *Consumer) sf(out *stream.Outbound) (int, *consts.Attrs) {
-	c.buf.SetMode(consts.FIELD_MODE)
+func (c *Consumer) sf(out *stream.Outbound) (int, *types.Attrs) {
+	c.buf.SetMode(types.FIELD_MODE)
 	raw := out.MustNext()
-	fldAttrs := consts.NewBasicAttrs(raw)
+	fldAttrs := types.NewBasicAttrs(raw)
 	fldAddr := c.buf.Addr()
 	c.sfImpl(fldAddr, fldAttrs)
 	return fldAddr, fldAttrs
 }
 
-func (c *Consumer) sfe(out *stream.Outbound) (int, *consts.Attrs) {
-	c.buf.SetMode(consts.EXTENDED_FIELD_MODE)
+func (c *Consumer) sfe(out *stream.Outbound) (int, *types.Attrs) {
+	c.buf.SetMode(types.EXTENDED_FIELD_MODE)
 	count := out.MustNext()
 	raw := out.MustNextSlice(int(count) * 2)
-	fldAttrs := consts.NewExtendedAttrs(raw)
+	fldAttrs := types.NewExtendedAttrs(raw)
 	fldAddr := c.buf.Addr()
 	c.sfImpl(fldAddr, fldAttrs)
 	return fldAddr, fldAttrs
 }
 
-func (c *Consumer) sfImpl(fldAddr int, fldAttrs *consts.Attrs) {
+func (c *Consumer) sfImpl(fldAddr int, fldAttrs *types.Attrs) {
 	// 🔥 as per spec, if we start a new field at r1/c1 then
 	//    treat like an EW -- if we get here after a real EW,
 	//    we'll reset a second time -- the clarity of the
@@ -382,7 +382,7 @@ func (c *Consumer) sfImpl(fldAddr int, fldAttrs *consts.Attrs) {
 	// 👇 now we can insert the Sf
 	sf := &buffer.Cell{
 		Attrs:    fldAttrs,
-		Char:     byte(consts.SF),
+		Char:     byte(types.SF),
 		FldAddr:  fldAddr,
 		FldStart: true,
 		FldEnd:   false, // 👈 completed by flds.Build()

@@ -1,24 +1,24 @@
 package qr
 
 import (
-	"go3270/emulator/consts"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 )
 
 // 🟧 Query Reply structured field
 
 type Summary struct {
-	SFID  consts.SFID
-	QCode consts.QCode
-	List  []consts.QCode
+	SFID  types.SFID
+	QCode types.QCode
+	List  []types.QCode
 }
 
 // 🟦 Constructor
 
-func NewSummary(list []consts.QCode) Summary {
+func NewSummary(list []types.QCode) Summary {
 	return Summary{
-		SFID:  consts.QUERY_REPLY,
-		QCode: consts.SUMMARY,
+		SFID:  types.QUERY_REPLY,
+		QCode: types.SUMMARY,
 		List:  list,
 	}
 }

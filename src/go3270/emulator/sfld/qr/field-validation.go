@@ -1,15 +1,15 @@
 package qr
 
 import (
-	"go3270/emulator/consts"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 )
 
 // 🟧 Query Reply structured field
 
 type FieldValidation struct {
-	SFID  consts.SFID
-	QCode consts.QCode
+	SFID  types.SFID
+	QCode types.QCode
 	Types byte
 }
 
@@ -17,8 +17,8 @@ type FieldValidation struct {
 
 func NewFieldValidation() FieldValidation {
 	return FieldValidation{
-		SFID:  consts.QUERY_REPLY,
-		QCode: consts.FIELD_VALIDATION,
+		SFID:  types.QUERY_REPLY,
+		QCode: types.FIELD_VALIDATION,
 		// 👇 we support mandatory fill and entry, plus trigger
 		Types: 0b00000111,
 	}

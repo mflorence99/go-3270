@@ -3,9 +3,9 @@ package logger
 import (
 	"fmt"
 	"go3270/emulator/buffer"
-	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/state"
+	"go3270/emulator/types"
 	"go3270/emulator/utils"
 	"os"
 
@@ -20,7 +20,7 @@ import (
 type Logger struct {
 	buf  *buffer.Buffer
 	bus  *pubsub.Bus
-	cfg  pubsub.Config
+	cfg  types.Config
 	flds *buffer.Flds
 	st   *state.State
 }
@@ -47,7 +47,7 @@ func (l *Logger) close() {
 	println("🐞 Emulator closed")
 }
 
-func (l *Logger) configure(cfg pubsub.Config) {
+func (l *Logger) configure(cfg types.Config) {
 	l.cfg = cfg
 	println("🐞 Emulator initialized")
 	go func() {
@@ -94,7 +94,7 @@ func (l *Logger) trace(topic string, handler interface{}) {
 	l.logTrace(topic, handler)
 }
 
-func (l *Logger) wcc(wcc consts.WCC) {
+func (l *Logger) wcc(wcc types.WCC) {
 	go func() {
 		l.logWCC(wcc)
 	}()

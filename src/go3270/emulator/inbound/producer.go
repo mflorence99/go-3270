@@ -2,12 +2,12 @@ package inbound
 
 import (
 	"go3270/emulator/buffer"
-	"go3270/emulator/consts"
 	"go3270/emulator/conv"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/sfld/qr"
 	"go3270/emulator/state"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 )
 
 // 🟧 Produce inbound (3270 -> app) data stream
@@ -15,7 +15,7 @@ import (
 type Producer struct {
 	buf  *buffer.Buffer
 	bus  *pubsub.Bus
-	cfg  pubsub.Config
+	cfg  types.Config
 	flds *buffer.Flds
 	st   *state.State
 }
@@ -39,36 +39,36 @@ func NewProducer(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds, st *sta
 	return p
 }
 
-func (p *Producer) configure(cfg pubsub.Config) {
+func (p *Producer) configure(cfg types.Config) {
 	p.cfg = cfg
 }
 
 // 🟦 Functions to produce requested stream type
 
-func (p *Producer) attn(aid consts.AID) {
+func (p *Producer) attn(aid types.AID) {
 	in := stream.NewInbound()
 	in.Put(byte(aid))
-	in.PutSlice(consts.LT)
+	in.PutSlice(types.LT)
 	p.bus.PubInbound(in.Bytes(), false)
 }
 
 func (p *Producer) q() {
 	in := stream.NewInbound()
-	in.Put(byte(consts.INBOUND))
+	in.Put(byte(types.INBOUND))
 	// 👇 SUMMARY
-	qr.NewSummary([]consts.QCode{
-		consts.SUMMARY,
-		consts.USABLE_AREA,
-		consts.ALPHANUMERIC_PARTITIONS,
-		consts.CHARACTER_SETS,
-		consts.COLOR_SUPPORT,
-		consts.HIGHLIGHTING,
-		consts.REPLY_MODES,
-		consts.FIELD_VALIDATION,
-		consts.FIELD_OUTLINING,
-		consts.DDM,
-		consts.RPQ_NAMES,
-		consts.IMPLICIT_PARTITION,
+	qr.NewSummary([]types.QCode{
+		types.SUMMARY,
+		types.USABLE_AREA,
+		types.ALPHANUMERIC_PARTITIONS,
+		types.CHARACTER_SETS,
+		types.COLOR_SUPPORT,
+		types.HIGHLIGHTING,
+		types.REPLY_MODES,
+		types.FIELD_VALIDATION,
+		types.FIELD_OUTLINING,
+		types.DDM,
+		types.RPQ_NAMES,
+		types.IMPLICIT_PARTITION,
 	}).Put(in)
 	// 👇 then the rest
 	qr.NewUsableArea(p.cfg.Cols, p.cfg.Rows).Put(in)
@@ -83,56 +83,56 @@ func (p *Producer) q() {
 	qr.NewRPQNames().Put(in)
 	qr.NewImplicitPartition(p.cfg.Cols, p.cfg.Rows).Put(in)
 	// 👇 frame boundary LT is last
-	in.PutSlice(consts.LT)
+	in.PutSlice(types.LT)
 	p.bus.PubInbound(in.Bytes(), true)
 }
 
-func (p *Producer) ql(qcodes []consts.QCode) {
+func (p *Producer) ql(qcodes []types.QCode) {
 	in := stream.NewInbound()
-	in.Put(byte(consts.INBOUND))
+	in.Put(byte(types.INBOUND))
 	for _, qcode := range qcodes {
 		switch qcode {
-		case consts.USABLE_AREA:
+		case types.USABLE_AREA:
 			qr.NewUsableArea(p.cfg.Cols, p.cfg.Rows).Put(in)
-		case consts.ALPHANUMERIC_PARTITIONS:
+		case types.ALPHANUMERIC_PARTITIONS:
 			qr.NewAlphanumericPartitions(p.cfg.Cols, p.cfg.Rows).Put(in)
-		case consts.CHARACTER_SETS:
+		case types.CHARACTER_SETS:
 			qr.NewCharacterSets().Put(in)
-		case consts.COLOR_SUPPORT:
+		case types.COLOR_SUPPORT:
 			qr.NewColorSupport(p.cfg.Monochrome).Put(in)
-		case consts.HIGHLIGHTING:
+		case types.HIGHLIGHTING:
 			qr.NewHighlighting().Put(in)
-		case consts.REPLY_MODES:
+		case types.REPLY_MODES:
 			qr.NewReplyModes().Put(in)
-		case consts.FIELD_VALIDATION:
+		case types.FIELD_VALIDATION:
 			qr.NewFieldValidation().Put(in)
-		case consts.FIELD_OUTLINING:
+		case types.FIELD_OUTLINING:
 			qr.NewFieldOutlining().Put(in)
-		case consts.DDM:
+		case types.DDM:
 			qr.NewDDM().Put(in)
-		case consts.RPQ_NAMES:
+		case types.RPQ_NAMES:
 			qr.NewRPQNames().Put(in)
-		case consts.IMPLICIT_PARTITION:
+		case types.IMPLICIT_PARTITION:
 			qr.NewImplicitPartition(p.cfg.Cols, p.cfg.Rows).Put(in)
 		}
 	}
 	// 👇 frame boundary LT is last
-	in.PutSlice(consts.LT)
+	in.PutSlice(types.LT)
 	p.bus.PubInbound(in.Bytes(), true)
 }
 
-func (p *Producer) rb(aid consts.AID) {
+func (p *Producer) rb(aid types.AID) {
 	in := stream.NewInbound()
 	in.Put(byte(aid))
 	cursorAt := p.st.Status.CursorAt
 	in.PutSlice(conv.Addr2Bytes(cursorAt))
 	in.PutSlice(p.flds.ReadBuffer())
 	// 👇 frame boundary LT is last
-	in.PutSlice(consts.LT)
+	in.PutSlice(types.LT)
 	p.bus.PubInbound(in.Bytes(), false)
 }
 
-func (p *Producer) rm(aid consts.AID) {
+func (p *Producer) rm(aid types.AID) {
 	in := stream.NewInbound()
 	in.Put(byte(aid))
 	if !aid.ShortRead() {
@@ -140,18 +140,18 @@ func (p *Producer) rm(aid consts.AID) {
 		in.PutSlice(conv.Addr2Bytes(cursorAt))
 		in.PutSlice(p.flds.ReadMDTs())
 		// 👇 frame boundary LT is last
-		in.PutSlice(consts.LT)
+		in.PutSlice(types.LT)
 		p.bus.PubInbound(in.Bytes(), false)
 	}
 }
 
-func (p *Producer) rma(aid consts.AID) {
+func (p *Producer) rma(aid types.AID) {
 	in := stream.NewInbound()
 	in.Put(byte(aid))
 	cursorAt := p.st.Status.CursorAt
 	in.PutSlice(conv.Addr2Bytes(cursorAt))
 	in.PutSlice(p.flds.ReadMDTs())
 	// 👇 frame boundary LT is last
-	in.PutSlice(consts.LT)
+	in.PutSlice(types.LT)
 	p.bus.PubInbound(in.Bytes(), false)
 }

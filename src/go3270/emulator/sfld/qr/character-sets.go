@@ -1,15 +1,15 @@
 package qr
 
 import (
-	"go3270/emulator/consts"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 )
 
 // 🟧 Query Reply structured field
 
 type CharacterSets struct {
-	SFID  consts.SFID
-	QCode consts.QCode
+	SFID  types.SFID
+	QCode types.QCode
 	Flag1 byte
 	Flag2 byte
 	SDW   byte
@@ -20,8 +20,8 @@ type CharacterSets struct {
 
 func NewCharacterSets() CharacterSets {
 	return CharacterSets{
-		SFID:  consts.QUERY_REPLY,
-		QCode: consts.CHARACTER_SETS,
+		SFID:  types.QUERY_REPLY,
+		QCode: types.CHARACTER_SETS,
 		Flag1: 0b10000010,
 		Flag2: 0b00000000,
 		// TODO 🔥 just copied these numbers from x3270

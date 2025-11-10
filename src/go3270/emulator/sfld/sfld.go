@@ -2,14 +2,14 @@ package sfld
 
 import (
 	"fmt"
-	"go3270/emulator/consts"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 )
 
 // 🟧 3270 Structured Field ID
 
 type SFld struct {
-	ID   consts.SFID
+	ID   types.SFID
 	Info []byte
 }
 
@@ -36,7 +36,7 @@ func SFldsFromStream(out *stream.Outbound) []SFld {
 				info = out.Rest()
 			}
 			sfld := SFld{
-				ID:   consts.SFID(id),
+				ID:   types.SFID(id),
 				Info: info,
 			}
 			sflds = append(sflds, sfld)

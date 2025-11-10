@@ -1,28 +1,28 @@
 package qr
 
 import (
-	"go3270/emulator/consts"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 )
 
 // 🟧 Query Reply structured field
 
 type ReplyModes struct {
-	SFID  consts.SFID
-	QCode consts.QCode
-	Modes []consts.Mode
+	SFID  types.SFID
+	QCode types.QCode
+	Modes []types.Mode
 }
 
 // 🟦 Constructor
 
 func NewReplyModes() ReplyModes {
 	return ReplyModes{
-		SFID:  consts.QUERY_REPLY,
-		QCode: consts.REPLY_MODES,
-		Modes: []consts.Mode{
-			consts.FIELD_MODE,
-			consts.EXTENDED_FIELD_MODE,
-			consts.CHARACTER_MODE,
+		SFID:  types.QUERY_REPLY,
+		QCode: types.REPLY_MODES,
+		Modes: []types.Mode{
+			types.FIELD_MODE,
+			types.EXTENDED_FIELD_MODE,
+			types.CHARACTER_MODE,
 		},
 	}
 }

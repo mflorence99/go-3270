@@ -2,8 +2,8 @@ package logger
 
 import (
 	"fmt"
-	"go3270/emulator/consts"
 	"go3270/emulator/conv"
+	"go3270/emulator/types"
 	"go3270/emulator/utils"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -79,7 +79,7 @@ func (l *Logger) logProbe(addr int) {
 		l.boolean(cell.Attrs.CharAttr),
 		utils.Ternary(cell.Attrs.Autoskip, "SKIP", ""),
 		utils.Ternary(cell.Attrs.Blink, "BLINK", ""),
-		utils.Ternary(cell.Attrs.Color != 0x00, consts.ColorFor(cell.Attrs.Color), ""),
+		utils.Ternary(cell.Attrs.Color != 0x00, types.ColorFor(cell.Attrs.Color), ""),
 		utils.Ternary(cell.Attrs.Hidden, "HIDDEN", ""),
 		utils.Ternary(cell.Attrs.Highlight, "HILITE", ""),
 		utils.Ternary(cell.Attrs.MDT, "MDT", ""),
@@ -87,7 +87,7 @@ func (l *Logger) logProbe(addr int) {
 		utils.Ternary(cell.Attrs.Protected, "PROT", ""),
 		utils.Ternary(cell.Attrs.Reverse, "REV", ""),
 		utils.Ternary(cell.Attrs.Underscore, "USCORE", ""),
-		utils.Ternary(cell.Attrs.Outline != 0x00, consts.OutlineFor(cell.Attrs.Outline), ""),
+		utils.Ternary(cell.Attrs.Outline != 0x00, types.OutlineFor(cell.Attrs.Outline), ""),
 		utils.Ternary(cell.Attrs.LCID != 0x00, cell.Attrs.LCID.String(), ""),
 	})
 }

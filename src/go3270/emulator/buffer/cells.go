@@ -2,8 +2,8 @@ package buffer
 
 import (
 	"fmt"
-	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
+	"go3270/emulator/types"
 )
 
 // 🟧 View the buffer as an array of cells
@@ -11,7 +11,7 @@ import (
 type Cells struct {
 	buf *Buffer
 	bus *pubsub.Bus
-	cfg pubsub.Config
+	cfg types.Config
 }
 
 // 🟦 Constructor
@@ -26,7 +26,7 @@ func NewCells(bus *pubsub.Bus, buf *Buffer) *Cells {
 	return c
 }
 
-func (c *Cells) configure(cfg pubsub.Config) {
+func (c *Cells) configure(cfg types.Config) {
 	c.cfg = cfg
 	c.reset()
 }
@@ -65,7 +65,7 @@ func (c *Cells) EUA(start, stop int) bool {
 
 func (c *Cells) MF(chars []byte) {
 	cell, _ := c.buf.Get()
-	cell.Attrs = consts.NewModifiedAttrs(cell.Attrs, chars)
+	cell.Attrs = types.NewModifiedAttrs(cell.Attrs, chars)
 	c.buf.SetAndNext(cell)
 }
 

@@ -1,18 +1,18 @@
 package screenshots
 
 import (
-	"go3270/emulator/consts"
 	"go3270/emulator/conv"
+	"go3270/emulator/types"
 )
 
 // 🟧 Test GE order
 
 var GE = []any{
-	consts.EW,
-	consts.WCC{Alarm: true}.Byte(),
-	consts.SBA,
+	types.EW,
+	types.WCC{Alarm: true}.Byte(),
+	types.SBA,
 	conv.Addr2Bytes(0),
 	"123-->GE",
-	consts.GE,
+	types.GE,
 	"GE<--456",
 }

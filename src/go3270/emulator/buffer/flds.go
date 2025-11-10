@@ -1,9 +1,9 @@
 package buffer
 
 import (
-	"go3270/emulator/consts"
 	"go3270/emulator/conv"
 	"go3270/emulator/pubsub"
+	"go3270/emulator/types"
 )
 
 // 🟧 View the buffer as an array of fields
@@ -11,7 +11,7 @@ import (
 type Flds struct {
 	buf  *Buffer
 	bus  *pubsub.Bus
-	cfg  pubsub.Config
+	cfg  types.Config
 	flds []Fld
 }
 
@@ -27,7 +27,7 @@ func NewFlds(bus *pubsub.Bus, buf *Buffer) *Flds {
 	return f
 }
 
-func (f *Flds) configure(cfg pubsub.Config) {
+func (f *Flds) configure(cfg types.Config) {
 	f.cfg = cfg
 	f.reset()
 }
@@ -133,7 +133,7 @@ func (f *Flds) ReadBuffer() []byte {
 	for _, fld := range f.flds {
 		sf, ok := fld.FldStart()
 		if ok {
-			chars = append(chars, byte(consts.SF))
+			chars = append(chars, byte(types.SF))
 			chars = append(chars, sf.Attrs.Byte())
 			for ix := 1; ix < len(fld); ix++ {
 				cell := fld[ix]
@@ -153,7 +153,7 @@ func (f *Flds) ReadMDTs() []byte {
 	for _, fld := range f.flds {
 		sf, ok := fld.FldStart()
 		if ok && sf.Attrs.MDT {
-			chars = append(chars, byte(consts.SBA))
+			chars = append(chars, byte(types.SBA))
 			chars = append(chars, conv.Addr2Bytes(sf.FldAddr+1)...)
 			for ix := 1; ix < len(fld); ix++ {
 				cell := fld[ix]

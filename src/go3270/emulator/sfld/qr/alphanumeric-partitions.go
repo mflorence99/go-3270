@@ -2,15 +2,15 @@ package qr
 
 import (
 	"encoding/binary"
-	"go3270/emulator/consts"
 	"go3270/emulator/stream"
+	"go3270/emulator/types"
 )
 
 // 🟧 Query Reply structured field
 
 type AlphanumericPartitions struct {
-	SFID  consts.SFID
-	QCode consts.QCode
+	SFID  types.SFID
+	QCode types.QCode
 	NA    byte
 	M     uint16
 	Flags byte
@@ -20,8 +20,8 @@ type AlphanumericPartitions struct {
 
 func NewAlphanumericPartitions(cols, rows int) AlphanumericPartitions {
 	return AlphanumericPartitions{
-		SFID:  consts.QUERY_REPLY,
-		QCode: consts.ALPHANUMERIC_PARTITIONS,
+		SFID:  types.QUERY_REPLY,
+		QCode: types.ALPHANUMERIC_PARTITIONS,
 		NA:    0x00,
 		M:     uint16(cols * rows),
 		Flags: 0x00,
