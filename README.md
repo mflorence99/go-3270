@@ -34,19 +34,19 @@ The emulator doesn't directy draw on the `<canvas>` hosted by the UI. Rather, it
 
 The emulator is modeled on core components, roughly mirroring that of the hardware itself:
 
-1. The `buffer` is an array of cells and fields, matchinmg the discrete positions on the 3270 screen.
+1. The `buffer` is an array of cells and fields, matching the discrete positions on the 3270 screen.
 
 2. The `screen` itself which uses the Go [gg](https://github.com/fogleman/gg) package to render into a device context. A `cache` holds pre-rendered `glyphs` for fast rendering.
 
 3. The `keyboard` handles all operator input.
 
-4. The `consumer` ingests outbound (from the host app to nthe 3270) data streams into the `buffer`.
+4. The `consumer` ingests outbound (from the host app to the 3270) data streams into the `buffer`.
 
 5. The `producer` creates inbound (from the 3270 to the host app) data streams from the `buffer` contents.
 
 All these components communicate via a pubsub `bus`. A separate `logger` component also listens to the `bus` to produce detailed debugging data.
 
-All the Go code is copiled to WASM for execution in the browser. However, the bulk of the code is written in pure Go and doesn't use `syscall/js` in order to make it "Go testable".
+All the Go code is compiled to WASM for execution in the browser. However, the bulk of the code is written in pure Go and doesn't use `syscall/js` in order to make it "Go testable".
 
 Only a single `mediator` uses `syscall/js`. It is responsible for creating a call- and event-based interface with the UI.
 
@@ -54,7 +54,7 @@ Only a single `mediator` uses `syscall/js`. It is responsible for creating a cal
 
 Because the emulator is browser-hosted, _some_ server is necessary to deploy it. The static assets (HTML, CSS, Type/Javascript) could of course be deployed via a CDN, even Github iself.
 
-However, the only kind of socket browser code can use are Web sockets, while communication with the host application must be via TCP sockets. Consequently, the server also acts as a proxy between the emulator and the application. The `Bun.serve` API considerably simplifies this code.
+However, the only kind of sockets browser code can use are Web sockets, while communication with the host application must be via TCP sockets. Consequently, the server also acts as a proxy between the emulator and the application. The `Bun.serve` API considerably simplifies this code.
 
 ## Development
 
@@ -62,9 +62,9 @@ The `bin` directory contains scripts to facilitate development and testing.
 
 1. `client` launches a process that watches the client code (UI and emulator) and rebuilds it as it changes.
 
-2. `server` does the same for the server code (which in practice rarely changes)
+2. `server` does the same for the server code (which in practice rarely changes).
 
-3. `localhost` launches the server on port 3000. It itself watches for client code changes and relaunches itself as necessary.
+3. `localhost` launches the server on port 3000. It too watches for client code changes and relaunches itself as necessary.
 
 Typically, all of the above run simultaneously in three separate terminal sessions. A fourth runs one of the following, all of which listen for 3270 TCP connections on port 3270.
 

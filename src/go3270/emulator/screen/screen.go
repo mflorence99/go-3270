@@ -67,7 +67,7 @@ func (s *Screen) reset() {
 // 🟦 Rendering functions
 
 func (s *Screen) blink(counter int) {
-	blinkOn := counter%2 == 0
+	blinkOn := counter%2 == 1
 	// 👇 find all the blinkers
 	blinkers := utils.NewStack[int](1)
 	for addr := 0; addr < s.buf.Len(); addr++ {
