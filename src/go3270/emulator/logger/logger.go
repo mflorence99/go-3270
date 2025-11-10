@@ -3,10 +3,10 @@ package logger
 import (
 	"fmt"
 	"go3270/emulator/buffer"
+	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/state"
 	"go3270/emulator/utils"
-	"go3270/emulator/wcc"
 	"os"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -94,7 +94,7 @@ func (l *Logger) trace(topic string, handler interface{}) {
 	l.logTrace(topic, handler)
 }
 
-func (l *Logger) wcc(wcc wcc.WCC) {
+func (l *Logger) wcc(wcc consts.WCC) {
 	go func() {
 		l.logWCC(wcc)
 	}()

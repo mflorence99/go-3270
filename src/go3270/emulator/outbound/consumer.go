@@ -10,7 +10,6 @@ import (
 	"go3270/emulator/state"
 	"go3270/emulator/stream"
 	"go3270/emulator/utils"
-	"go3270/emulator/wcc"
 	"time"
 )
 
@@ -88,7 +87,7 @@ func (c *Consumer) commands(out *stream.Outbound, cmd consts.Command) {
 func (c *Consumer) eau() {
 	addr := c.flds.EAU()
 	if addr != -1 {
-		c.buf.MustSeek(addr + 1)
+		c.buf.WrappingSeek(addr + 1)
 		c.st.Patch(state.Patch{
 			CursorAt: utils.IntPtr(c.buf.Addr()),
 		})
@@ -131,10 +130,10 @@ func (c *Consumer) w(out *stream.Outbound) {
 	c.bus.PubRender()
 }
 
-func (c *Consumer) wcc(out *stream.Outbound) (wcc.WCC, bool) {
+func (c *Consumer) wcc(out *stream.Outbound) (consts.WCC, bool) {
 	char, ok := out.Next()
 	if ok {
-		wcc := wcc.NewWCC(char)
+		wcc := consts.NewWCC(char)
 		// TODO 🔥 not yet handled
 		if wcc.Reset {
 			println("🔥 WCC Reset not implemented")
@@ -145,7 +144,7 @@ func (c *Consumer) wcc(out *stream.Outbound) (wcc.WCC, bool) {
 		c.bus.PubWCC(wcc)
 		return wcc, true
 	} else {
-		return wcc.WCC{}, false
+		return consts.WCC{}, false
 	}
 }
 
@@ -350,7 +349,7 @@ func (c *Consumer) sba(out *stream.Outbound) {
 	if addr >= c.buf.Len() {
 		c.bus.PubPanic("🔥 Data requires a device with a larger screen")
 	}
-	c.buf.MustSeek(addr)
+	c.buf.WrappingSeek(addr)
 }
 
 func (c *Consumer) sf(out *stream.Outbound) (int, *consts.Attrs) {

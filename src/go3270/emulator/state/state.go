@@ -1,9 +1,9 @@
 package state
 
 import (
+	"go3270/emulator/consts"
 	"go3270/emulator/pubsub"
 	"go3270/emulator/utils"
-	"go3270/emulator/wcc"
 )
 
 // 🟧 3270 status (as shared with the Typescript UI)
@@ -63,7 +63,7 @@ func (s *State) unlock(_ []byte) {
 	})
 }
 
-func (s *State) wcc(wcc wcc.WCC) {
+func (s *State) wcc(wcc consts.WCC) {
 	// 👇 honor WCC instructions
 	s.Patch(Patch{
 		Alarm:  utils.BoolPtr(wcc.Alarm),

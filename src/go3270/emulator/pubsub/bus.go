@@ -3,7 +3,6 @@ package pubsub
 import (
 	"go3270/emulator/consts"
 	"go3270/emulator/utils"
-	"go3270/emulator/wcc"
 )
 
 // 🟧 Basic (but type-safe) pubsub implementation
@@ -98,7 +97,7 @@ func (b *Bus) PubTick(counter int) {
 	b.Publish("tick", counter)
 }
 
-func (b *Bus) PubWCC(wcc wcc.WCC) {
+func (b *Bus) PubWCC(wcc consts.WCC) {
 	b.Publish("wcc", wcc)
 }
 
@@ -180,7 +179,7 @@ func (b *Bus) SubTick(fn func(counter int)) {
 	b.Subscribe("tick", fn)
 }
 
-func (b *Bus) SubWCC(fn func(wcc wcc.WCC)) {
+func (b *Bus) SubWCC(fn func(wcc consts.WCC)) {
 	b.Subscribe("wcc", fn)
 }
 

@@ -45,7 +45,7 @@ func (c *Cells) reset() {
 
 func (c *Cells) EUA(start, stop int) bool {
 	if stop < c.buf.Len() {
-		addr := c.buf.MustSeek(start)
+		addr := c.buf.WrappingSeek(start)
 		for addr != stop {
 			cell, _ := c.buf.Get()
 			if !cell.Attrs.Protected {
@@ -54,7 +54,7 @@ func (c *Cells) EUA(start, stop int) bool {
 				cell.Char = 0x00
 				c.buf.MustReplace(cell, addr)
 			}
-			addr = c.buf.MustSeek(addr + 1)
+			addr = c.buf.WrappingSeek(addr + 1)
 		}
 		return true
 	} else {
@@ -71,11 +71,11 @@ func (c *Cells) MF(chars []byte) {
 
 func (c *Cells) RA(cell *Cell, start, stop int) bool {
 	if stop < c.buf.Len() {
-		addr := c.buf.MustSeek(start)
+		addr := c.buf.WrappingSeek(start)
 		for addr != stop {
 			copy := *cell
 			c.buf.MustReplace(&copy, addr)
-			addr = c.buf.MustSeek(addr + 1)
+			addr = c.buf.WrappingSeek(addr + 1)
 		}
 		return true
 	} else {

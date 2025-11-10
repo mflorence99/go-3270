@@ -1,4 +1,4 @@
-package wcc
+package consts
 
 // 🟧 3270 WCC (write control character)
 

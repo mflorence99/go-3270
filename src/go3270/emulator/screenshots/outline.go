@@ -3,14 +3,13 @@ package screenshots
 import (
 	"go3270/emulator/consts"
 	"go3270/emulator/conv"
-	"go3270/emulator/wcc"
 )
 
 // 🟧 Test outline attribute
 
 var OUTLINE = []any{
 	consts.EW,
-	wcc.WCC{Reset: true}.Byte(),
+	consts.WCC{Reset: true}.Byte(),
 
 	consts.SBA,
 	conv.Addr2Bytes(0),

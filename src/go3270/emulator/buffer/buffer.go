@@ -48,6 +48,7 @@ func (b *Buffer) reset() {
 //    Replace() cell at given address
 //    Seek() reposition buffer address
 //    SetMode() sets the buffer's reply mode
+//    WrappingSeek() uses a circular buffer address
 
 func (b *Buffer) Addr() int {
 	return b.addr
@@ -91,6 +92,11 @@ func (b *Buffer) SetMode(mode consts.Mode) consts.Mode {
 	return b.mode
 }
 
+func (b *Buffer) WrappingSeek(addr int) int {
+	b.addr = addr % b.Len()
+	return b.addr
+}
+
 // 🟦 "Must" functions
 
 //    MustPeek() panics if invaliud addr supplied
@@ -114,8 +120,11 @@ func (b *Buffer) MustReplace(cell *Cell, addr int) *Cell {
 }
 
 func (b *Buffer) MustSeek(addr int) int {
-	b.addr = addr % b.Len()
-	return b.addr
+	addr, ok := b.Seek(addr)
+	if !ok {
+		b.mustAddr(addr)
+	}
+	return addr
 }
 
 func (b *Buffer) mustAddr(addr int) {

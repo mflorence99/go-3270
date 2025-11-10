@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"go3270/emulator/wcc"
+	"go3270/emulator/consts"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
@@ -9,7 +9,7 @@ import (
 
 // 🟧 Debugger: log WCC
 
-func (l *Logger) logWCC(wcc wcc.WCC) {
+func (l *Logger) logWCC(wcc consts.WCC) {
 	t := l.newTable(text.FgHiBlue, "")
 	defer t.Render()
 
