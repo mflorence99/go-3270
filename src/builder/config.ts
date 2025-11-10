@@ -1,6 +1,6 @@
 import { cwd } from 'node:process';
 
-// 📘 common configuration settings
+// 🟧 Common configuration settings
 //    NOT designed to be user-settable
 
 const root = cwd();

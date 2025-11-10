@@ -30,7 +30,7 @@ func (l *Logger) logInbound(chars []byte) {
 		// 👇 table rows
 		t.AppendHeader(table.Row{"Row", "Col", "Data"})
 		t.SetColumnConfigs([]table.ColumnConfig{
-			{Number: 3, Transformer: l.wrap(80), WidthMax: 80},
+			{Number: 3, Transformer: l.wrap(80), WidthMax: 80, WidthMin: 80},
 		})
 
 		// 👇 one row just for the cursor
@@ -87,7 +87,7 @@ func (l *Logger) logInboundWSF(chars []byte) {
 	// 👇 table rows
 	t.AppendHeader(table.Row{"ID", "Type", "Info"})
 	t.SetColumnConfigs([]table.ColumnConfig{
-		{Number: 3, Transformer: l.wrap(60), WidthMax: 60},
+		{Number: 3, Transformer: l.wrap(60), WidthMax: 60, WidthMin: 80},
 	})
 	sflds := sfld.SFldsFromStream(in)
 

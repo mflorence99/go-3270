@@ -12,7 +12,7 @@ type Params = {
   verbose: boolean;
 };
 
-// 📘 run bundler
+// 🟧 Run the Bub bundler
 
 export async function bundle({
   format,

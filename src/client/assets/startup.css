@@ -1,4 +1,4 @@
-/* 📘 these styles used ONLY during startup */
+/* 🟧 These styles used ONLY during startup */
 
 app-root.ready + .startup-loading {
   opacity: 0;

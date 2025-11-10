@@ -13,6 +13,10 @@ import (
 	"github.com/jedib0t/go-pretty/v6/text"
 )
 
+// 🟧 Subscribe to important messages and log debugging data
+
+// 🔥 Most logging avoids blocking the main thread by using Go routines
+
 type Logger struct {
 	buf  *buffer.Buffer
 	bus  *pubsub.Bus
@@ -46,41 +50,54 @@ func (l *Logger) close() {
 func (l *Logger) configure(cfg pubsub.Config) {
 	l.cfg = cfg
 	println("🐞 Emulator initialized")
-	l.logConfig()
-	l.logCLUT()
+	go func() {
+		l.logConfig()
+		l.logCLUT()
+	}()
 }
 
 func (l *Logger) inbound(chars []byte, wsf bool) {
-	// 👇 supplement with an old-fashioned core dump
-	l.dump(text.FgHiGreen, "Inbound Data Stream", chars)
-	if wsf {
-		l.logInboundWSF(chars)
-	} else {
-		l.logInbound(chars)
-	}
+	go func() {
+		// 👇 supplement with an old-fashioned core dump
+		l.dump(text.FgHiGreen, "Inbound Core Dump", chars)
+		if wsf {
+			l.logInboundWSF(chars)
+		} else {
+			l.logInbound(chars)
+		}
+	}()
 }
 
 func (l *Logger) outbound(chars []byte) {
-	// 👇 supplement with an old-fashioned core dump
-	l.dump(text.FgYellow, "Outbound Data Stream", chars)
-	l.logOutbound(chars)
+	go func() {
+		// 👇 supplement with an old-fashioned core dump
+		l.dump(text.FgYellow, "Outbound Core Dump", chars)
+		l.logOutbound(chars)
+	}()
 }
 
 func (l *Logger) probe(addr int) {
-	l.logProbe(addr)
+	go func() {
+		l.logProbe(addr)
+	}()
 }
 
 func (l *Logger) render() {
-	l.logBuffer()
-	l.logFlds()
+	go func() {
+		l.logBuffer()
+		l.logFlds()
+	}()
 }
 
 func (l *Logger) trace(topic string, handler interface{}) {
+	// 👇 we need this to be synchronous to make sense
 	l.logTrace(topic, handler)
 }
 
 func (l *Logger) wcc(wcc wcc.WCC) {
-	l.logWCC(wcc)
+	go func() {
+		l.logWCC(wcc)
+	}()
 }
 
 // 🟧 Helpers
