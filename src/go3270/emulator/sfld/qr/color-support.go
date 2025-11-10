@@ -21,7 +21,8 @@ type ColorSupport struct {
 func NewColorSupport(monochrome bool) ColorSupport {
 	cavs := make([]byte, 0)
 	cavs = append(cavs, []byte{0x00, 0xF4}...)
-	// TODO 🔥 somehow TSO gets confused when we add white 0xFF, maybe the 0xFe, 0xFF sequence is confused with the frame LT?
+	// TODO 🔥 somehow TSO gets confused when we add white 0xFF!
+	// maybe the [0xFE, 0xFF] sequence is confused with the frame LT?
 	for ix := 1; ix < 15; ix++ {
 		cavs = append(cavs, []byte{byte(ix + 240), utils.Ternary(monochrome, 0x00, byte(ix+240))}...)
 	}

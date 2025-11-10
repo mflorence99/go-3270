@@ -152,7 +152,8 @@ func (c *Consumer) wcc(out *stream.Outbound) (wcc.WCC, bool) {
 // 🟦 WSF (which may contain multiple commands itself)
 
 func (c *Consumer) wsf(out *stream.Outbound) {
-	// TODO 🔥 there are a million SF types, but we are interested in READ_PARTITION
+	// TODO 🔥 there are a million SF types
+	// but we are interested in READ_PARTITION
 	sflds := sfld.SFldsFromStream(out)
 	for _, sfld := range sflds {
 
@@ -372,7 +373,10 @@ func (c *Consumer) sfe(out *stream.Outbound) (int, *consts.Attrs) {
 }
 
 func (c *Consumer) sfImpl(fldAddr int, fldAttrs *consts.Attrs) {
-	// 🔥 as per spec, if we start a new field at r1/c1 then treat like an EW -- if we get here after a real EW, we'll reset a second time -- the clarity of the code outweighs any small perf hit
+	// 🔥 as per spec, if we start a new field at r1/c1 then
+	//    treat like an EW -- if we get here after a real EW,
+	//    we'll reset a second time -- the clarity of the
+	//    code outweighs any small perf hit
 	if c.buf.Addr() == 0 {
 		c.bus.PubReset()
 	}

@@ -104,7 +104,8 @@ export class Tn3270 {
     }
   }
 
-  // 🔥 this class emulates the device and "outbound" data streams flow FROM application code TO the device
+  // 🔥 this class emulates the device and "outbound" data streams
+  //    flow FROM application code TO the device
   outbound(
     chars: Uint8ClampedArray,
     observer: Observer<Uint8ClampedArray>

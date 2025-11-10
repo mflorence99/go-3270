@@ -19,7 +19,9 @@ type Attrs struct {
 	// 🔥 character attributes are distinguished from field attributes
 	CharAttr bool
 
-	// 🔥 initial setting for cells has Default: true to indicate that cell attributes can be overridden by the containing field
+	// 🔥 initial setting for cells has Default: true
+	//    to indicate that cell attributes can be overridden
+	//    by the containing field
 	Default bool
 }
 
@@ -59,7 +61,9 @@ func (a *Attrs) fromByte(char byte) {
 	a.Numeric = (char & 0b00010000) != 0
 	a.Protected = (char & 0b00100000) != 0
 	a.Autoskip = a.Protected && a.Numeric
-	// 🔥 set the default color attributes - ignored if monochrome -- checking for "hidden" is a more accurate reading of the spec, but only affects the cursor color
+	// 🔥 set the default color attributes - ignored if monochrome
+	//    checking for "hidden" is a more accurate reading of the spec,
+	//    but only affects the cursor color
 	switch {
 	case !a.Protected && (a.Highlight || a.Hidden):
 		a.Color = 0xF2

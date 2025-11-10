@@ -2,8 +2,6 @@ package cps
 
 // 🟧 CP 037
 
-// 👁️ https://en.wikipedia.org/wiki/Digital_encoding_of_APL_symbols?utm_source=chatgpt.com#Code_page_310
-
 var CP310 = []rune{
 	// start on line 64 to make reconciliation easier
 	// start on line 64 to make reconciliation easier
@@ -60,7 +58,9 @@ var CP310 = []rune{
 	// start on line 64 to make reconciliation easier
 	// start on line 64 to make reconciliation easier
 	// start on line 64 to make reconciliation easier
-	// TODO 🔥 at least the capital letters are wrong - they need to be the APL math characters but we don't have a font yet that will show those glyphs
+	// TODO 🔥 at least the capital letters are wrong!
+	// they need to be the APL math characters but we don't
+	// have a font yet that will show those glyphs
 	0x000020,
 	0x000041, // A
 	0x000042,

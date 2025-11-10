@@ -57,7 +57,9 @@ func (f *Flds) buildInitialIndex() []Fld {
 	return flds
 }
 
-// 👇 look at pairs of fields, this one and the next, and assign all the cells in between to this field
+// 👇 look at pairs of fields, this one and the next,
+//
+//	and assign all the cells in between to this field
 func (f *Flds) allThoseCellsAreMine(flds []Fld) []Fld {
 	temp := make([]Fld, 0)
 	for ix, fld := range flds {
@@ -73,7 +75,10 @@ func (f *Flds) allThoseCellsAreMine(flds []Fld) []Fld {
 				break
 			}
 			cell := f.buf.MustPeek(addr)
-			// 👇 use the field attributes for cells that were never initialized, or which have (potentially) another field's attributes, or those that used to belong to a now-overwritten field,
+			// 👇 use the field attributes for cells that were never
+			//    initialized, or which have (potentially) another field's
+			//    attributes, or those that used to belong to a
+			//    now-overwritten field,
 			if cell.Attrs.Default || !cell.Attrs.CharAttr || sf.FldAddr != cell.FldAddr {
 				cell.Attrs = sf.Attrs
 			}

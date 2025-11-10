@@ -220,7 +220,8 @@ func (k *Keyboard) tab(dir int) (int, bool) {
 			}
 			k.buf.MustSeek(addr) // 👈 go to FldStart
 			cell, addr := k.buf.GetNext()
-			// 👇 if the next cell is also a field start (two contiguous SFs) it also doesn't count
+			// 👇 if the next cell is also a field start (two contiguous SFs)
+			//    it also doesn't count
 			if cell.FldStart {
 				continue
 			}

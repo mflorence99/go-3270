@@ -17,7 +17,8 @@ import (
 	"syscall/js"
 )
 
-// 🔥 Hack alert! we must use extension {js, wasm} and we can't use symlinks, so this file is a copy of the font renamed
+// 🔥 Hack alert! we must use extension {js, wasm}
+//    and we can't use symlinks, so this file is a copy of the font renamed
 
 var (
 	//go:embed JuliaMono-Regular.ttf.wasm
@@ -28,9 +29,14 @@ var (
 
 // 🟧 Bridge between Typescript UI and Go-powered emulator
 
-// The design objective is that all Go <-> UI communication goes through this package. No other package must use syscall/js. That way, everything but here can be tested with go test.
+// 🟦 The design objective is that all Go <-> UI communication
+//    goes through this package. No other package must use
+//    syscall/js. That way, everything but here can be tested with go test.
 
-// The emulator package is handed an image into which it renders the 3270 stream and any operator input. Using requestAnimationFrame, this module actually draws the context onto a supplied HTML canvas whenever the context changes
+// 🟦 The emulator package is handed an image into which it renders
+//    the 3270 stream and any operator input. Using requestAnimationFrame,
+//    this module actually draws the context onto a supplied HTML
+//    canvas whenever the context changes
 
 type Mediator struct {
 	bus *pubsub.Bus

@@ -2,9 +2,9 @@ package conv
 
 // 🟧 EBCDIC -> ASCII conversion
 
-// 👁️ https://stackoverflow.com/questions/25367120/example-ebcdic-file-for-java-program-to-convert-ebcdic-to-ascii
-
-// 🔥 by skipping the first 64 entries and starting on line 64, it's easy to read the EBCDIC character as the line # and the constant as its ASCII equivalent
+// 🔥 by skipping the first 64 entries and starting on line 64,
+//    it's easy to read the EBCDIC character as the line # and
+//    the constant as its ASCII equivalent
 
 // 🟦 Lookup tables
 

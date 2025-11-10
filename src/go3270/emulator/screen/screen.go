@@ -10,7 +10,8 @@ import (
 	"github.com/fogleman/gg"
 )
 
-// 🟧 Model the screen onto which the buffer is rendered (eventually an HTML <canvas> in the Typescript UI)
+// 🟧 Model the screen onto which the buffer is rendered
+//    (eventually an HTML <canvas> in the Typescript UI)
 
 type Screen struct {
 	buf *buffer.Buffer

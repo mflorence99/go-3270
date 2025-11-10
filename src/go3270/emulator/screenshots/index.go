@@ -5,7 +5,8 @@ import (
 	"go3270/emulator/utils"
 )
 
-// 🟧 Prefabricated outbound data streams for testing and performance measurement, captured via WireShark
+// 🟧 Prefabricated outbound data streams for testing
+//    and performance measurement, captured via WireShark
 
 var Index map[string][]byte
 
