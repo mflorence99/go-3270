@@ -52,7 +52,7 @@ func (l *Logger) configure(cfg pubsub.Config) {
 
 func (l *Logger) inbound(chars []byte, wsf bool) {
 	// 👇 supplement with an old-fashioned core dump
-	l.dump(text.FgHiGreen, "Inbound Datastream", chars)
+	l.dump(text.FgHiGreen, "Inbound Data Stream", chars)
 	if wsf {
 		l.logInboundWSF(chars)
 	} else {
@@ -62,7 +62,7 @@ func (l *Logger) inbound(chars []byte, wsf bool) {
 
 func (l *Logger) outbound(chars []byte) {
 	// 👇 supplement with an old-fashioned core dump
-	l.dump(text.FgYellow, "Outbound Datastream", chars)
+	l.dump(text.FgYellow, "Outbound Data Stream", chars)
 	l.logOutbound(chars)
 }
 

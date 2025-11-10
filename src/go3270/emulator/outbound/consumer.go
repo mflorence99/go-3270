@@ -230,7 +230,7 @@ outer:
 		// 👇 dispatch on order
 		switch order {
 
-		// 🔥 per spoc invalid EUA terminates write operation
+		// 🔥 per spec invalid EUA terminates write operation
 		case consts.EUA:
 			ok := c.eua(out)
 			if !ok {
@@ -249,7 +249,7 @@ outer:
 		case consts.PT:
 			c.pt()
 
-		// 🔥 per spoc invalid RA terminates write operation
+		// 🔥 per spec invalid RA terminates write operation
 		case consts.RA:
 			ok := c.ra(out, fldAddr, fldAttrs)
 			if !ok {
@@ -372,7 +372,7 @@ func (c *Consumer) sfe(out *stream.Outbound) (int, *consts.Attrs) {
 }
 
 func (c *Consumer) sfImpl(fldAddr int, fldAttrs *consts.Attrs) {
-	// 🔥 as per spec, if we start a new field at r1/c1 then treat like an EW -- if we get here after a real EW, we'll reset a second time -- the clarirt of the code outweighs any small perf hit
+	// 🔥 as per spec, if we start a new field at r1/c1 then treat like an EW -- if we get here after a real EW, we'll reset a second time -- the clarity of the code outweighs any small perf hit
 	if c.buf.Addr() == 0 {
 		c.bus.PubReset()
 	}

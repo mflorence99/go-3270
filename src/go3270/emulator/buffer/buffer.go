@@ -94,10 +94,19 @@ func (b *Buffer) SetMode(mode consts.Mode) consts.Mode {
 // 🟦 "Must" functions
 
 //    MustPeek() panics if invaliud addr supplied
+//    MustReplace() panics if invaliud addr supplied
 //    MustSeek() treats addr as a circular ref and wraps
 
 func (b *Buffer) MustPeek(addr int) *Cell {
 	cell, ok := b.Peek(addr)
+	if !ok {
+		b.mustAddr(addr)
+	}
+	return cell
+}
+
+func (b *Buffer) MustReplace(cell *Cell, addr int) *Cell {
+	cell, ok := b.Replace(cell, addr)
 	if !ok {
 		b.mustAddr(addr)
 	}

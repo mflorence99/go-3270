@@ -36,7 +36,7 @@ func (c *Cells) reset() {
 		cell := c.buf.MustPeek(addr)
 		if cell == nil {
 			cell = NewCell()
-			c.buf.Replace(cell, addr)
+			c.buf.MustReplace(cell, addr)
 		}
 	}
 }
@@ -51,7 +51,7 @@ func (c *Cells) EUA(start, stop int) bool {
 				sf := c.buf.MustPeek(cell.FldAddr)
 				cell.Attrs = sf.Attrs
 				cell.Char = 0x00
-				c.buf.Replace(cell, addr)
+				c.buf.MustReplace(cell, addr)
 			}
 		}
 		return true
@@ -71,7 +71,7 @@ func (c *Cells) RA(cell *Cell, start, stop int) bool {
 	if stop < c.buf.Len() {
 		for addr := c.buf.MustSeek(start); addr != stop; addr = c.buf.MustSeek(addr + 1) {
 			copy := *cell
-			c.buf.Replace(&copy, addr)
+			c.buf.MustReplace(&copy, addr)
 		}
 		return true
 	} else {
