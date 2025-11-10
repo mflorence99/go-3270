@@ -84,7 +84,7 @@ abstract class Base<T> {
 export type CLUT = Record<number, [string, string]>;
 
 export const defaultCLUT: CLUT = {
-  0xf0: ['#111318', 'Background'],
+  0xf0: ['#202020', 'Background'],
   0xf1: ['#4169E1', 'Blue'],
   0xf2: ['#FF0000', 'Red'],
   0xf3: ['#EE82EE', 'Pink'],
@@ -92,7 +92,7 @@ export const defaultCLUT: CLUT = {
   0xf5: ['#40E0D0', 'Turquiose'],
   0xf6: ['#FFFF00', 'Yellow'],
   0xf7: ['#FFFFFF', 'Foreground'],
-  0xf8: ['#111318', 'Black'],
+  0xf8: ['#202020', 'Black'],
   0xf9: ['#0000CD', 'Deep Blue'],
   0xfa: ['#FFA500', 'Orange'],
   0xfb: ['#800080', 'Purple'],
