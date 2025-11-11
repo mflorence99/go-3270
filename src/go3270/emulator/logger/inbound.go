@@ -15,66 +15,101 @@ import (
 
 // 🟧 Debugger: log inbound (3270 -> app) stream
 
-func (l *Logger) logInbound(chars []byte) {
+// 🟦 log RB
+
+func (l *Logger) logInboundRB(chars []byte) {
 	// 👇 convert into a stream for convenience
 	slice, _, ok := bytes.Cut(chars, types.LT)
 	in := stream.NewOutbound(utils.Ternary(ok, slice, chars), l.bus)
 	char := in.MustNext()
 	aid := types.AID(char)
-	// 👇 short reads only contain the AID
-	raw, ok := in.NextSlice(2)
-	if ok {
-		t := l.newTable(text.FgHiGreen, fmt.Sprintf("%s Inbound (3270 -> App)", aid))
-		defer t.Render()
 
-		// 👇 table rows
-		t.AppendHeader(table.Row{"Row", "Col", "Data"})
-		t.SetColumnConfigs([]table.ColumnConfig{
-			{Number: 3, Transformer: l.wrap(80), WidthMax: 80, WidthMin: 80},
-		})
+	// 👇 create table
+	t := l.newTable(text.FgHiGreen, fmt.Sprintf("%s Inbound RB", aid))
+	defer t.Render()
 
-		// 👇 one row just for the cursor
-		cursorAt := conv.Bytes2Addr(raw)
-		row, col := l.cfg.Addr2RC(cursorAt)
-		t.AppendRow(table.Row{row, col, "(cursorAt)"})
+	// 👇 table headers
+	t.AppendHeader(table.Row{"Row", "Col", "Data"})
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 3, Transformer: l.wrap(80), WidthMax: 80, WidthMin: 80},
+	})
 
-		// 👇 we will aggregate data delimited by SBA's
-		data := make([]byte, 0)
-		// 👇 look at each byte to see if it is an order
-		for in.HasNext() {
-			char := in.MustNext()
-			order := types.Order(char)
-			switch order {
+	// 👇 one row just for the cursor
+	raw := in.MustNextSlice(2)
+	cursorAt := conv.Bytes2Addr(raw)
+	row, col := l.cfg.Addr2RC(cursorAt)
+	t.AppendRow(table.Row{row, col, "(cursorAt)"})
 
-			case types.SBA:
-				if len(data) > 0 {
-					t.AppendRow(table.Row{row, col, string(data)})
-					data = make([]byte, 0)
-				}
-				raw := in.MustNextSlice(2)
-				addr := conv.Bytes2Addr(raw)
-				row, col = l.cfg.Addr2RC(addr)
+}
 
-			default:
-				data = append(data, conv.E2A(char))
+// 🟦 log RM/RMA
 
+func (l *Logger) logInboundRM(chars []byte) {
+	// 👇 convert into a stream for convenience
+	slice, _, ok := bytes.Cut(chars, types.LT)
+	in := stream.NewOutbound(utils.Ternary(ok, slice, chars), l.bus)
+	char := in.MustNext()
+	aid := types.AID(char)
+
+	// 👇 create table
+	t := l.newTable(text.FgHiGreen, fmt.Sprintf("%s Inbound RM/RMA", aid))
+	defer t.Render()
+
+	// 👇 table headers
+	t.AppendHeader(table.Row{"Row", "Col", "Data"})
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 3, Transformer: l.wrap(80), WidthMax: 80, WidthMin: 80},
+	})
+
+	// 👇 one row just for the cursor
+	raw := in.MustNextSlice(2)
+	cursorAt := conv.Bytes2Addr(raw)
+	row, col := l.cfg.Addr2RC(cursorAt)
+	t.AppendRow(table.Row{row, col, "(cursorAt)"})
+
+	// 👇 we will aggregate data delimited by SBA's
+	data := make([]byte, 0)
+
+	// 👇 look at each byte to see if it is an order
+	for in.HasNext() {
+		char := in.MustNext()
+		order := types.Order(char)
+		switch order {
+
+		case types.SBA:
+			if len(data) > 0 {
+				t.AppendRow(table.Row{row, col, string(data)})
+				data = make([]byte, 0)
 			}
-		}
+			raw := in.MustNextSlice(2)
+			addr := conv.Bytes2Addr(raw)
+			row, col = l.cfg.Addr2RC(addr)
 
-		// 👇 don't forget the last field
-		if len(data) > 0 {
-			t.AppendRow(table.Row{row, col, string(data)})
-		}
+		default:
+			data = append(data, conv.E2A(char))
 
-	} else {
-		println(fmt.Sprintf("🐞 %s Short Read (3270 -> App)", aid))
+		}
+	}
+
+	// 👇 don't forget the last field
+	if len(data) > 0 {
+		t.AppendRow(table.Row{row, col, string(data)})
 	}
 }
+
+// 🟦 log Short read
+
+func (l *Logger) logInboundShort(chars []byte) {
+	aid := types.AID(chars[0])
+	println(fmt.Sprintf("🐞 %s Short Read (3270 -> App)", aid))
+}
+
+// 🟦 log WSF
 
 // TODO 🔥 only really handles Query Reply
 
 func (l *Logger) logInboundWSF(chars []byte) {
-	t := l.newTable(text.FgHiGreen, ("Inbound WSF (3270 -> App)"))
+	t := l.newTable(text.FgHiGreen, ("Inbound WSF"))
 	defer t.Render()
 
 	// 👇 convert into a stream for convenience

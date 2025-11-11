@@ -49,7 +49,7 @@ func (s *State) reset() {
 
 // 🟦 Functions to dispatch actions depending on state
 
-func (s *State) lock(_ []byte, _ bool) {
+func (s *State) lock(_ []byte, _ pubsub.InboundHints) {
 	s.Patch(Patch{
 		Locked:  utils.BoolPtr(true),
 		Waiting: utils.BoolPtr(true),

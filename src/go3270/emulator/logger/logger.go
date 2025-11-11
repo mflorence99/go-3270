@@ -56,14 +56,19 @@ func (l *Logger) configure(cfg types.Config) {
 	}()
 }
 
-func (l *Logger) inbound(chars []byte, wsf bool) {
+func (l *Logger) inbound(chars []byte, hints pubsub.InboundHints) {
 	go func() {
 		// 👇 supplement with an old-fashioned core dump
 		l.dump(text.FgHiGreen, "Inbound Core Dump", chars)
-		if wsf {
+		switch {
+		case hints.RB:
+			l.logInboundRB(chars)
+		case hints.RM:
+			l.logInboundRM(chars)
+		case hints.Short:
+			l.logInboundShort(chars)
+		case hints.WSF:
 			l.logInboundWSF(chars)
-		} else {
-			l.logInbound(chars)
 		}
 	}()
 }

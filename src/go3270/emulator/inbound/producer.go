@@ -49,7 +49,7 @@ func (p *Producer) attn(aid types.AID) {
 	in := stream.NewInbound()
 	in.Put(byte(aid))
 	in.PutSlice(types.LT)
-	p.bus.PubInbound(in.Bytes(), false)
+	p.bus.PubInbound(in.Bytes(), pubsub.InboundHints{Short: true})
 }
 
 func (p *Producer) q() {
@@ -84,7 +84,7 @@ func (p *Producer) q() {
 	qr.NewImplicitPartition(p.cfg.Cols, p.cfg.Rows).Put(in)
 	// 👇 frame boundary LT is last
 	in.PutSlice(types.LT)
-	p.bus.PubInbound(in.Bytes(), true)
+	p.bus.PubInbound(in.Bytes(), pubsub.InboundHints{WSF: true})
 }
 
 func (p *Producer) ql(qcodes []types.QCode) {
@@ -118,7 +118,7 @@ func (p *Producer) ql(qcodes []types.QCode) {
 	}
 	// 👇 frame boundary LT is last
 	in.PutSlice(types.LT)
-	p.bus.PubInbound(in.Bytes(), true)
+	p.bus.PubInbound(in.Bytes(), pubsub.InboundHints{WSF: true})
 }
 
 func (p *Producer) rb(aid types.AID) {
@@ -126,10 +126,10 @@ func (p *Producer) rb(aid types.AID) {
 	in.Put(byte(aid))
 	cursorAt := p.st.Status.CursorAt
 	in.PutSlice(conv.Addr2Bytes(cursorAt))
-	in.PutSlice(p.flds.ReadBuffer())
+	in.PutSlice(p.flds.RB())
 	// 👇 frame boundary LT is last
 	in.PutSlice(types.LT)
-	p.bus.PubInbound(in.Bytes(), false)
+	p.bus.PubInbound(in.Bytes(), pubsub.InboundHints{RB: true})
 }
 
 func (p *Producer) rm(aid types.AID) {
@@ -138,10 +138,10 @@ func (p *Producer) rm(aid types.AID) {
 	if !aid.ShortRead() {
 		cursorAt := p.st.Status.CursorAt
 		in.PutSlice(conv.Addr2Bytes(cursorAt))
-		in.PutSlice(p.flds.ReadMDTs())
+		in.PutSlice(p.flds.RM())
 		// 👇 frame boundary LT is last
 		in.PutSlice(types.LT)
-		p.bus.PubInbound(in.Bytes(), false)
+		p.bus.PubInbound(in.Bytes(), pubsub.InboundHints{RM: true})
 	}
 }
 
@@ -150,8 +150,8 @@ func (p *Producer) rma(aid types.AID) {
 	in.Put(byte(aid))
 	cursorAt := p.st.Status.CursorAt
 	in.PutSlice(conv.Addr2Bytes(cursorAt))
-	in.PutSlice(p.flds.ReadMDTs())
+	in.PutSlice(p.flds.RM())
 	// 👇 frame boundary LT is last
 	in.PutSlice(types.LT)
-	p.bus.PubInbound(in.Bytes(), false)
+	p.bus.PubInbound(in.Bytes(), pubsub.InboundHints{RM: true})
 }

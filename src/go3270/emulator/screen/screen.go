@@ -86,7 +86,7 @@ func (s *Screen) blink(counter int) {
 
 func (s *Screen) render() {
 	dc := gg.NewContextForRGBA(s.cfg.RGBA)
-	// 👇 iterate over all requested cells
+	// 👇 iterate over all cells
 	for addr := 0; addr < s.buf.Len(); addr++ {
 		s.renderImpl(dc, addr, false, false)
 	}

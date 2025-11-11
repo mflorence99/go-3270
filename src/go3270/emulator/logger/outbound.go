@@ -46,8 +46,10 @@ func (l *Logger) logOutbound(chars []byte) {
 	}
 }
 
+// 🟦 Outbound orders
+
 func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd types.Command, color text.Color) {
-	t := l.newTable(color, fmt.Sprintf("%s Outbound (App -> 3270)\nNOTE: EUA and RA orders are listed in start/stop pairs", cmd))
+	t := l.newTable(color, fmt.Sprintf("%s Outbound Orders\nNOTE: EUA and RA orders are listed in start/stop pairs", cmd))
 	defer t.Render()
 	addr := 0
 	fldAddr := 0
@@ -149,8 +151,10 @@ func (l *Logger) logOutboundOrders(out *stream.Outbound, cmd types.Command, colo
 	}
 }
 
+// 🟦 Outbound WSF
+
 func (l *Logger) logOutboundWSF(out *stream.Outbound, color text.Color) {
-	t := l.newTable(color, "Outbound WSF (App -> 3270)")
+	t := l.newTable(color, "Outbound WSF")
 	defer t.Render()
 
 	// 👇 table rows
@@ -160,6 +164,8 @@ func (l *Logger) logOutboundWSF(out *stream.Outbound, color text.Color) {
 		t.AppendRow(table.Row{sfld.ID, fmt.Sprintf("% #x", sfld.Info)})
 	}
 }
+
+// 🟦 Helpers
 
 func (l *Logger) withAttrs(t table.Writer, cmd any, addr int, cell *buffer.Cell) {
 	row, col := l.cfg.Addr2RC(addr)

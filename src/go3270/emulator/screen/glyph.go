@@ -13,6 +13,7 @@ type Glyph struct {
 	Outline    Outline
 	LCID       types.LCID
 }
+
 type Outline struct {
 	Bottom bool
 	Right  bool

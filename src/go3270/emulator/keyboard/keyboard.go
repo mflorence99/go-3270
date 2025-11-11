@@ -57,7 +57,12 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 	switch {
 
 	case aid == types.CLEAR:
-		k.bus.PubAttn(aid)
+		// TODO 🔥 this is a backdoor for testing
+		if key.SHIFT {
+			k.bus.PubRB(aid)
+		} else {
+			k.bus.PubAttn(aid)
+		}
 
 	case aid == types.ENTER:
 		k.bus.PubRM(aid)

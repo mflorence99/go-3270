@@ -15,7 +15,6 @@ type SFld struct {
 
 // 🟦 Constructor
 
-// 🔥 eg: f3 0007 01 ff ff 03 00 81 ffef
 func SFldsFromStream(out *stream.Outbound) []SFld {
 	sflds := make([]SFld, 0)
 	for out.HasNext() {

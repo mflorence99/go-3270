@@ -1,5 +1,7 @@
 package types
 
+import "strings"
+
 // 🟧 3270 field and extended attributes
 
 type Attrs struct {
@@ -138,4 +140,91 @@ func (a *Attrs) Byte() byte {
 		char |= 0b00100000
 	}
 	return char
+}
+
+func (a *Attrs) Bytes() []byte {
+	chars := make([]byte, 0)
+
+	// TODO 🔥 according to spec, only send non-default attributes
+	// for simplicity, we ignore that, assuming the rule was designed
+	// to conserve transmission bandwidth, which at this level
+	// doesn't really count
+
+	// 👇 BASIC
+	chars = append(chars, byte(BASIC))
+	chars = append(chars, a.Byte())
+
+	// 👇 HIGHLIGHT
+	chars = append(chars, byte(HIGHLIGHT))
+	switch {
+	case a.Blink:
+		chars = append(chars, byte(BLINK))
+	case a.Reverse:
+		chars = append(chars, byte(REVERSE))
+	case a.Underscore:
+		chars = append(chars, byte(UNDERSCORE))
+	case a.Highlight:
+		chars = append(chars, byte(INTENSIFY))
+	default:
+		chars = append(chars, byte(NO_HILITE))
+	}
+
+	// 👇 COLOR
+	chars = append(chars, byte(COLOR))
+	chars = append(chars, byte(a.Color))
+
+	// 👇 CHARSET
+	chars = append(chars, byte(CHARSET))
+	chars = append(chars, byte(a.LCID))
+
+	// 👇 OUTLINE
+	chars = append(chars, byte(OUTLINE))
+	chars = append(chars, byte(a.Outline))
+	return chars
+}
+
+// 🟦 Stringer implementation
+
+func AttrsFor(a *Attrs) string {
+	var b strings.Builder
+	if a.Autoskip {
+		b.WriteString("SKIP ")
+	}
+	if a.Blink {
+		b.WriteString("BLINK ")
+	}
+	if a.Color != 0x00 {
+		b.WriteString(ColorFor(a.Color))
+		b.WriteString(" ")
+	}
+	if a.Hidden {
+		b.WriteString("HIDDEN ")
+	}
+	if a.Highlight {
+		b.WriteString("HILITE ")
+	}
+	if a.MDT {
+		b.WriteString("MDT ")
+	}
+	if a.Numeric {
+		b.WriteString("NUM ")
+	}
+	if a.Protected {
+		b.WriteString("PROT ")
+	}
+	if a.Reverse {
+		b.WriteString("REV ")
+	}
+	if a.Underscore {
+		b.WriteString("USCORE ")
+	}
+	if a.Outline != 0x00 {
+		b.WriteString(OutlineFor(a.Outline))
+		b.WriteString(" ")
+	}
+	if a.LCID != 0x00 {
+		b.WriteString(a.LCID.String())
+		b.WriteString(" ")
+	}
+	return b.String()
 }
