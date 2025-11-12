@@ -228,3 +228,7 @@ func AttrsFor(a *Attrs) string {
 	}
 	return b.String()
 }
+
+func (a *Attrs) String() string {
+	return AttrsFor(a)
+}

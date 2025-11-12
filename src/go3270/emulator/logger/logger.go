@@ -60,16 +60,7 @@ func (l *Logger) inbound(chars []byte, hints pubsub.InboundHints) {
 	go func() {
 		// 👇 supplement with an old-fashioned core dump
 		l.dump(text.FgHiGreen, "Inbound Core Dump", chars)
-		switch {
-		case hints.RB:
-			l.logInboundRB(chars)
-		case hints.RM:
-			l.logInboundRM(chars)
-		case hints.Short:
-			l.logInboundShort(chars)
-		case hints.WSF:
-			l.logInboundWSF(chars)
-		}
+		l.logInbound(chars, hints)
 	}()
 }
 
