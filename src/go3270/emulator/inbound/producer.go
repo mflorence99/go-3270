@@ -13,19 +13,21 @@ import (
 // 🟧 Produce inbound (3270 -> app) data stream
 
 type Producer struct {
-	buf  *buffer.Buffer
-	bus  *pubsub.Bus
-	cfg  types.Config
-	flds *buffer.Flds
-	st   *state.State
+	buf   *buffer.Buffer
+	bus   *pubsub.Bus
+	cells *buffer.Cells
+	cfg   types.Config
+	flds  *buffer.Flds
+	st    *state.State
 }
 
 // 🟦 Constructor
 
-func NewProducer(bus *pubsub.Bus, buf *buffer.Buffer, flds *buffer.Flds, st *state.State) *Producer {
+func NewProducer(bus *pubsub.Bus, buf *buffer.Buffer, cells *buffer.Cells, flds *buffer.Flds, st *state.State) *Producer {
 	p := new(Producer)
 	p.buf = buf
 	p.bus = bus
+	p.cells = cells
 	p.flds = flds
 	p.st = st
 	// 👇 subscriptions
@@ -126,7 +128,7 @@ func (p *Producer) rb(aid types.AID) {
 	in.Put(byte(aid))
 	cursorAt := p.st.Status.CursorAt
 	in.PutSlice(conv.Addr2Bytes(cursorAt))
-	in.PutSlice(p.flds.RB())
+	in.PutSlice(p.cells.RB())
 	// 👇 frame boundary LT is last
 	in.PutSlice(types.LT)
 	p.bus.PubInbound(in.Bytes(), pubsub.InboundHints{RB: true})

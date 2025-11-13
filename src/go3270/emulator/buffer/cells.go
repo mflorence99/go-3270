@@ -41,7 +41,7 @@ func (c *Cells) reset() {
 	}
 }
 
-// 🟦 Public order-based functions
+// 🟦 Public functions
 
 func (c *Cells) EUA(start, stop int) bool {
 	if stop < c.buf.Len() {
@@ -82,4 +82,38 @@ func (c *Cells) RA(cell *Cell, start, stop int) bool {
 		println(fmt.Sprintf("🔥 Invalid stop address %d in RA order terminates write", stop))
 		return false
 	}
+}
+
+func (c *Cells) RB() []byte {
+	chars := make([]byte, 0)
+	mode := c.buf.Mode()
+	var fldAttrs []byte
+	for addr := 0; addr < c.buf.Len(); addr++ {
+		cell := c.buf.MustPeek(addr)
+		if cell.FldStart {
+			if mode == types.FIELD_MODE {
+				chars = append(chars, byte(types.SF))
+				chars = append(chars, cell.Attrs.Byte())
+			} else {
+				chars = append(chars, byte(types.SFE))
+				fldAttrs = cell.Attrs.Bytes()
+				chars = append(chars, byte(len(fldAttrs)/2))
+				chars = append(chars, fldAttrs...)
+			}
+		} else if cell.Attrs.CharAttr {
+			charAttrs := cell.Attrs.Bytes()
+			for ix := 0; ix < len(charAttrs); ix += 2 {
+				if len(charAttrs) != len(fldAttrs) || charAttrs[ix] != fldAttrs[ix] {
+					chars = append(chars, byte(types.SA))
+					chars = append(chars, charAttrs[ix])
+					chars = append(chars, charAttrs[ix+1])
+				}
+			}
+			fldAttrs = charAttrs
+			chars = append(chars, cell.Char)
+		} else {
+			chars = append(chars, cell.Char)
+		}
+	}
+	return chars
 }

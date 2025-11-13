@@ -109,20 +109,35 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 	// 👇 gather related data
 	box := s.cps[addr]
 	cell := s.buf.MustPeek(addr)
+	a := cell.Attrs
 	// 👇 ignore color if monochrome
-	ix := utils.Ternary(cell.Attrs.Color == 0x00 || s.cfg.Monochrome, 0xF4, cell.Attrs.Color)
+	var ix types.Color
+	if s.cfg.Monochrome {
+		ix = 0xf4
+	} else if a.Color == 0x00 {
+		switch {
+		case !a.Protected && (a.Highlight || a.Hidden):
+			a.Color = 0xF2
+		case !a.Protected && !a.Highlight:
+			a.Color = 0xF4
+		case a.Protected && (a.Highlight || a.Hidden):
+			a.Color = 0xF7
+		case a.Protected && !a.Highlight:
+			a.Color = 0xF1
+		}
+	} else {
+		ix = a.Color
+	}
 	color := s.cfg.CLUT[ix]
-	hidden := cell.Attrs.Hidden
-	highlight := cell.Attrs.Highlight
-	lcid := cell.Attrs.LCID
 	// 🔥 outlined field can't be reverse or underscore
-	sf, ok := s.buf.Peek(cell.FldAddr)
-	outline := ok && sf.Attrs.Outline != 0x00
-	reverse := cell.Attrs.Reverse && !outline
-	underscore := cell.Attrs.Underscore && !outline && !cell.FldStart
+	sf := s.buf.MustPeek(cell.FldAddr)
+	fa := sf.Attrs
+	outline := fa.Outline != 0x00
+	reverse := a.Reverse && !outline
+	underscore := a.Underscore && !outline && !cell.FldStart
 	// 🔥 != is the Go idiom for XOR
 	reverse = utils.Ternary(doBlink, reverse != blinkOn, reverse != (addr == s.st.Status.CursorAt))
-	invisible := cell.Char == 0x00 || cell.FldStart || hidden
+	invisible := cell.Char == 0x00 || cell.FldStart || a.Hidden
 	char := utils.Ternary(invisible, ' ', cell.Char)
 	// 🔥 optimization: if the screen is clean and the char blank, skip
 	if !s.clean || char > ' ' || outline || reverse || underscore {
@@ -130,17 +145,17 @@ func (s *Screen) renderImpl(dc *gg.Context, addr int, doBlink bool, blinkOn bool
 		g := Glyph{
 			Char:       char,
 			Color:      color,
-			Highlight:  highlight,
+			Highlight:  a.Highlight,
 			Reverse:    reverse,
 			Underscore: underscore,
-			LCID:       lcid,
+			LCID:       a.LCID,
 		}
 		// 🔥 outline is always at field level
 		if outline {
-			g.Outline.Bottom = (sf.Attrs.Outline & types.OUTLINE_BOTTOM) != 0
-			g.Outline.Right = ((sf.Attrs.Outline & types.OUTLINE_RIGHT) != 0) && cell.FldEnd
-			g.Outline.Top = (sf.Attrs.Outline & types.OUTLINE_TOP) != 0
-			g.Outline.Left = ((sf.Attrs.Outline & types.OUTLINE_LEFT) != 0) && cell.FldStart
+			g.Outline.Bottom = (fa.Outline & types.OUTLINE_BOTTOM) != 0
+			g.Outline.Right = ((fa.Outline & types.OUTLINE_RIGHT) != 0) && cell.FldEnd
+			g.Outline.Top = (fa.Outline & types.OUTLINE_TOP) != 0
+			g.Outline.Left = ((fa.Outline & types.OUTLINE_LEFT) != 0) && cell.FldStart
 		}
 		// 👇 if the glyph is already at this address, no need to redraw it
 		if g != s.glyphs[addr] {

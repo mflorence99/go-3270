@@ -22,7 +22,7 @@ func (l *Logger) logInboundRB(chars []byte) {
 	aid := types.AID(char)
 
 	// 👇 create table
-	t := l.newTable(text.FgHiGreen, fmt.Sprintf("%s Inbound RB", aid))
+	t := l.newTable(text.FgHiGreen, fmt.Sprintf("%s: %s Inbound RB", aid, l.buf.Mode()))
 	defer t.Render()
 
 	// 👇 table headers
@@ -39,10 +39,10 @@ func (l *Logger) logInboundRB(chars []byte) {
 
 	// 👇 we will aggregate data delimited by SF and SFE's
 	addr := 0
+	row, col = l.cfg.Addr2RC(addr)
 	data := make([]byte, 0)
 
 	// 👇 look at each byte to see if it is an order
-	var lastOrder types.Order
 	for in.HasNext() {
 		char := in.MustNext()
 		order := types.Order(char)
@@ -51,31 +51,33 @@ func (l *Logger) logInboundRB(chars []byte) {
 		case types.SA:
 			chars := in.MustNextSlice(2)
 			attrs := types.NewExtendedAttrs(chars)
-			row, col = l.cfg.Addr2RC(addr)
+			row, col := l.cfg.Addr2RC(addr)
 			t.AppendRow(table.Row{"SA", row, col, attrs.String()})
 
 		case types.SF:
 			if len(data) > 0 {
-				t.AppendRow(table.Row{lastOrder.String(), row, col, string(data)})
+				t.AppendRow(table.Row{"", row, col, string(data)})
 				data = make([]byte, 0)
 			}
 			raw := in.MustNext()
 			attrs := types.NewBasicAttrs(raw)
 			row, col = l.cfg.Addr2RC(addr)
-			lastOrder = order
-			t.AppendRow(table.Row{lastOrder.String(), row, col, attrs.String()})
+			yellow := text.Colors{text.FgYellow}
+			t.AppendRow(table.Row{"SF", row, col, yellow.Sprint(attrs.String())})
+			addr++
 
 		case types.SFE:
 			if len(data) > 0 {
-				t.AppendRow(table.Row{lastOrder.String(), row, col, string(data)})
+				t.AppendRow(table.Row{"", row, col, string(data)})
 				data = make([]byte, 0)
 			}
 			count := in.MustNext()
 			raw := in.MustNextSlice(int(count) * 2)
 			attrs := types.NewExtendedAttrs(raw)
 			row, col = l.cfg.Addr2RC(addr)
-			lastOrder = order
-			t.AppendRow(table.Row{lastOrder.String(), row, col, attrs.String()})
+			yellow := text.Colors{text.FgYellow}
+			t.AppendRow(table.Row{"SFE", row, col, yellow.Sprint(attrs.String())})
+			addr++
 
 		default:
 			data = append(data, conv.E2A(char))
@@ -86,7 +88,7 @@ func (l *Logger) logInboundRB(chars []byte) {
 
 	// 👇 don't forget the last field
 	if len(data) > 0 {
-		t.AppendRow(table.Row{lastOrder.String(), row, col, string(data)})
+		t.AppendRow(table.Row{"", row, col, string(data)})
 	}
 
 }

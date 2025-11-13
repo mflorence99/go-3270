@@ -102,88 +102,6 @@ func (f *Flds) Get() []Fld {
 	return f.flds
 }
 
-// 🟦 Read functions
-
-func (f *Flds) RB() []byte {
-	chars := make([]byte, 0)
-	for _, fld := range f.flds {
-		switch f.buf.Mode() {
-		case types.FIELD_MODE:
-			chars = append(chars, f.rbSF(fld)...)
-		case types.EXTENDED_FIELD_MODE:
-			chars = append(chars, f.rbSFE(fld)...)
-		case types.CHARACTER_MODE:
-			chars = append(chars, f.rbSA(fld)...)
-		}
-	}
-	return chars
-}
-
-func (f *Flds) rbSF(fld Fld) []byte {
-	chars := make([]byte, 0)
-	sf, ok := fld.FldStart()
-	if ok {
-		chars = append(chars, byte(types.SF))
-		chars = append(chars, sf.Attrs.Byte())
-		for ix := 1; ix < len(fld); ix++ {
-			cell := fld[ix]
-			char := cell.Char
-			if char != 0x00 {
-				chars = append(chars, char)
-			}
-		}
-	}
-	return chars
-}
-
-func (f *Flds) rbSFE(fld Fld) []byte {
-	chars := make([]byte, 0)
-	sf, ok := fld.FldStart()
-	if ok {
-		chars = append(chars, byte(types.SFE))
-		attrs := sf.Attrs.Bytes()
-		chars = append(chars, byte(len(attrs)/2))
-		chars = append(chars, attrs...)
-		for ix := 1; ix < len(fld); ix++ {
-			cell := fld[ix]
-			char := cell.Char
-			if char != 0x00 {
-				chars = append(chars, char)
-			}
-		}
-	}
-	return chars
-}
-
-func (f *Flds) rbSA(fld Fld) []byte {
-	chars := make([]byte, 0)
-	_, ok := fld.FldStart()
-	if ok {
-		// TODO 🔥 support character mode
-	}
-	return chars
-}
-
-// TODO 🔥 CHARACTER_MODE *not* coded
-func (f *Flds) RM() []byte {
-	chars := make([]byte, 0)
-	for _, fld := range f.flds {
-		sf, ok := fld.FldStart()
-		if ok && sf.Attrs.MDT {
-			chars = append(chars, byte(types.SBA))
-			chars = append(chars, conv.Addr2Bytes(sf.FldAddr+1)...)
-			for ix := 1; ix < len(fld); ix++ {
-				cell := fld[ix]
-				char := cell.Char
-				if char != 0x00 {
-					chars = append(chars, char)
-				}
-			}
-		}
-	}
-	return chars
-}
-
 // 🟦 Public functions
 
 func (f *Flds) EAU() int {
@@ -207,6 +125,26 @@ func (f *Flds) EAU() int {
 		}
 	}
 	return addr
+}
+
+// TODO 🔥 CHARACTER_MODE *not* coded
+func (f *Flds) RM() []byte {
+	chars := make([]byte, 0)
+	for _, fld := range f.flds {
+		sf, ok := fld.FldStart()
+		if ok && sf.Attrs.MDT {
+			chars = append(chars, byte(types.SBA))
+			chars = append(chars, conv.Addr2Bytes(sf.FldAddr+1)...)
+			for ix := 1; ix < len(fld); ix++ {
+				cell := fld[ix]
+				char := cell.Char
+				if char != 0x00 {
+					chars = append(chars, char)
+				}
+			}
+		}
+	}
+	return chars
 }
 
 func (f *Flds) ResetMDTs() {

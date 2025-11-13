@@ -48,7 +48,7 @@ func NewEmulator(bus *pubsub.Bus, cfg types.Config) *Emulator {
 	e.scr = screen.NewScreen(e.bus, e.buf, e.gc, e.st)
 	// 👇 i/o components
 	e.key = keyboard.NewKeyboard(e.bus, e.buf, e.flds, e.st)
-	e.in = inbound.NewProducer(e.bus, e.buf, e.flds, e.st)
+	e.in = inbound.NewProducer(e.bus, e.buf, e.cells, e.flds, e.st)
 	e.out = outbound.NewConsumer(e.bus, e.buf, e.cells, e.flds, e.st)
 	// 👇 subscriptions
 	e.bus.SubClose(e.close)

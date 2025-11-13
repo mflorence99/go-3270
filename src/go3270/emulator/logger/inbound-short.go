@@ -9,5 +9,5 @@ import (
 
 func (l *Logger) logInboundShort(chars []byte) {
 	aid := types.AID(chars[0])
-	println(fmt.Sprintf("🐞 %s Short Read (3270 -> App)", aid))
+	println(fmt.Sprintf("🐞 %s Short Read", aid))
 }

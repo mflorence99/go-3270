@@ -63,19 +63,6 @@ func (a *Attrs) fromByte(char byte) {
 	a.Numeric = (char & 0b00010000) != 0
 	a.Protected = (char & 0b00100000) != 0
 	a.Autoskip = a.Protected && a.Numeric
-	// 🔥 set the default color attributes - ignored if monochrome
-	//    checking for "hidden" is a more accurate reading of the spec,
-	//    but only affects the cursor color
-	switch {
-	case !a.Protected && (a.Highlight || a.Hidden):
-		a.Color = 0xF2
-	case !a.Protected && !a.Highlight:
-		a.Color = 0xF4
-	case a.Protected && (a.Highlight || a.Hidden):
-		a.Color = 0xF7
-	case a.Protected && !a.Highlight:
-		a.Color = 0xF1
-	}
 }
 
 func (a *Attrs) fromBytes(chars []byte) {
@@ -145,41 +132,46 @@ func (a *Attrs) Byte() byte {
 func (a *Attrs) Bytes() []byte {
 	chars := make([]byte, 0)
 
-	// TODO 🔥 according to spec, only send non-default attributes
-	// for simplicity, we ignore that, assuming the rule was designed
-	// to conserve transmission bandwidth, which at this level
-	// doesn't really count
-
 	// 👇 BASIC
-	chars = append(chars, byte(BASIC))
-	chars = append(chars, a.Byte())
+	basic := a.Byte()
+	if basic != 0b00000000 {
+		chars = append(chars, byte(BASIC))
+		chars = append(chars, basic)
+	}
 
 	// 👇 HIGHLIGHT
-	chars = append(chars, byte(HIGHLIGHT))
 	switch {
 	case a.Blink:
+		chars = append(chars, byte(HIGHLIGHT))
 		chars = append(chars, byte(BLINK))
 	case a.Reverse:
+		chars = append(chars, byte(HIGHLIGHT))
 		chars = append(chars, byte(REVERSE))
 	case a.Underscore:
+		chars = append(chars, byte(HIGHLIGHT))
 		chars = append(chars, byte(UNDERSCORE))
 	case a.Highlight:
+		chars = append(chars, byte(HIGHLIGHT))
 		chars = append(chars, byte(INTENSIFY))
-	default:
-		chars = append(chars, byte(NO_HILITE))
 	}
 
 	// 👇 COLOR
-	chars = append(chars, byte(COLOR))
-	chars = append(chars, byte(a.Color))
+	if a.Color != 0x00 {
+		chars = append(chars, byte(COLOR))
+		chars = append(chars, byte(a.Color))
+	}
 
 	// 👇 CHARSET
-	chars = append(chars, byte(CHARSET))
-	chars = append(chars, byte(a.LCID))
+	if a.LCID != 0x00 {
+		chars = append(chars, byte(CHARSET))
+		chars = append(chars, byte(a.LCID))
+	}
 
 	// 👇 OUTLINE
-	chars = append(chars, byte(OUTLINE))
-	chars = append(chars, byte(a.Outline))
+	if a.Outline != 0b00000000 {
+		chars = append(chars, byte(OUTLINE))
+		chars = append(chars, byte(a.Outline))
+	}
 	return chars
 }
 
