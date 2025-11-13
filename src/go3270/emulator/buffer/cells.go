@@ -63,12 +63,6 @@ func (c *Cells) EUA(start, stop int) bool {
 	}
 }
 
-func (c *Cells) MF(chars []byte) {
-	cell, _ := c.buf.Get()
-	cell.Attrs = types.NewModifiedAttrs(cell.Attrs, chars)
-	c.buf.SetAndNext(cell)
-}
-
 func (c *Cells) RA(cell *Cell, start, stop int) bool {
 	if stop < c.buf.Len() {
 		addr := c.buf.WrappingSeek(start)

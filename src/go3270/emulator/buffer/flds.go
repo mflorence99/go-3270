@@ -127,16 +127,28 @@ func (f *Flds) EAU() int {
 	return addr
 }
 
-// TODO 🔥 CHARACTER_MODE *not* coded
 func (f *Flds) RM() []byte {
 	chars := make([]byte, 0)
 	for _, fld := range f.flds {
 		sf, ok := fld.FldStart()
+		// 👇 for each changed field
 		if ok && sf.Attrs.MDT {
 			chars = append(chars, byte(types.SBA))
 			chars = append(chars, conv.Addr2Bytes(sf.FldAddr+1)...)
+			// 👇 now for each cell in thta field
 			for ix := 1; ix < len(fld); ix++ {
 				cell := fld[ix]
+				// 👇 emit SA order for char attrs different to fld attrs
+				if cell.Attrs.CharAttr {
+					delta := cell.Attrs.Diff(sf.Attrs)
+					raw := delta.Bytes()
+					for ix := 0; ix < len(raw); ix += 2 {
+						chars = append(chars, byte(types.SA))
+						chars = append(chars, raw[ix])
+						chars = append(chars, raw[ix+1])
+					}
+				}
+				// 👇 suppress null characters
 				char := cell.Char
 				if char != 0x00 {
 					chars = append(chars, char)

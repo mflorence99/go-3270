@@ -312,7 +312,9 @@ func (c *Consumer) ic() {
 func (c *Consumer) mf(out *stream.Outbound) {
 	count := out.MustNext()
 	raw := out.MustNextSlice(int(count) * 2)
-	c.cells.MF(raw)
+	cell, _ := c.buf.Get()
+	cell.Attrs = types.NewModifiedAttrs(cell.Attrs, raw)
+	c.buf.SetAndNext(cell)
 }
 
 // TODO 🔥 PT not handled
@@ -340,7 +342,10 @@ func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *types.Attrs) 
 func (c *Consumer) sa(out *stream.Outbound, fldAttrs *types.Attrs) *types.Attrs {
 	c.buf.SetMode(types.CHARACTER_MODE)
 	chars := out.MustNextSlice(2)
-	return types.NewModifiedAttrs(fldAttrs, chars)
+	attrs := types.NewModifiedAttrs(fldAttrs, chars)
+	cell, _ := c.buf.Get()
+	cell.Attrs = attrs
+	return attrs
 }
 
 func (c *Consumer) sba(out *stream.Outbound) {
