@@ -36,3 +36,26 @@ func (c Config) Addr2RC(addr int) (int, int) {
 func (c Config) RC2Addr(row, col int) int {
 	return (row-1)*c.Cols + c.Cols - 1
 }
+
+func (c Config) ColorOf(a *Attrs) string {
+	var ix Color
+	if c.Monochrome {
+		ix = 0xf4
+	} else if a.Color == 0x00 {
+		switch {
+		case !a.Protected && (a.Highlight || a.Hidden):
+			ix = 0xF2
+		case !a.Protected && !a.Highlight:
+			ix = 0xF4
+		case a.Protected && (a.Highlight || a.Hidden):
+			ix = 0xF7
+		case a.Protected && !a.Highlight:
+			ix = 0xF1
+		default:
+			ix = 0xF4
+		}
+	} else {
+		ix = a.Color
+	}
+	return c.CLUT[ix]
+}

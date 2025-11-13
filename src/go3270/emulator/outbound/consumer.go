@@ -296,6 +296,7 @@ func (c *Consumer) eua(out *stream.Outbound) bool {
 func (c *Consumer) ge(out *stream.Outbound, fldAddr int, fldAttrs *types.Attrs) {
 	char := out.MustNext()
 	// TODO 🔥 GE not properly handled -- what alt character set??
+	// also needs to be present in inbound stream (RB, RM/A)
 	fldAttrs.LCID = 0xf1
 	c.char(char, fldAddr, fldAttrs)
 }
@@ -328,6 +329,7 @@ func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *types.Attrs) 
 	char := out.MustNext()
 	if types.Order(char) == types.GE {
 		// TODO 🔥 GE not properly handled -- what alt character set??
+		// also needs to be present in inbound stream (RB, RM/A)
 		fldAttrs.LCID = 0xf1
 		char = out.MustNext()
 	}
@@ -342,10 +344,7 @@ func (c *Consumer) ra(out *stream.Outbound, fldAddr int, fldAttrs *types.Attrs) 
 func (c *Consumer) sa(out *stream.Outbound, fldAttrs *types.Attrs) *types.Attrs {
 	c.buf.SetMode(types.CHARACTER_MODE)
 	chars := out.MustNextSlice(2)
-	attrs := types.NewModifiedAttrs(fldAttrs, chars)
-	cell, _ := c.buf.Get()
-	cell.Attrs = attrs
-	return attrs
+	return types.NewModifiedAttrs(fldAttrs, chars)
 }
 
 func (c *Consumer) sba(out *stream.Outbound) {

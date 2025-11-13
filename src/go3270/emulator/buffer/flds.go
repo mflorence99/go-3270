@@ -135,19 +135,20 @@ func (f *Flds) RM() []byte {
 		if ok && sf.Attrs.MDT {
 			chars = append(chars, byte(types.SBA))
 			chars = append(chars, conv.Addr2Bytes(sf.FldAddr+1)...)
-			// 👇 now for each cell in thta field
+			// 👇 now for each cell in that field
 			for ix := 1; ix < len(fld); ix++ {
 				cell := fld[ix]
+				// TODO 🔥 thhis seems to blow the 1 RFE page input in TSOAPPLS
 				// 👇 emit SA order for char attrs different to fld attrs
-				if cell.Attrs.CharAttr {
-					delta := cell.Attrs.Diff(sf.Attrs)
-					raw := delta.Bytes()
-					for ix := 0; ix < len(raw); ix += 2 {
-						chars = append(chars, byte(types.SA))
-						chars = append(chars, raw[ix])
-						chars = append(chars, raw[ix+1])
-					}
-				}
+				// if cell.Attrs.CharAttr {
+				// 	delta := cell.Attrs.Diff(sf.Attrs)
+				// 	raw := delta.Bytes()
+				// 	for ix := 0; ix < len(raw); ix += 2 {
+				// 		chars = append(chars, byte(types.SA))
+				// 		chars = append(chars, raw[ix])
+				// 		chars = append(chars, raw[ix+1])
+				// 	}
+				// }
 				// 👇 suppress null characters
 				char := cell.Char
 				if char != 0x00 {
