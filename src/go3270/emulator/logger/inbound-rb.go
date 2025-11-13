@@ -42,6 +42,26 @@ func (l *Logger) logInboundRB(chars []byte) {
 	row, col = l.cfg.Addr2RC(addr)
 	data := make([]byte, 0)
 
+	// 👇 common code to print attributes
+	appendAttrs := func(order types.Order, attrs *types.Attrs) {
+		colorizer := text.Colors{text.FgYellow}
+		row, col = l.cfg.Addr2RC(addr)
+		t.AppendRow(table.Row{types.OrderFor(order), row, col, colorizer.Sprint(attrs.String())})
+		if order != types.SA {
+			addr++
+			row, col = l.cfg.Addr2RC(addr)
+		}
+	}
+
+	// 👇 common code to flush aggregated data
+	flush := func(data []byte) []byte {
+		if len(data) > 0 {
+			t.AppendRow(table.Row{"", row, col, string(data)})
+			return make([]byte, 0)
+		}
+		return data
+	}
+
 	// 👇 look at each byte to see if it is an order
 	for in.HasNext() {
 		char := in.MustNext()
@@ -49,35 +69,23 @@ func (l *Logger) logInboundRB(chars []byte) {
 		switch order {
 
 		case types.SA:
+			data = flush(data)
 			chars := in.MustNextSlice(2)
 			attrs := types.NewExtendedAttrs(chars)
-			row, col := l.cfg.Addr2RC(addr)
-			t.AppendRow(table.Row{"SA", row, col, attrs.String()})
+			appendAttrs(order, attrs)
 
 		case types.SF:
-			if len(data) > 0 {
-				t.AppendRow(table.Row{"", row, col, string(data)})
-				data = make([]byte, 0)
-			}
+			data = flush(data)
 			raw := in.MustNext()
 			attrs := types.NewBasicAttrs(raw)
-			row, col = l.cfg.Addr2RC(addr)
-			yellow := text.Colors{text.FgYellow}
-			t.AppendRow(table.Row{"SF", row, col, yellow.Sprint(attrs.String())})
-			addr++
+			appendAttrs(order, attrs)
 
 		case types.SFE:
-			if len(data) > 0 {
-				t.AppendRow(table.Row{"", row, col, string(data)})
-				data = make([]byte, 0)
-			}
+			data = flush(data)
 			count := in.MustNext()
 			raw := in.MustNextSlice(int(count) * 2)
 			attrs := types.NewExtendedAttrs(raw)
-			row, col = l.cfg.Addr2RC(addr)
-			yellow := text.Colors{text.FgYellow}
-			t.AppendRow(table.Row{"SFE", row, col, yellow.Sprint(attrs.String())})
-			addr++
+			appendAttrs(order, attrs)
 
 		default:
 			data = append(data, conv.E2A(char))
@@ -87,8 +95,6 @@ func (l *Logger) logInboundRB(chars []byte) {
 	}
 
 	// 👇 don't forget the last field
-	if len(data) > 0 {
-		t.AppendRow(table.Row{"", row, col, string(data)})
-	}
+	flush(data)
 
 }

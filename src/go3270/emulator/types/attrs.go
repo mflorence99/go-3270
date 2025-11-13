@@ -1,6 +1,9 @@
 package types
 
-import "strings"
+import (
+	"go3270/emulator/utils"
+	"strings"
+)
 
 // 🟧 3270 field and extended attributes
 
@@ -131,14 +134,12 @@ func (a *Attrs) Byte() byte {
 
 func (a *Attrs) Bytes() []byte {
 	chars := make([]byte, 0)
-
 	// 👇 BASIC
 	basic := a.Byte()
 	if basic != 0b00000000 {
 		chars = append(chars, byte(BASIC))
 		chars = append(chars, basic)
 	}
-
 	// 👇 HIGHLIGHT
 	switch {
 	case a.Blink:
@@ -154,25 +155,40 @@ func (a *Attrs) Bytes() []byte {
 		chars = append(chars, byte(HIGHLIGHT))
 		chars = append(chars, byte(INTENSIFY))
 	}
-
 	// 👇 COLOR
 	if a.Color != 0x00 {
 		chars = append(chars, byte(COLOR))
 		chars = append(chars, byte(a.Color))
 	}
-
 	// 👇 CHARSET
 	if a.LCID != 0x00 {
 		chars = append(chars, byte(CHARSET))
 		chars = append(chars, byte(a.LCID))
 	}
-
 	// 👇 OUTLINE
 	if a.Outline != 0b00000000 {
 		chars = append(chars, byte(OUTLINE))
 		chars = append(chars, byte(a.Outline))
 	}
 	return chars
+}
+
+func (a *Attrs) Diff(b *Attrs) *Attrs {
+	delta := Attrs{
+		Autoskip:   a.Autoskip && !b.Autoskip,
+		Blink:      a.Blink && !b.Blink,
+		Color:      utils.Ternary(a.Color != b.Color, a.Color, 0x00),
+		Hidden:     a.Hidden && !b.Hidden,
+		Highlight:  a.Highlight && !b.Highlight,
+		LCID:       utils.Ternary(a.LCID != b.LCID, a.LCID, 0x00),
+		MDT:        a.MDT && !b.MDT,
+		Numeric:    a.Numeric && !b.Numeric,
+		Outline:    utils.Ternary(a.Outline != b.Outline, a.Outline, 0b00000000),
+		Protected:  a.Protected && !b.Protected,
+		Reverse:    a.Reverse && !b.Reverse,
+		Underscore: a.Underscore && !b.Underscore,
+	}
+	return &delta
 }
 
 // 🟦 Stringer implementation
