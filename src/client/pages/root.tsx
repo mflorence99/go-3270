@@ -64,6 +64,11 @@ export class Root extends SignalWatcher(LitElement) {
     this.mediator = new Mediator(this);
   }
 
+  alert(msg: string): void {
+    this.message = msg;
+    this.alerter.show();
+  }
+
   flip(pageNum: number): void {
     this.pageNum = pageNum;
   }
