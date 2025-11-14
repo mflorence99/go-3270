@@ -10,7 +10,9 @@ Consequently, only minimal documentation is presented here.
 
 ## Acknowledgements
 
-I am very grateful to [Michael Fogelman](https://github.com/fogleman) and his [Go 3270 App](https://github.com/racingmars/go3270/tree/master) project which have helped me develop controlled and predictable test applications, as well as my old pal [Mark Rafter]() for encouraging me to learn Go in the first place. Michael's [gg](https://github.com/fogleman/gg) Go graphics package is a key dependency of my small project.
+I am very grateful to [Matthew R. Wilson](https://github.com/racingmars) and his [Go 3270 App](https://github.com/racingmars/go3270) project which have helped me develop controlled and predictable test applications, as well as my old pal [Mark Rafter]() for encouraging me to learn Go in the first place.
+
+Michael Fogelman's [gg](https://github.com/fogleman/gg) Go graphics package is a key dependency of my small project.
 
 ## Development Prerequisites
 
