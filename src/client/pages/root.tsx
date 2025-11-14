@@ -1,6 +1,7 @@
 import { Connector } from '$client/pages/connector';
 import { Emulator } from '$client/pages/emulator';
 import { LitElement } from 'lit';
+import { MdDialog } from '@material/web/dialog/dialog.js';
 import { Mediator } from '$client/controllers/mediator';
 import { Pages } from '$client/controllers/mediator';
 import { SignalWatcher } from '@lit-labs/signals';
@@ -47,15 +48,20 @@ export class Root extends SignalWatcher(LitElement) {
     `
   ];
 
+  @query('md-dialog[type="alert"]') alerter!: MdDialog;
   @query('.connector') connector!: Connector;
   @query('.emulator') emulator!: Emulator;
+  @state() message = '';
   @state() pageNum = Pages.connector;
   @provide({ context: stateContext }) state = new State('state');
 
+  mediator: Mediator;
+  startup: Startup;
+
   constructor() {
     super();
-    const _startup = new Startup(this);
-    const _mediator = new Mediator(this);
+    this.startup = new Startup(this);
+    this.mediator = new Mediator(this);
   }
 
   flip(pageNum: number): void {
@@ -94,6 +100,19 @@ export class Root extends SignalWatcher(LitElement) {
           opacity: this.pageNum === Pages.setup ? 1 : 0,
           zIndex: this.pageNum === Pages.setup ? 1 : -1
         })}></app-setup>
+
+      <md-dialog
+        @closed=${(): void => this.mediator.alerterClosed()}
+        @opened=${(): void => this.mediator.alerterOpened()}
+        type="alert">
+        <div slot="headline">Something Went Wrong</div>
+        <form id="form" slot="content" method="dialog">
+          ${this.message}
+        </form>
+        <div slot="actions">
+          <md-filled-button form="form" value="ok">OK</md-filled-button>
+        </div>
+      </md-dialog>
     `;
   }
 }

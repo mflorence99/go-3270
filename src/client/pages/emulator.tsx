@@ -104,16 +104,10 @@ export class Emulator extends SignalWatcher(LitElement) {
 
   #go3270: Go3270 | null = null;
 
-  confirm(): void {
+  close(): void {
     if (this.state.model.get().config.screenshot)
       this.dispatchEvent(new CustomEvent('done'));
-    else if (
-      // TODO 🔥 can we make this a modal dialog?
-      window.confirm(
-        'Are you sure you want to terminate the 3270 session? You may want to logoff from any open applications before doing so.'
-      )
-    )
-      window.dispatchEvent(new CustomEvent('disconnect'));
+    else window.dispatchEvent(new CustomEvent('disconnect'));
   }
 
   disconnect(): void {
@@ -144,7 +138,7 @@ export class Emulator extends SignalWatcher(LitElement) {
         <section class="emulator">
           <header class="header">
             <md-icon-button
-              @click=${(): void => this.confirm()}
+              @click=${(): void => this.close()}
               title="Disconnect from 3270">
               <app-icon icon="power_settings_new"></app-icon>
             </md-icon-button>

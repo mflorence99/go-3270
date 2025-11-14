@@ -33,7 +33,7 @@ process.on('SIGINT', async () => {
         text: `... closing sockets`
       });
       ctx.tcpSocket?.end();
-      ctx.webSocket?.close();
+      ctx.webSocket?.close(1012);
     }
   }
   log({

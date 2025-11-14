@@ -159,7 +159,7 @@ export class Connector extends SignalWatcher(LitElement) {
           window.dispatchEvent(
             new CustomEvent('go3270', {
               detail: {
-                args: `A connection error occured. Please take any necessary corrective action and retry.\n\n${e.reason}`,
+                args: `Connection error: ${e.reason}. Please take corrective action and retry.`,
                 eventType: 'panic'
               }
             })
@@ -186,7 +186,7 @@ export class Connector extends SignalWatcher(LitElement) {
       window.dispatchEvent(
         new CustomEvent('go3270', {
           detail: {
-            args: `Unable to reach proxy server ${location.hostname}:${location.port}. Please take any corrective action and retry.`,
+            args: `Unable to reach proxy server ${location.hostname}:${location.port}. Please take corrective action and retry.`,
             eventType: 'panic'
           }
         })

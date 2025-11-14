@@ -26,6 +26,15 @@ export class Mediator implements ReactiveController {
     (this.host = host).addController(this);
   }
 
+  alerterClosed(): void {
+    window.addEventListener('keydown', this.#keystroke);
+    this.disconnect();
+  }
+
+  alerterOpened(): void {
+    window.removeEventListener('keydown', this.#keystroke);
+  }
+
   disconnect(): void {
     this.host.connector.disconnect();
     this.host.emulator.disconnect();
@@ -42,11 +51,9 @@ export class Mediator implements ReactiveController {
     switch ((evt as CustomEvent).detail.eventType) {
       case 'panic':
         {
-          const { args } = (evt as CustomEvent).detail;
           this.#alarm.play();
-          // TODO 🔥 can we make this a modal dialog?
-          window.alert(args);
-          this.disconnect();
+          this.host.message = (evt as CustomEvent).detail.args;
+          this.host.alerter.show();
         }
         break;
       case 'inbound':
@@ -91,8 +98,8 @@ export class Mediator implements ReactiveController {
     window.removeEventListener('beforeunload', this.#disconnect);
     window.removeEventListener('blur', this.#blur);
     window.removeEventListener('disconnect', this.#disconnect);
-    window.removeEventListener('keydown', this.#keystroke);
     window.removeEventListener('focus', this.#focus);
+    window.removeEventListener('keydown', this.#keystroke);
   }
 
   keystroke(evt: KeyboardEvent): void {
