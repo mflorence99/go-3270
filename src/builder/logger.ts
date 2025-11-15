@@ -43,7 +43,7 @@ export function log({
   console.log(parts.join(' '));
 }
 
-// 📘 log short string using figlet
+// 📘 log short string
 
 export function banner(str: string, { color, icon }: any): void {
   const padding = 72;

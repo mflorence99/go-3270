@@ -80,12 +80,12 @@ Typically, all of the above run simultaneously in three separate terminal sessio
 
 ### Go 3270 Database App
 
-![Go 3270 Database app](database.png)
+![Go 3270 Database app](doc/database.png)
 
 ### MVS
 
-![MVSp](mvs.png)
+![MVSp](doc/mvs.png)
 
 ### VM/370
 
-![VM/370](vm370.png)
+![VM/370](doc/vm370.png)
