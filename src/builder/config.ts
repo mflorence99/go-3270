@@ -14,6 +14,7 @@ export class ConfigClass {
     'client-js': `${root}/dist/client`,
     'client-ts': `${root}/src/client`,
     'emulator-go': `${root}/src/emulator`,
+    // TODO 🔥 go3270-go will be obsolete after refactor
     'go3270-go': `${root}/src/go3270`,
     'root': root,
     'tsconfig': `${root}/tsconfig-app.json`,

@@ -93,6 +93,7 @@ export const allTasks = [
       `${config.paths.root}/tsconfig-app.json`,
       // 🔥 HACK -- a directory must come last
       config.paths['emulator-go'],
+      // TODO 🔥 g03270-go will be obsolete after refactor
       config.paths['go3270-go'],
       config.paths['client-ts']
     ]
@@ -143,7 +144,9 @@ export const allTasks = [
     description: 'Bundle client WASM',
     banner: { color: colors.client, icon: icons.wasm },
     cmds: [
-      `(cd ${config.paths['go3270-go']} && GOOS=js GOARCH=wasm go build -o ${config.paths['client-js']}/index.wasm main.go)`
+      // TODO 🔥🔥 go3270 will be obsolete after refactor
+      `(cd ${config.paths['go3270-go']} && GOOS=js GOARCH=wasm go build -o ${config.paths['client-js']}/index.wasm main.go)`,
+      `(cd ${config.paths['emulator-go']} && GOOS=js GOARCH=wasm go build -o ${config.paths['client-js']}/go3270.wasm main.go)`
     ]
   }),
 
@@ -306,7 +309,7 @@ export const allTasks = [
     description: 'Run unit tests for client WASM',
     banner: { color: colors.client, icon: icons.wasm },
     // 🔥 can't test packages that depend on syscall/js
-    cmd: `(cd ${config.paths['go3270-go']}/emulator && go test ./... -cover)`
+    cmd: `(cd ${config.paths['emulator-go']}/core && go test ./... -cover)`
   })
 ];
 
