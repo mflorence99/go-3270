@@ -2,7 +2,7 @@ import { LitElement } from 'lit';
 import { ReactiveController } from 'lit';
 import { ReactiveControllerHost } from 'lit';
 
-import { nextTick } from '$lib/delay';
+import { nextTick } from '$client/utils/delay';
 
 // 🟧 Manage startup tasks
 

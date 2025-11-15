@@ -54,7 +54,6 @@ export const allTasks = [
     banner: { color: colors.builder, icon: icons.bundle },
     subTasks: ['check:builder', 'clean:builder', 'bundle:builder:js'],
     watchDirs: [
-      config.paths.lib,
       `${config.paths.root}/tsconfig-app.json`,
       // 🔥 HACK -- a directory must come last
       config.paths['builder-ts']
@@ -91,7 +90,6 @@ export const allTasks = [
       'bundle:client:wasm'
     ],
     watchDirs: [
-      config.paths.lib,
       `${config.paths.root}/tsconfig-app.json`,
       // 🔥 HACK -- a directory must come last
       config.paths['emulator-go'],
@@ -155,7 +153,6 @@ export const allTasks = [
     banner: { color: colors.server, icon: icons.bundle },
     subTasks: ['check:server', 'clean:server', 'bundle:server:js'],
     watchDirs: [
-      config.paths.lib,
       `${config.paths.root}/tsconfig-app.json`,
       // 🔥 HACK -- a directory must come last
       config.paths['server-ts']
@@ -274,9 +271,9 @@ export const allTasks = [
 
   new TaskClass({
     name: 'lint:eslint',
-    description: 'Lint build, client, and lib code with eslint',
+    description: 'Lint build, client, and server code with eslint',
     banner: { color: colors.builder, icon: icons.lint },
-    cmd: `bunx eslint ${config.paths['builder-ts']} ${config.paths['client-ts']} ${config.paths['lib']} ${config.paths['server-ts']}`
+    cmd: `bunx eslint ${config.paths['builder-ts']} ${config.paths['client-ts']} ${config.paths['server-ts']}`
   }),
 
   new TaskClass({

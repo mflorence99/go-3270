@@ -57,9 +57,9 @@ func (f *Flds) buildInitialIndex() []Fld {
 	return flds
 }
 
-// 👇 look at pairs of fields, this one and the next,
+// 👇 look at pairs of fields, this one and the next and assign
 //
-//	and assign all the cells in between to this field
+//	all the cells in between to this field
 func (f *Flds) allThoseCellsAreMine(flds []Fld) []Fld {
 	temp := make([]Fld, 0)
 	for ix, fld := range flds {
@@ -138,7 +138,7 @@ func (f *Flds) RM() []byte {
 			// 👇 now for each cell in that field
 			for ix := 1; ix < len(fld); ix++ {
 				cell := fld[ix]
-				// TODO 🔥 thhis seems to blow the 1 RFE page input in TSOAPPLS
+				// TODO 🔥 this seems to blow the 1 RFE page input in TSOAPPLS
 				// 👇 emit SA order for char attrs different to fld attrs
 				// if cell.Attrs.CharAttr {
 				// 	delta := cell.Attrs.Diff(sf.Attrs)
@@ -160,20 +160,11 @@ func (f *Flds) RM() []byte {
 	return chars
 }
 
-func (f *Flds) ResetMDTs() {
+func (f *Flds) SetMDTs(state bool) {
 	for _, fld := range f.flds {
 		sf, ok := fld.FldStart()
 		if ok {
-			sf.Attrs.MDT = false
+			sf.Attrs.MDT = state
 		}
 	}
-}
-
-func (f *Flds) SetMDT(cell *Cell) bool {
-	fld, ok := f.buf.Peek(cell.FldAddr)
-	if !fld.FldStart || !ok {
-		return false
-	}
-	fld.Attrs.MDT = true
-	return true
 }

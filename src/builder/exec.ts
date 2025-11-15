@@ -7,7 +7,7 @@ import { allTasksLookup } from '$builder/tasks';
 import { banner } from '$builder/logger';
 import { cli } from '$builder/cli';
 import { config } from '$builder/config';
-import { debounce } from '$lib/debounce';
+import { debounce } from '$builder/debounce';
 import { exit } from 'node:process';
 import { kill } from 'node:process';
 import { log } from '$builder/logger';

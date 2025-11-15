@@ -1,5 +1,5 @@
 import { config } from '$builder/config';
-import { formatBytes } from '$lib/format';
+import { formatBytes } from '$builder/format';
 import { log } from '$builder/logger';
 
 type Params = {

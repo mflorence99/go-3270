@@ -159,12 +159,12 @@ func (k *Keyboard) backspace() (int, bool) {
 	k.buf.WrappingSeek(addr)
 	cell.Char = 0x40
 	cell.Attrs.MDT = true
-	addr = k.buf.Set(cell)
 	// 👇 set the MDT flag at the field level
-	ok := k.flds.SetMDT(cell)
+	sf, ok := k.buf.Peek(cell.FldAddr)
 	if !ok {
 		return -1, false
 	}
+	sf.Attrs.MDT = true
 	return addr, true
 }
 
@@ -189,10 +189,11 @@ func (k *Keyboard) keyin(char byte) (int, bool) {
 	cell.Attrs.MDT = true
 	addr := k.buf.SetAndNext(cell)
 	// 👇 set the MDT flag at the field level
-	ok := k.flds.SetMDT(cell)
+	sf, ok := k.buf.Peek(cell.FldAddr)
 	if !ok {
 		return -1, false
 	}
+	sf.Attrs.MDT = true
 	// 👇 if we typed into a field start with autoskip, tab to next
 	next, _ := k.buf.Get()
 	if next.FldStart && next.Attrs.Autoskip {

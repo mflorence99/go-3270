@@ -2,6 +2,8 @@ import { ReactiveController } from 'lit';
 import { Root } from '$client/pages/root';
 import { Status } from '$client/state/state';
 
+import { nextTick } from '$client/utils/delay';
+
 export const Pages = {
   connector: 0,
   emulator: 1,
@@ -63,15 +65,15 @@ export class Mediator implements ReactiveController {
         break;
       case 'status':
         {
-          // TODO 🔥 if we don't delay this, initial cursor not shown
-          setTimeout(async () => {
+          // 🔥 if we don't delay this, initial cursor not shown
+          nextTick().then(async () => {
             const status: Partial<Status> = (evt as CustomEvent).detail;
             this.host.state.updateStatus(status);
             if (status.alarm) {
               await this.#alarm.play();
               this.host.state.updateStatus({ alarm: false });
             }
-          }, 0);
+          });
         }
         break;
     }

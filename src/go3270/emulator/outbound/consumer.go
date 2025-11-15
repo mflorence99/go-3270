@@ -139,7 +139,7 @@ func (c *Consumer) wcc(out *stream.Outbound) (types.WCC, bool) {
 			println("🔥 WCC Reset not implemented")
 		}
 		if wcc.ResetMDT {
-			c.flds.ResetMDTs()
+			c.flds.SetMDTs(false)
 		}
 		c.bus.PubWCC(wcc)
 		return wcc, true

@@ -15,7 +15,6 @@ export class ConfigClass {
     'client-ts': `${root}/src/client`,
     'emulator-go': `${root}/src/emulator`,
     'go3270-go': `${root}/src/go3270`,
-    'lib': `${root}/src/lib`,
     'root': root,
     'tsconfig': `${root}/tsconfig-app.json`,
     'server-js': `${root}/dist/server`,
