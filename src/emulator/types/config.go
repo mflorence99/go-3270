@@ -12,7 +12,7 @@ type Config struct {
 	BgColor      string
 	BoldFace     *font.Face
 	CLUT         map[Color]string
-	Cols         int
+	Cols         uint
 	FontHeight   float64
 	FontSize     float64
 	FontWidth    float64
@@ -21,19 +21,19 @@ type Config struct {
 	PaddedHeight float64
 	PaddedWidth  float64
 	RGBA         *image.RGBA
-	Rows         int
+	Rows         uint
 	Testpage     string
 }
 
 // 🟦 Public functions
 
-func (c Config) Addr2RC(addr int) (int, int) {
-	row := int(addr/c.Cols) + 1
+func (c Config) Addr2RC(addr uint) (uint, uint) {
+	row := uint(addr/c.Cols) + 1
 	col := (addr % c.Cols) + 1
 	return row, col
 }
 
-func (c Config) RC2Addr(row, col int) int {
+func (c Config) RC2Addr(row, col uint) uint {
 	return (row-1)*c.Cols + c.Cols - 1
 }
 

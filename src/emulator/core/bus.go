@@ -29,10 +29,6 @@ func (b *Bus) PubClose() {
 	b.Publish("close")
 }
 
-func (b *Bus) PubConfig(cfg types.Config) {
-	b.Publish("config", cfg)
-}
-
 func (b *Bus) PubFocus(focus bool) {
 	b.Publish("focus", focus)
 }
@@ -45,6 +41,10 @@ type InboundHints struct{ RB, RM, Short, WSF bool }
 
 func (b *Bus) PubInbound(chars []byte, hints InboundHints) {
 	b.Publish("inbound", chars, hints)
+}
+
+func (b *Bus) PubInit() {
+	b.Publish("init")
 }
 
 func (b *Bus) PubOutbound(chars []byte) {
@@ -75,7 +75,7 @@ func (b *Bus) PubRender() {
 	b.Publish("render")
 }
 
-func (b *Bus) PubRenderDeltas(deltas *utils.Stack[int]) {
+func (b *Bus) PubRenderDeltas(deltas *utils.Stack[uint]) {
 	b.Publish("render-deltas", deltas)
 }
 
@@ -113,10 +113,6 @@ func (b *Bus) SubClose(fn func()) {
 	b.Subscribe("close", fn)
 }
 
-func (b *Bus) SubConfig(fn func(cfg types.Config)) {
-	b.Subscribe("config", fn)
-}
-
 func (b *Bus) SubFocus(fn func(focus bool)) {
 	b.Subscribe("focus", fn)
 }
@@ -127,6 +123,10 @@ func (b *Bus) SubKeystroke(fn func(key types.Keystroke)) {
 
 func (b *Bus) SubInbound(fn func(chars []byte, hints InboundHints)) {
 	b.Subscribe("inbound", fn)
+}
+
+func (b *Bus) SubInit(fn func()) {
+	b.Subscribe("init", fn)
 }
 
 func (b *Bus) SubOutbound(fn func(chars []byte)) {
@@ -157,7 +157,7 @@ func (b *Bus) SubRender(fn func()) {
 	b.Subscribe("render", fn)
 }
 
-func (b *Bus) SubRenderDeltas(fn func(deltas *utils.Stack[int])) {
+func (b *Bus) SubRenderDeltas(fn func(deltas *utils.Stack[uint])) {
 	b.Subscribe("render-deltas", fn)
 }
 

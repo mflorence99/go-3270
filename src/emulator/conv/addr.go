@@ -17,17 +17,17 @@ var Six2E = []byte{
 
 // 🟦 Public functions
 
-func Addr2Bytes(addr int) []byte {
+func Addr2Bytes(addr uint) []byte {
 	chars := make([]byte, 2)
 	chars[0] = Six2E[(addr>>6)&0b00111111]
 	chars[1] = Six2E[addr&0b00111111]
 	return chars
 }
 
-func Bytes2Addr(chars []byte) int {
-	addr := int(chars[0])
+func Bytes2Addr(chars []byte) uint {
+	addr := uint(chars[0])
 	addr &= 0b00111111
 	addr = addr << 6
-	addr += int(chars[1] & 0b00111111)
+	addr += uint(chars[1] & 0b00111111)
 	return addr
 }

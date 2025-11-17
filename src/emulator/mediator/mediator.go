@@ -87,8 +87,8 @@ func (m *Mediator) configure(args []js.Value) *types.Config {
 		clut[types.Color(c)] = v
 	}
 	fontSize := args[4].Float()
-	rows := args[5].Int()
-	cols := args[6].Int()
+	rows := uint(args[5].Int())
+	cols := uint(args[6].Int())
 	dpi := args[7].Float()
 	testpage := args[8].String()
 	// 👇 constants

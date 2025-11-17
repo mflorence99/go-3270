@@ -4,11 +4,22 @@ package types
 
 type Status struct {
 	Alarm     bool
-	CursorAt  int
+	CursorAt  uint
 	Error     bool
 	Locked    bool
 	Message   string
 	Numeric   bool
 	Protected bool
 	Waiting   bool
+}
+
+type Patch struct {
+	Alarm     *bool
+	CursorAt  *uint
+	Error     *bool
+	Locked    *bool
+	Message   *string
+	Numeric   *bool
+	Protected *bool
+	Waiting   *bool
 }
