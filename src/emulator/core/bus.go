@@ -55,7 +55,7 @@ func (b *Bus) PubPanic(msg string) {
 	b.Publish("panic", msg)
 }
 
-func (b *Bus) PubProbe(addr int) {
+func (b *Bus) PubProbe(addr uint) {
 	b.Publish("probe", addr)
 }
 
@@ -137,7 +137,7 @@ func (b *Bus) SubPanic(fn func(msg string)) {
 	b.Subscribe("panic", fn)
 }
 
-func (b *Bus) SubProbe(fn func(addr int)) {
+func (b *Bus) SubProbe(fn func(addr uint)) {
 	b.Subscribe("probe", fn)
 }
 

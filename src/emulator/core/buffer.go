@@ -14,7 +14,7 @@ type Buffer struct {
 	buf  []*Cell
 	mode types.Mode
 
-	emu *Emulator // 👈 back pouinter to all common components
+	emu *Emulator // 👈 back pointer to all common components
 }
 
 // 🟦 Constructor

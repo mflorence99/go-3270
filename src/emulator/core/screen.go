@@ -137,7 +137,7 @@ func (s *Screen) renderImpl(dc *gg.Context, addr uint, doBlink bool, blinkOn boo
 		}
 		// 👇 if the glyph is already at this address, no need to redraw it
 		if g != s.glyphs[addr] {
-			img := s.emu.Cache.ImageFor(g, box)
+			img := s.emu.GC.ImageFor(g, box)
 			dc.DrawImage(img, int(box.X), int(box.Y))
 			s.glyphs[addr] = g
 		}

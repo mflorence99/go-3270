@@ -10,14 +10,18 @@ import (
 // 🟧 3270 emulator itself, in pure go test-able code
 
 type Emulator struct {
-	Buf    *Buffer
-	Bus    *Bus
-	Cache  *Cache
-	Cells  *Cells
-	Cfg    *types.Config
-	Flds   *Flds
-	Screen *Screen
-	State  *State
+	Buf   *Buffer
+	Bus   *Bus
+	Cells *Cells
+	Cfg   *types.Config
+	Flds  *Flds
+	GC    *Cache
+	Kbd   *Keyboard
+	In    *Producer
+	Log   *Logger
+	Out   *Consumer
+	Scr   *Screen
+	State *State
 }
 
 // 🟦 Constructor
@@ -28,10 +32,14 @@ func NewEmulator(bus *Bus, cfg *types.Config) *Emulator {
 	e.Cfg = cfg
 	// 🔥 preserve order of components for pubsub!
 	e.Buf = NewBuffer(e)
-	e.Cache = NewCache(e)
 	e.Cells = NewCells(e)
 	e.Flds = NewFlds(e)
-	e.Screen = NewScreen(e)
+	e.GC = NewCache(e)
+	e.In = NewProducer(e)
+	e.Kbd = NewKeyboard(e)
+	e.Log = NewLogger(e)
+	e.Out = NewConsumer(e)
+	e.Scr = NewScreen(e)
 	e.State = NewState(e)
 	// 👇 subscriptions
 	e.Bus.SubClose(e.close)

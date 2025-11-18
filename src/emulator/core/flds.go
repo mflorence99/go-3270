@@ -94,7 +94,7 @@ func (f *Flds) buildCells(flds []*Fld) []*Fld {
 // 🟦 Public functions
 
 // 👁️ Erase All Unprotected command p 3-8
-func (f *Flds) EAU() uint {
+func (f *Flds) EAU() (uint, bool) {
 	var addr uint
 	var ok bool
 	for _, fld := range f.Flds {
@@ -113,7 +113,7 @@ func (f *Flds) EAU() uint {
 			}
 		}
 	}
-	return addr
+	return addr, ok
 }
 
 func (f *Flds) FindFld(fldAddr uint) (*Fld, bool) {
