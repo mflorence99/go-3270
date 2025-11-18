@@ -13,6 +13,8 @@ import (
 // 👁️ All page references to:
 // https://bitsavers.org/pdf/ibm/3270/GA23-0059-07_3270_Data_Stream_Programmers_Reference_199206.pdf
 
+// 👁️ Keyboard Operations pp 7-10 to 7-15
+
 type Keyboard struct {
 	emu *Emulator // 👈 back pointer to all common components
 }
@@ -53,6 +55,7 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 		if key.SHIFT {
 			k.emu.Bus.PubRB(aid)
 		} else {
+			k.emu.Bus.PubReset()
 			k.emu.Bus.PubAttn(aid)
 		}
 
@@ -67,26 +70,32 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 
 	case key.Code == "ArrowDown":
 		cursorTo = cursorAt + k.emu.Cfg.Cols
-		if cursorTo >= cursorMax {
+		if cursorAt >= cursorMax-k.emu.Cfg.Cols {
 			cursorTo = cursorAt % k.emu.Cfg.Cols
+		} else {
+			cursorTo = cursorAt + k.emu.Cfg.Cols
 		}
 
 	case key.Code == "ArrowLeft":
-		cursorTo = cursorAt - 1
-		if cursorTo < 0 {
+		if cursorAt == 0 {
 			cursorTo = cursorMax - 1
+		} else {
+			cursorTo = cursorAt - 1
 		}
 
 	case key.Code == "ArrowRight":
 		cursorTo = cursorAt + 1
-		if cursorTo >= cursorMax {
+		if cursorAt == cursorMax-1 {
 			cursorTo = 0
+		} else {
+			cursorTo = cursorAt + 1
 		}
 
 	case key.Code == "ArrowUp":
-		cursorTo = cursorAt - k.emu.Cfg.Cols
-		if cursorTo < 0 {
+		if cursorAt < k.emu.Cfg.Cols {
 			cursorTo = (cursorAt % k.emu.Cfg.Cols) + cursorMax - k.emu.Cfg.Cols
+		} else {
+			cursorTo = cursorAt - k.emu.Cfg.Cols
 		}
 
 	case key.Code == "Backspace":
@@ -123,7 +132,7 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 	if cursorTo != cursorAt {
 		deltas.Push(cursorAt)
 		deltas.Push(cursorTo)
-		k.emu.Buf.WrappingSeek(cursorTo)
+		k.emu.Buf.MustSeek(cursorTo)
 		// 👇 update the status depending on the new cell
 		cell, _ := k.emu.Buf.Get()
 		k.emu.State.Patch(types.Patch{
@@ -148,15 +157,15 @@ func (k *Keyboard) backspace() (uint, bool) {
 		return 0, false
 	}
 	// 👇 reposition to previous cell and update it
-	k.emu.Buf.WrappingSeek(addr)
+	k.emu.Buf.MustSeek(addr)
 	cell.Char = 0x40
 	cell.Attrs.MDT = true
 	// 👇 set the MDT flag at the field level
-	// sf, ok := k.emu.Buf.Peek(cell.FldAddr)
-	// if !ok {
-	// 	return 0, false
-	// }
-	// sf.Attrs.MDT = true
+	sf, ok := cell.GetFldStart()
+	if !ok {
+		return 0, false
+	}
+	sf.Attrs.MDT = true
 	return addr, true
 }
 

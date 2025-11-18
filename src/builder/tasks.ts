@@ -93,8 +93,6 @@ export const allTasks = [
       `${config.paths.root}/tsconfig-app.json`,
       // 🔥 HACK -- a directory must come last
       config.paths['emulator-go'],
-      // TODO 🔥 g03270-go will be obsolete after refactor
-      config.paths['go3270-go'],
       config.paths['client-ts']
     ]
   }),
@@ -144,9 +142,7 @@ export const allTasks = [
     description: 'Bundle client WASM',
     banner: { color: colors.client, icon: icons.wasm },
     cmds: [
-      // TODO 🔥🔥 go3270 will be obsolete after refactor
-      `(cd ${config.paths['go3270-go']} && GOOS=js GOARCH=wasm go build -o ${config.paths['client-js']}/index.wasm main.go)`,
-      `(cd ${config.paths['emulator-go']} && GOOS=js GOARCH=wasm go build -o ${config.paths['client-js']}/go3270.wasm main.go)`
+      `(cd ${config.paths['emulator-go']} && GOOS=js GOARCH=wasm go build -o ${config.paths['client-js']}/index.wasm main.go)`
     ]
   }),
 
