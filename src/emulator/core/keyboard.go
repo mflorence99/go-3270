@@ -47,7 +47,7 @@ func (k *Keyboard) focus(focussed bool) {
 // 🟦 Dispatch action per key code
 
 func (k *Keyboard) keystroke(key types.Keystroke) {
-	// 👇 prepare to move the cursor -- most keystrokes do this
+	// 👇 prepare to move the cursor -- many keystrokes do this
 	cursorAt := k.emu.State.Status.CursorAt
 	cursorTo := cursorAt
 	cursorMax := k.emu.Cfg.Rows * k.emu.Cfg.Cols
@@ -57,6 +57,8 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 	k.emu.Buf.WrappingSeek(int(cursorAt))
 	// 👇 pre-analyze AID key
 	aid := types.AIDOf(key.Key, key.ALT, key.CTRL, key.SHIFT)
+	// 👇 assume success of operation
+	ok := true
 
 	switch {
 
@@ -107,29 +109,25 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 		}
 
 	case key.Code == "Backspace":
-		addr, ok := k.backspace()
-		if ok {
-			k.emu.Buf.MustSeek(addr)
-			cursorTo = addr
-		} else {
-			k.emu.State.Patch(types.Patch{Alarm: utils.BoolPtr(true)})
-		}
+		cursorTo, ok = k.backspace(cursorAt)
+
+	case key.Code == "End":
+		cursorTo, ok = k.end(cursorAt)
+
+	case key.Code == "Home":
+		cursorTo, ok = k.home(cursorAt)
 
 	case key.Code == "Tab":
-		_, ok := k.tab(utils.Ternary(key.SHIFT, -1, +1))
-		if ok {
-			cursorTo = k.emu.Buf.Addr()
-		} else {
-			k.emu.State.Patch(types.Patch{Alarm: utils.BoolPtr(true)})
-		}
+		cursorTo, ok = k.tab(utils.Ternary(key.SHIFT, -1, +1), cursorAt)
 
 	case len(key.Key) == 1:
-		addr, ok := k.keyin(key.Key[0])
-		if ok {
-			cursorTo = addr
-		} else {
-			k.emu.State.Patch(types.Patch{Alarm: utils.BoolPtr(true)})
-		}
+		cursorTo, ok = k.keyin(key.Key[0], cursorAt)
+
+	}
+
+	// 👇 something might've gone wrong
+	if !ok {
+		k.emu.State.Patch(types.Patch{Alarm: utils.BoolPtr(true)})
 	}
 
 	// 👇 probe cursor position for debugging
@@ -158,12 +156,12 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 
 // 🟦 BACKSPACE
 
-func (k *Keyboard) backspace() (uint, bool) {
+func (k *Keyboard) backspace(dfltAddr uint) (uint, bool) {
 	cell, _ := k.emu.Buf.Get()
 	// 👇 validate data entry into current cell
 	prot := cell.IsFldStart() || cell.Attrs.Protected
 	if prot {
-		return 0, false
+		return dfltAddr, false
 	}
 	// 👇 update cell
 	cell.Char = 0x40
@@ -171,27 +169,63 @@ func (k *Keyboard) backspace() (uint, bool) {
 	// 👇 set the MDT flag at the field level
 	sf, ok := cell.GetFldStart()
 	if !ok {
-		return 0, false
+		return dfltAddr, false
 	}
 	sf.Attrs.MDT = true
 	// 👇 if the previous cell is a field start, don't advance
 	next, addr := k.emu.Buf.PrevGet()
 	if next.IsFldStart() {
-		return k.emu.Buf.Addr(), false
+		return dfltAddr, false
 	}
 	// 👇 advance to previous cell
 	return k.emu.Buf.MustSeek(addr), true
 }
 
+// 🟦 END
+
+func (k *Keyboard) end(dfltAddr uint) (uint, bool) {
+	cell, _ := k.emu.Buf.Get()
+	// 👇 only if in unprotected field with home cell
+	fld, ok := cell.FindFld()
+	if !ok || len(fld.Cells) <= 1 || fld.Cells[0].Attrs.Protected {
+		return dfltAddr, false
+	}
+	// 👇 look backward for first non-blank, then position + 1 from it
+	for ix := len(fld.Cells) - 1; ix >= 0; ix-- {
+		if fld.Cells[ix].Char > 0x40 {
+			addr, _ := cell.GetFldAddr()
+			eof := min(len(fld.Cells)-1, ix+1)
+			return k.emu.Buf.WrappingSeek(int(addr) + eof), true
+		}
+	}
+	// 🔥 not an error if whole fiels is blank
+	return dfltAddr, true
+}
+
+// 🟦 HOME
+
+func (k *Keyboard) home(dfltAddr uint) (uint, bool) {
+	for _, fld := range k.emu.Flds.Flds {
+		sf := fld.Cells[0]
+		// 👇 find the first unprotected field with a home cell
+		if !sf.Attrs.Protected && len(fld.Cells) > 1 {
+			addr, _ := sf.GetFldAddr()
+			return k.emu.Buf.WrappingSeek(int(addr) + 1), true
+		}
+	}
+	// 👇 looked everywhere and couldn't find it!
+	return dfltAddr, false
+}
+
 // 🟦 KEYSTROKE
 
-func (k *Keyboard) keyin(char byte) (uint, bool) {
+func (k *Keyboard) keyin(char byte, dfltAddr uint) (uint, bool) {
 	cell, _ := k.emu.Buf.Get()
 	// 👇 validate data entry into current cell
 	numlock := cell.Attrs.Numeric && !strings.Contains("-0123456789.", string(char))
 	prot := cell.IsFldStart() || cell.Attrs.Protected
 	if numlock || prot {
-		return 0, false
+		return dfltAddr, false
 	}
 	// 👇 update cell and advance to next
 	cell.Char = conv.A2E(char)
@@ -199,17 +233,17 @@ func (k *Keyboard) keyin(char byte) (uint, bool) {
 	// 👇 set the MDT flag at the field level
 	sf, ok := cell.GetFldStart()
 	if !ok {
-		return 0, false
+		return dfltAddr, false
 	}
 	sf.Attrs.MDT = true
 	// 👇 if the next cell is a field start with autoskip, tab to next Fld
 	next, addr := k.emu.Buf.GetNext()
 	if next.IsFldStart() {
 		if next.Attrs.Autoskip {
-			return k.tab(+1)
+			return k.tab(+1, dfltAddr)
 		}
 		// 👇 don't advance if not autoskip
-		return k.emu.Buf.Addr(), false
+		return dfltAddr, false
 	}
 	// 👇 advance to next cell
 	return k.emu.Buf.MustSeek(addr), true
@@ -217,7 +251,8 @@ func (k *Keyboard) keyin(char byte) (uint, bool) {
 
 // 🟦 TAB
 
-func (k *Keyboard) tab(dir int) (uint, bool) {
+func (k *Keyboard) tab(dir int, start uint) (uint, bool) {
+	var cell *Cell
 	advance := func(dir int) (*Cell, uint) {
 		if dir > 0 {
 			return k.emu.Buf.GetNext()
@@ -225,15 +260,14 @@ func (k *Keyboard) tab(dir int) (uint, bool) {
 		return k.emu.Buf.PrevGet()
 	}
 	// 🔥 look in opposite direction for the stop addr
-	start := k.emu.Buf.Addr()
-	cell, stop := advance(dir * -1)
+	_, stop := advance(dir * -1)
 	// 🔥 we don't really need to seek here, but we're following a pattern
 	addr := k.emu.Buf.MustSeek(start)
 	// 👇 keep looking for an unprotected Fld start until we wrap
 	for addr != stop {
 		cell, addr = advance(dir)
-		if cell.IsFldStart() && !cell.Attrs.Protected {
-			return k.emu.Buf.WrappingSeek(int(addr) + 1), true
+		if cell.IsFldHome() && !cell.Attrs.Protected {
+			return k.emu.Buf.MustSeek(addr), true
 		}
 		k.emu.Buf.MustSeek(addr)
 	}

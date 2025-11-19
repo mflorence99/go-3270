@@ -39,6 +39,19 @@ func (c *Cell) GetFldAddr() (uint, bool) {
 	return c.fldAddr, true
 }
 
+func (c *Cell) GetFldHome() (*Cell, bool) {
+	addr, ok := c.GetFldAddr()
+	if !ok {
+		return nil, false
+	}
+	home, _ := c.emu.Buf.WrappingPeek(int(addr) + 1)
+	// 🔥 a Fld with no Cells has no home Cell
+	if home.IsFldStart() {
+		return nil, false
+	}
+	return home, true
+}
+
 func (c *Cell) GetFldStart() (*Cell, bool) {
 	addr, ok := c.GetFldAddr()
 	if !ok {
@@ -46,6 +59,14 @@ func (c *Cell) GetFldStart() (*Cell, bool) {
 	}
 	sf := c.emu.Buf.MustPeek(addr)
 	return sf, true
+}
+
+func (c *Cell) IsFldHome() bool {
+	home, ok := c.GetFldHome()
+	if !ok {
+		return false
+	}
+	return c == home
 }
 
 func (c *Cell) IsFldStart() bool {
