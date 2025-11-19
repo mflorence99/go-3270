@@ -5,6 +5,7 @@ import (
 	"emulator/types"
 	"emulator/utils"
 
+	"slices"
 	"strings"
 )
 
@@ -111,6 +112,9 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 	case key.Code == "Backspace":
 		cursorTo, ok = k.backspace(cursorAt)
 
+	case key.Code == "Delete":
+		cursorTo, ok = k.delete(cursorAt, deltas)
+
 	case key.Code == "End":
 		cursorTo, ok = k.end(cursorAt)
 
@@ -165,7 +169,6 @@ func (k *Keyboard) backspace(dfltAddr uint) (uint, bool) {
 	}
 	// 👇 update cell
 	cell.Char = 0x40
-	cell.Attrs.MDT = true
 	// 👇 set the MDT flag at the field level
 	sf, ok := cell.GetFldStart()
 	if !ok {
@@ -181,6 +184,36 @@ func (k *Keyboard) backspace(dfltAddr uint) (uint, bool) {
 	return k.emu.Buf.MustSeek(addr), true
 }
 
+// 🟦 DELETE
+
+func (k *Keyboard) delete(dfltAddr uint, deltas *utils.Stack[uint]) (uint, bool) {
+	cell, _ := k.emu.Buf.Get()
+	// 👇 only if in unprotected field with at least two character cells
+	fld, ok := cell.FindFld()
+	if !ok || len(fld.Cells) <= 2 || fld.Cells[0].Attrs.Protected {
+		return dfltAddr, false
+	}
+	// 👇 shift all subsequent characters from the right
+	var ix int
+	for ix = slices.Index(fld.Cells, cell); ix < len(fld.Cells)-1; ix++ {
+		fld.Cells[ix].Char = fld.Cells[ix+1].Char
+	}
+	// 👇 fill the remainder with nulls
+	for ; ix < len(fld.Cells); ix++ {
+		fld.Cells[ix].Char = 0x00
+	}
+	// 👇 set the MDT flag at the field level
+	sf := fld.Cells[0]
+	sf.Attrs.MDT = true
+	// 👇 indicate ALL the cells that changed
+	addr, _ := sf.GetFldAddr()
+	for ix = slices.Index(fld.Cells, cell); ix < len(fld.Cells); ix++ {
+		deltas.Push(k.emu.Buf.WrapAddr(int(addr) + ix))
+	}
+	// 🔥 the cursor doesn't move in this operation
+	return dfltAddr, true
+}
+
 // 🟦 END
 
 func (k *Keyboard) end(dfltAddr uint) (uint, bool) {
@@ -191,8 +224,8 @@ func (k *Keyboard) end(dfltAddr uint) (uint, bool) {
 		return dfltAddr, false
 	}
 	// 👇 look backward for first non-blank, then position + 1 from it
-	for ix := len(fld.Cells) - 1; ix >= 0; ix-- {
-		if fld.Cells[ix].Char > 0x40 {
+	for ix, cell := range slices.Backward(fld.Cells) {
+		if cell.Char > 0x40 {
 			addr, _ := cell.GetFldAddr()
 			eof := min(len(fld.Cells)-1, ix+1)
 			return k.emu.Buf.WrappingSeek(int(addr) + eof), true
@@ -229,7 +262,6 @@ func (k *Keyboard) keyin(char byte, dfltAddr uint) (uint, bool) {
 	}
 	// 👇 update cell and advance to next
 	cell.Char = conv.A2E(char)
-	cell.Attrs.MDT = true
 	// 👇 set the MDT flag at the field level
 	sf, ok := cell.GetFldStart()
 	if !ok {
