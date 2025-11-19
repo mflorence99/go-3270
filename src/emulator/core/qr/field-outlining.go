@@ -7,6 +7,11 @@ import (
 
 // 🟧 Query Reply structured field
 
+// 👁️ All page references to:
+// https://bitsavers.org/pdf/ibm/3270/GA23-0059-07_3270_Data_Stream_Programmers_Reference_199206.pdf
+
+// 👁️ Query Reply (Field Outlining) pp 6-58 to 6-59
+
 type FieldOutlining struct {
 	SFID  types.SFID
 	QCode types.QCode

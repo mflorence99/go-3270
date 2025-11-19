@@ -7,6 +7,9 @@ import (
 
 // 🟧 3270 Structured Field ID
 
+// 👁️ All page references to:
+// https://bitsavers.org/pdf/ibm/3270/GA23-0059-07_3270_Data_Stream_Programmers_Reference_199206.pdf
+
 type SFld struct {
 	ID   types.SFID
 	Info []byte
@@ -14,6 +17,7 @@ type SFld struct {
 
 // 🟦 Constructor
 
+// 👁️ Introduction  pp 5-4 to 5-5
 func SFldsFromStream(out *Outbound) []SFld {
 	sflds := make([]SFld, 0)
 	for out.HasNext() {

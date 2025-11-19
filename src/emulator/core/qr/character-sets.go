@@ -7,6 +7,11 @@ import (
 
 // 🟧 Query Reply structured field
 
+// 👁️ All page references to:
+// https://bitsavers.org/pdf/ibm/3270/GA23-0059-07_3270_Data_Stream_Programmers_Reference_199206.pdf
+
+// 👁️ Query Reply (Character Sets) pp 6-28 to 6-35
+
 type CharacterSets struct {
 	SFID  types.SFID
 	QCode types.QCode

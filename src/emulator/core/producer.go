@@ -27,7 +27,8 @@ func NewProducer(emu *Emulator) *Producer {
 	p.emu.Bus.SubQL(p.ql)
 	p.emu.Bus.SubRB(p.rb)
 	p.emu.Bus.SubRM(p.rm)
-	p.emu.Bus.SubRMA(p.rma)
+	// 🔥 same as RM
+	p.emu.Bus.SubRMA(p.rm)
 	return p
 }
 
@@ -36,6 +37,7 @@ func (p *Producer) init() {}
 
 // 🟦 Functions to produce requested stream type
 
+// 👁️ Short Read Operation p 3-14
 func (p *Producer) attn(aid types.AID) {
 	in := NewInbound()
 	in.Put(byte(aid))
@@ -43,6 +45,7 @@ func (p *Producer) attn(aid types.AID) {
 	p.emu.Bus.PubInbound(in.Bytes(), InboundHints{Short: true})
 }
 
+// 👁️ Query p 6-19
 func (p *Producer) q() {
 	in := NewInbound()
 	in.Put(byte(types.INBOUND))
@@ -78,6 +81,7 @@ func (p *Producer) q() {
 	p.emu.Bus.PubInbound(in.Bytes(), InboundHints{WSF: true})
 }
 
+// 👁️ Query List p 6-19
 func (p *Producer) ql(qcodes []types.QCode) {
 	in := NewInbound()
 	in.Put(byte(types.INBOUND))
@@ -112,6 +116,7 @@ func (p *Producer) ql(qcodes []types.QCode) {
 	p.emu.Bus.PubInbound(in.Bytes(), InboundHints{WSF: true})
 }
 
+// 👁️ Read Buffer command pp 3-12 to 3-13
 func (p *Producer) rb(aid types.AID) {
 	in := NewInbound()
 	in.Put(byte(aid))
@@ -123,6 +128,7 @@ func (p *Producer) rb(aid types.AID) {
 	p.emu.Bus.PubInbound(in.Bytes(), InboundHints{RB: true})
 }
 
+// 👁️ Read Modified command pp 3-13 to 3-15
 func (p *Producer) rm(aid types.AID) {
 	in := NewInbound()
 	in.Put(byte(aid))
@@ -134,15 +140,4 @@ func (p *Producer) rm(aid types.AID) {
 		in.PutSlice(types.LT)
 		p.emu.Bus.PubInbound(in.Bytes(), InboundHints{RM: true})
 	}
-}
-
-func (p *Producer) rma(aid types.AID) {
-	in := NewInbound()
-	in.Put(byte(aid))
-	cursorAt := p.emu.State.Status.CursorAt
-	in.PutSlice(conv.Addr2Bytes(cursorAt))
-	in.PutSlice(p.emu.Flds.RM())
-	// 👇 frame boundary LT is last
-	in.PutSlice(types.LT)
-	p.emu.Bus.PubInbound(in.Bytes(), InboundHints{RM: true})
 }

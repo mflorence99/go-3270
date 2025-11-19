@@ -8,6 +8,11 @@ import (
 
 // 🟧 Query Reply structured field
 
+// 👁️ All page references to:
+// https://bitsavers.org/pdf/ibm/3270/GA23-0059-07_3270_Data_Stream_Programmers_Reference_199206.pdf
+
+// 👁️ Query Reply (Usable Area) pp 6-100 to 6-109
+
 type UsableArea struct {
 	SFID   types.SFID
 	QCode  types.QCode

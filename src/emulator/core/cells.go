@@ -42,7 +42,7 @@ func (c *Cells) reset() {
 
 // 👁️ Erase Unprotected to Address order pp 4-10 to 4-11
 func (c *Cells) EUA(start, stop uint) {
-	addr := c.emu.Buf.WrappingSeek(start)
+	addr := c.emu.Buf.MustSeek(start)
 	for addr != stop {
 		cell, _ := c.emu.Buf.Get()
 		if !cell.Attrs.Protected {
@@ -59,7 +59,7 @@ func (c *Cells) EUA(start, stop uint) {
 
 // 👁️ Repeat to Address order pp 4-9 to 4-10
 func (c *Cells) RA(cell *Cell, start, stop uint) {
-	addr := c.emu.Buf.WrappingSeek(start)
+	addr := c.emu.Buf.MustSeek(start)
 	for addr != stop {
 		copy := *cell
 		c.emu.Buf.MustReplace(&copy, addr)

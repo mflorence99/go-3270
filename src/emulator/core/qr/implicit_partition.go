@@ -8,6 +8,11 @@ import (
 
 // 🟧 Query Reply structured field
 
+// 👁️ All page references to:
+// https://bitsavers.org/pdf/ibm/3270/GA23-0059-07_3270_Data_Stream_Programmers_Reference_199206.pdf
+
+// 👁️ Query Reply (Implicit Partition) pp 6-71 to 6-74
+
 type ImplicitPartition struct {
 	SFID   types.SFID
 	QCode  types.QCode
