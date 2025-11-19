@@ -34,6 +34,16 @@ func NewKeyboard(emu *Emulator) *Keyboard {
 // TODO 🔥 just in case we need it
 func (k *Keyboard) init() {}
 
+// 🟦 Gain/lose focus
+
+func (k *Keyboard) focus(focussed bool) {
+	k.emu.State.Patch(types.Patch{
+		Error:   utils.BoolPtr(!focussed),
+		Locked:  utils.BoolPtr(!focussed),
+		Message: utils.StringPtr(utils.Ternary(focussed, "", "LOCK")),
+	})
+}
+
 // 🟦 Dispatch action per key code
 
 func (k *Keyboard) keystroke(key types.Keystroke) {
@@ -146,7 +156,7 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 	}
 }
 
-// 🟦 Functions specific to particular keys
+// 🟦 BACKSPACE
 
 func (k *Keyboard) backspace() (uint, bool) {
 	cell, _ := k.emu.Buf.Get()
@@ -173,13 +183,7 @@ func (k *Keyboard) backspace() (uint, bool) {
 	return k.emu.Buf.MustSeek(addr), true
 }
 
-func (k *Keyboard) focus(focussed bool) {
-	k.emu.State.Patch(types.Patch{
-		Error:   utils.BoolPtr(!focussed),
-		Locked:  utils.BoolPtr(!focussed),
-		Message: utils.StringPtr(utils.Ternary(focussed, "", "LOCK")),
-	})
-}
+// 🟦 KEYSTROKE
 
 func (k *Keyboard) keyin(char byte) (uint, bool) {
 	cell, _ := k.emu.Buf.Get()
@@ -210,6 +214,8 @@ func (k *Keyboard) keyin(char byte) (uint, bool) {
 	// 👇 advance to next cell
 	return k.emu.Buf.MustSeek(addr), true
 }
+
+// 🟦 TAB
 
 func (k *Keyboard) tab(dir int) (uint, bool) {
 	advance := func(dir int) (*Cell, uint) {

@@ -95,7 +95,7 @@ func (m *Mediator) configure(args []js.Value) *types.Config {
 	maxFPS := 30.0
 	paddedHeight := 1.5
 	paddedWidth := 1.1
-	tickMs := 500
+	tickMs := 333
 	// 👇 load the fonts
 	normalFont, _ := truetype.Parse(normalFontEmbed)
 	normalFace := truetype.NewFace(normalFont, &truetype.Options{Size: fontSize, DPI: dpi /* , Hinting: font.HintingFull */})
