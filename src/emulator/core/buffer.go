@@ -92,17 +92,19 @@ func (b *Buffer) SetMode(mode types.Mode) types.Mode {
 	return b.mode
 }
 
-func (b *Buffer) WrapAddr(addr uint) uint {
-	return addr % b.Len()
+// 🔥 "Wrapping" method accept addr as an int to allow -ve wraps
+
+func (b *Buffer) WrapAddr(addr int) uint {
+	return uint(addr+int(b.Len())) % b.Len()
 }
 
-func (b *Buffer) WrappingPeek(addr uint) (*Cell, uint) {
+func (b *Buffer) WrappingPeek(addr int) (*Cell, uint) {
 	temp := b.WrapAddr(addr)
 	cell, _ := b.Peek(temp)
 	return cell, temp
 }
 
-func (b *Buffer) WrappingSeek(addr uint) uint {
+func (b *Buffer) WrappingSeek(addr int) uint {
 	b.addr = b.WrapAddr(addr)
 	return b.addr
 }

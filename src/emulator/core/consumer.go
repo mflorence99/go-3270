@@ -75,7 +75,7 @@ func (c *Consumer) commands(out *Outbound, cmd types.Command) {
 func (c *Consumer) eau() {
 	addr, ok := c.emu.Flds.EAU()
 	if ok {
-		c.emu.Buf.WrappingSeek(addr + 1)
+		c.emu.Buf.WrappingSeek(int(addr) + 1)
 		c.emu.State.Patch(types.Patch{
 			CursorAt: utils.UintPtr(c.emu.Buf.Addr()),
 		})
@@ -333,10 +333,7 @@ func (c *Consumer) sa(out *Outbound, fldAttrs *types.Attrs) *types.Attrs {
 func (c *Consumer) sba(out *Outbound) {
 	raw := out.MustNextSlice(2)
 	addr := conv.Bytes2Addr(raw)
-	if addr >= c.emu.Buf.Len() {
-		c.emu.Bus.PubPanic("🔥 Data requires a device with a larger screen")
-	}
-	c.emu.Buf.WrappingSeek(addr)
+	c.emu.Buf.MustSeek(addr)
 }
 
 func (c *Consumer) sf(out *Outbound) (uint, *types.Attrs) {

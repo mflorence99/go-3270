@@ -53,7 +53,7 @@ func (c *Cells) EUA(start, stop uint) {
 			cell.Char = 0x00
 			c.emu.Buf.MustReplace(cell, addr)
 		}
-		addr = c.emu.Buf.WrappingSeek(addr + 1)
+		addr = c.emu.Buf.WrappingSeek(int(addr) + 1)
 	}
 }
 
@@ -63,7 +63,7 @@ func (c *Cells) RA(cell *Cell, start, stop uint) {
 	for addr != stop {
 		copy := *cell
 		c.emu.Buf.MustReplace(&copy, addr)
-		addr = c.emu.Buf.WrappingSeek(addr + 1)
+		addr = c.emu.Buf.WrappingSeek(int(addr) + 1)
 	}
 }
 

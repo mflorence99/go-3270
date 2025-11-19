@@ -69,7 +69,7 @@ func (f *Flds) buildCells(flds []*Fld) []*Fld {
 		sf := fld.Cells[0]
 		start, _ := sf.GetFldAddr()
 		stop, _ := next.Cells[0].GetFldAddr()
-		cell, addr := f.emu.Buf.WrappingPeek(start + 1)
+		cell, addr := f.emu.Buf.WrappingPeek(int(start) + 1)
 		for addr != stop {
 			// 👇 use the field attributes for cells that were never
 			//    initialized, or which have (potentially) another field's
@@ -84,7 +84,7 @@ func (f *Flds) buildCells(flds []*Fld) []*Fld {
 			cell.SetFldAddr(start)
 			fld.Cells = append(fld.Cells, cell)
 			// 👇 on to the next
-			cell, addr = f.emu.Buf.WrappingPeek(addr + 1)
+			cell, addr = f.emu.Buf.WrappingPeek(int(addr) + 1)
 		}
 		temp = append(temp, fld)
 	}
@@ -137,7 +137,7 @@ func (f *Flds) RM() []byte {
 		if sf.Attrs.MDT {
 			chars = append(chars, byte(types.SBA))
 			addr, _ := sf.GetFldAddr()
-			next := f.emu.Buf.WrapAddr(addr + 1)
+			next := f.emu.Buf.WrapAddr(int(addr) + 1)
 			chars = append(chars, conv.Addr2Bytes(next)...)
 			// 👇 now for each cell in that field
 			for ix := 1; ix < len(fld.Cells); ix++ {

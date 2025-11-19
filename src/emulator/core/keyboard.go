@@ -44,7 +44,7 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 	// 👇 maintain a stack of changed cells
 	deltas := utils.NewStack[uint](1)
 	// 👇 make sure we know where to start
-	k.emu.Buf.WrappingSeek(cursorAt)
+	k.emu.Buf.WrappingSeek(int(cursorAt))
 	// 👇 pre-analyze AID key
 	aid := types.AIDOf(key.Key, key.ALT, key.CTRL, key.SHIFT)
 
@@ -149,8 +149,8 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 // 🟦 Functions specific to particular keys
 
 func (k *Keyboard) backspace() (uint, bool) {
-	// 👇 validate data entry into previous cell
-	cell, addr := k.emu.Buf.PrevGet()
+	cell, _ := k.emu.Buf.Get()
+	// 👇 validate data entry into current cell
 	prot := cell.IsFldStart() || cell.Attrs.Protected
 	if prot {
 		return 0, false
@@ -164,6 +164,12 @@ func (k *Keyboard) backspace() (uint, bool) {
 		return 0, false
 	}
 	sf.Attrs.MDT = true
+	// 👇 if the previous cell is a field start, don't advance
+	next, addr := k.emu.Buf.PrevGet()
+	if next.IsFldStart() {
+		return k.emu.Buf.Addr(), false
+	}
+	// 👇 advance to previous cell
 	return k.emu.Buf.MustSeek(addr), true
 }
 
@@ -176,7 +182,7 @@ func (k *Keyboard) focus(focussed bool) {
 }
 
 func (k *Keyboard) keyin(char byte) (uint, bool) {
-	cell, addr := k.emu.Buf.Get()
+	cell, _ := k.emu.Buf.Get()
 	// 👇 validate data entry into current cell
 	numlock := cell.Attrs.Numeric && !strings.Contains("-0123456789.", string(char))
 	prot := cell.IsFldStart() || cell.Attrs.Protected
@@ -192,12 +198,17 @@ func (k *Keyboard) keyin(char byte) (uint, bool) {
 		return 0, false
 	}
 	sf.Attrs.MDT = true
-	// 👇 if we typed into a field start with autoskip, tab to next
-	next, _ := k.emu.Buf.GetNext()
-	if next.IsFldStart() && next.Attrs.Autoskip {
-		return k.tab(+1)
+	// 👇 if the next cell is a field start with autoskip, tab to next Fld
+	next, addr := k.emu.Buf.GetNext()
+	if next.IsFldStart() {
+		if next.Attrs.Autoskip {
+			return k.tab(+1)
+		}
+		// 👇 don't advance if not autoskip
+		return k.emu.Buf.Addr(), false
 	}
-	return k.emu.Buf.WrappingSeek(addr + 1), true
+	// 👇 advance to next cell
+	return k.emu.Buf.MustSeek(addr), true
 }
 
 func (k *Keyboard) tab(dir int) (uint, bool) {
@@ -216,7 +227,7 @@ func (k *Keyboard) tab(dir int) (uint, bool) {
 	for addr != stop {
 		cell, addr = advance(dir)
 		if cell.IsFldStart() && !cell.Attrs.Protected {
-			return k.emu.Buf.WrappingSeek(addr + 1), true
+			return k.emu.Buf.WrappingSeek(int(addr) + 1), true
 		}
 		k.emu.Buf.MustSeek(addr)
 	}
