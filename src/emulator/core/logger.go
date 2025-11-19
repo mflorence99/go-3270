@@ -29,6 +29,7 @@ type Logger struct {
 
 func NewLogger(emu *Emulator) *Logger {
 	l := new(Logger)
+	l.emu = emu
 	// 👇 subscriptions
 	l.emu.Bus.SubClose(l.close)
 	l.emu.Bus.SubInit(l.init)

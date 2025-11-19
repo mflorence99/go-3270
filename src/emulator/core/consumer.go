@@ -83,8 +83,7 @@ func (c *Consumer) eau() {
 }
 
 func (c *Consumer) ew(out *Outbound) {
-	_, ok := c.wcc(out)
-	if ok {
+	if c.wcc(out) {
 		c.emu.Bus.PubReset()
 		c.orders(out)
 		c.emu.Bus.PubRender()
@@ -92,8 +91,7 @@ func (c *Consumer) ew(out *Outbound) {
 }
 
 func (c *Consumer) ewa(out *Outbound) {
-	_, ok := c.wcc(out)
-	if ok {
+	if c.wcc(out) {
 		c.emu.Bus.PubReset()
 		c.orders(out)
 		c.emu.Bus.PubRender()
@@ -118,7 +116,7 @@ func (c *Consumer) w(out *Outbound) {
 	c.emu.Bus.PubRender()
 }
 
-func (c *Consumer) wcc(out *Outbound) (types.WCC, bool) {
+func (c *Consumer) wcc(out *Outbound) bool {
 	char, ok := out.Next()
 	if ok {
 		wcc := types.NewWCC(char)
@@ -127,12 +125,15 @@ func (c *Consumer) wcc(out *Outbound) (types.WCC, bool) {
 			println("🔥 WCC Reset not implemented")
 		}
 		if wcc.ResetMDT {
-			c.emu.Flds.SetMDTs(false)
+			for _, fld := range c.emu.Flds.Flds {
+				sf := fld.Cells[0]
+				sf.Attrs.MDT = false
+			}
 		}
 		c.emu.Bus.PubWCC(wcc)
-		return wcc, true
+		return true
 	} else {
-		return types.WCC{}, false
+		return false
 	}
 }
 
@@ -208,25 +209,22 @@ func (c *Consumer) rp(sfld SFld) {
 // 🟦 Orders
 
 func (c *Consumer) orders(out *Outbound) {
+	var inFld bool
 	var fldAddr uint
 	fldAttrs := types.DEFAULT_ATTRS
+
 	// 👇 look at each byte to see if it is an order
-outer:
 	for out.HasNext() {
 		char := out.MustNext()
 		order := types.Order(char)
 		// 👇 dispatch on order
 		switch order {
 
-		// 🔥 per spec invalid EUA terminates write operation
 		case types.EUA:
-			ok := c.eua(out)
-			if !ok {
-				break outer
-			}
+			c.eua(out)
 
 		case types.GE:
-			c.ge(out, fldAddr, fldAttrs)
+			c.ge(out, fldAddr, fldAttrs, inFld)
 
 		case types.IC:
 			c.ic()
@@ -237,12 +235,8 @@ outer:
 		case types.PT:
 			c.pt()
 
-		// 🔥 per spec invalid RA terminates write operation
 		case types.RA:
-			ok := c.ra(out, fldAddr, fldAttrs)
-			if !ok {
-				break outer
-			}
+			c.ra(out, fldAddr, fldAttrs, inFld)
 
 		case types.SA:
 			fldAttrs = c.sa(out, fldAttrs)
@@ -251,39 +245,42 @@ outer:
 			c.sba(out)
 
 		case types.SF:
+			inFld = true
 			fldAddr, fldAttrs = c.sf(out)
 
 		case types.SFE:
+			inFld = true
 			fldAddr, fldAttrs = c.sfe(out)
 
 		// 👇 if it isn't an order, it's data
 		default:
-			c.char(char, fldAddr, fldAttrs)
+			c.char(char, fldAddr, fldAttrs, inFld)
 		}
 	}
 }
 
-func (c *Consumer) char(char byte, fldAddr uint, fldAttrs *types.Attrs) {
-	cell := &buffer.Cell{
-		Attrs:   fldAttrs,
-		Char:    char,
-		FldAddr: fldAddr,
+func (c *Consumer) char(char byte, fldAddr uint, fldAttrs *types.Attrs, inFld bool) {
+	cell := NewCell(c.emu)
+	cell.Attrs = fldAttrs
+	cell.Char = char
+	if inFld {
+		cell.SetFldAddr(fldAddr)
 	}
 	c.emu.Buf.SetAndNext(cell)
 }
 
-func (c *Consumer) eua(out *Outbound) bool {
+func (c *Consumer) eua(out *Outbound) {
 	raw := out.MustNextSlice(2)
 	stop := conv.Bytes2Addr(raw)
-	return c.emu.Cells.EUA(c.emu.Buf.Addr(), stop)
+	c.emu.Cells.EUA(c.emu.Buf.Addr(), stop)
 }
 
-func (c *Consumer) ge(out *Outbound, fldAddr uint, fldAttrs *types.Attrs) {
+func (c *Consumer) ge(out *Outbound, fldAddr uint, fldAttrs *types.Attrs, inFld bool) {
 	char := out.MustNext()
 	// TODO 🔥 GE not properly handled -- what alt character set??
 	// also needs to be present in inbound stream (RB, RM/A)
 	fldAttrs.LCID = 0xf1
-	c.char(char, fldAddr, fldAttrs)
+	c.char(char, fldAddr, fldAttrs, inFld)
 }
 
 func (c *Consumer) ic() {
@@ -308,7 +305,7 @@ func (c *Consumer) pt() {
 	c.emu.Bus.PubPanic("🔥 PT not implemented")
 }
 
-func (c *Consumer) ra(out *Outbound, fldAddr uint, fldAttrs *types.Attrs) bool {
+func (c *Consumer) ra(out *Outbound, fldAddr uint, fldAttrs *types.Attrs, inFld bool) {
 	raw := out.MustNextSlice(2)
 	stop := conv.Bytes2Addr(raw)
 	char := out.MustNext()
@@ -318,12 +315,13 @@ func (c *Consumer) ra(out *Outbound, fldAddr uint, fldAttrs *types.Attrs) bool {
 		fldAttrs.LCID = 0xf1
 		char = out.MustNext()
 	}
-	cell := &buffer.Cell{
-		Attrs:   fldAttrs,
-		Char:    char,
-		FldAddr: fldAddr,
+	cell := NewCell(c.emu)
+	cell.Attrs = fldAttrs
+	cell.Char = char
+	if inFld {
+		cell.SetFldAddr(fldAddr)
 	}
-	return c.emu.Cells.RA(cell, c.emu.Buf.Addr(), stop)
+	c.emu.Cells.RA(cell, c.emu.Buf.Addr(), stop)
 }
 
 func (c *Consumer) sa(out *Outbound, fldAttrs *types.Attrs) *types.Attrs {
@@ -369,12 +367,9 @@ func (c *Consumer) sfImpl(fldAddr uint, fldAttrs *types.Attrs) {
 		c.emu.Bus.PubReset()
 	}
 	// 👇 now we can insert the Sf
-	sf := &buffer.Cell{
-		Attrs:    fldAttrs,
-		Char:     byte(types.SF),
-		FldAddr:  fldAddr,
-		FldStart: true,
-		FldEnd:   false, // 👈 completed by flds.Build()
-	}
+	sf := NewCell(c.emu)
+	sf.Attrs = fldAttrs
+	sf.Char = byte(types.SF)
+	sf.SetFldAddr(fldAddr)
 	c.emu.Buf.SetAndNext(sf)
 }

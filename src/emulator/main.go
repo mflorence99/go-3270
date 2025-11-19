@@ -7,6 +7,6 @@ import (
 
 func main() {
 	println("🐞 WASM initialized")
-	js.Global().Set("NewGo3270", js.FuncOf(mediator.NewMediator))
+	js.Global().Set("NewGo3270", js.FuncOf(mediator.NewGo3270))
 	select {}
 }

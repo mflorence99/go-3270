@@ -69,7 +69,6 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 		k.emu.Bus.PubRM(aid)
 
 	case key.Code == "ArrowDown":
-		cursorTo = cursorAt + k.emu.Cfg.Cols
 		if cursorAt >= cursorMax-k.emu.Cfg.Cols {
 			cursorTo = cursorAt % k.emu.Cfg.Cols
 		} else {
@@ -84,7 +83,6 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 		}
 
 	case key.Code == "ArrowRight":
-		cursorTo = cursorAt + 1
 		if cursorAt == cursorMax-1 {
 			cursorTo = 0
 		} else {

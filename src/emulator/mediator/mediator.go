@@ -55,7 +55,7 @@ type Mediator struct {
 // 👇 for testing
 // args[8] testpage
 
-func NewMediator(this js.Value, args []js.Value) any {
+func NewGo3270(this js.Value, args []js.Value) any {
 	m := new(Mediator)
 	m.bus = core.NewBus()
 	// 🔥 must subscribe BEFORE we create the emulator
