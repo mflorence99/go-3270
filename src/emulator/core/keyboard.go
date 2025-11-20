@@ -132,7 +132,7 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 		cursorTo, ok = k.tab(utils.Ternary(key.SHIFT, -1, +1), cursorAt)
 
 	case len(key.Key) == 1:
-		cursorTo, ok = k.keyin(key.Key[0], cursorAt)
+		cursorTo, ok = k.keyin(key.Key[0], cursorAt, deltas, insertMode)
 
 	}
 
@@ -174,14 +174,14 @@ func (k *Keyboard) backspace(dfltAddr uint) (uint, bool) {
 	if prot {
 		return dfltAddr, false
 	}
-	// 👇 update cell
-	cell.Char = 0x40
 	// 👇 set the MDT flag at the field level
 	sf, ok := cell.GetFldStart()
 	if !ok {
 		return dfltAddr, false
 	}
 	sf.Attrs.MDT = true
+	// 👇 update cell
+	cell.Char = 0x40
 	// 👇 if the previous cell is a field start, don't advance
 	next, addr := k.emu.Buf.PrevGet()
 	if next.IsFldStart() {
@@ -201,8 +201,9 @@ func (k *Keyboard) delete(dfltAddr uint, deltas *utils.Stack[uint]) (uint, bool)
 		return dfltAddr, false
 	}
 	// 👇 shift all subsequent characters from the right
-	var ix int
-	for ix = slices.Index(fld.Cells, cell); ix < len(fld.Cells)-1; ix++ {
+	ix := 0
+	iy := slices.Index(fld.Cells, cell)
+	for ix = iy; ix < len(fld.Cells)-1; ix++ {
 		fld.Cells[ix].Char = fld.Cells[ix+1].Char
 	}
 	// 👇 fill the remainder with nulls
@@ -214,7 +215,7 @@ func (k *Keyboard) delete(dfltAddr uint, deltas *utils.Stack[uint]) (uint, bool)
 	sf.Attrs.MDT = true
 	// 👇 indicate ALL the cells that changed
 	addr, _ := sf.GetFldAddr()
-	for ix = slices.Index(fld.Cells, cell); ix < len(fld.Cells); ix++ {
+	for ix = iy; ix < len(fld.Cells); ix++ {
 		deltas.Push(k.emu.Buf.WrapAddr(int(addr) + ix))
 	}
 	// 🔥 the cursor doesn't move in this operation
@@ -259,22 +260,59 @@ func (k *Keyboard) home(dfltAddr uint) (uint, bool) {
 
 // 🟦 KEYSTROKE
 
-func (k *Keyboard) keyin(char byte, dfltAddr uint) (uint, bool) {
+func (k *Keyboard) keyin(char byte, dfltAddr uint, deltas *utils.Stack[uint], insertMode bool) (uint, bool) {
 	cell, _ := k.emu.Buf.Get()
-	// 👇 validate data entry into current cell
+	if k.keyinvalid(cell, char) || !k.keyinMDT(cell) {
+		return dfltAddr, false
+	}
+	if insertMode {
+		return k.keyinsert(cell, char, dfltAddr, deltas)
+	}
+	return k.keyinover(cell, char, dfltAddr)
+}
+
+func (k *Keyboard) keyinvalid(cell *Cell, char byte) bool {
 	numlock := cell.Attrs.Numeric && !strings.Contains("-0123456789.", string(char))
 	prot := cell.IsFldStart() || cell.Attrs.Protected
 	if numlock || prot {
-		return dfltAddr, false
+		return true
 	}
-	// 👇 update cell and advance to next
-	cell.Char = conv.A2E(char)
-	// 👇 set the MDT flag at the field level
+	return false
+}
+
+func (k *Keyboard) keyinMDT(cell *Cell) bool {
 	sf, ok := cell.GetFldStart()
 	if !ok {
-		return dfltAddr, false
+		return false
 	}
 	sf.Attrs.MDT = true
+	return true
+}
+
+func (k *Keyboard) keyinsert(cell *Cell, char byte, dfltAddr uint, deltas *utils.Stack[uint]) (uint, bool) {
+	// 👇 can't insert if not in a field or if the field is full
+	fld, ok := cell.FindFld()
+	if !ok || fld.Cells[len(fld.Cells)-1].Char > 0x40 {
+		return dfltAddr, false
+	}
+	// 👇 shift all subsequent characters to the right
+	ix := 0
+	iy := slices.Index(fld.Cells, cell)
+	for ix = len(fld.Cells) - 1; ix > iy; ix-- {
+		fld.Cells[ix].Char = fld.Cells[ix-1].Char
+	}
+	cell.Char = conv.A2E(char)
+	// 👇 indicate ALL the cells that changed
+	addr, _ := cell.GetFldAddr()
+	for ix = iy; ix < len(fld.Cells); ix++ {
+		deltas.Push(k.emu.Buf.WrapAddr(int(addr) + ix))
+	}
+	// 🔥 advance to next cell
+	return k.emu.Buf.WrappingSeek(int(addr) + iy + 1), true
+}
+
+func (k *Keyboard) keyinover(cell *Cell, char byte, dfltAddr uint) (uint, bool) {
+	cell.Char = conv.A2E(char)
 	// 👇 if the next cell is a field start with autoskip, tab to next Fld
 	next, addr := k.emu.Buf.GetNext()
 	if next.IsFldStart() {
