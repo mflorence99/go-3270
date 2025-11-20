@@ -6,6 +6,7 @@ type Status struct {
 	Alarm     bool
 	CursorAt  uint
 	Error     bool
+	Insert    bool
 	Locked    bool
 	Message   string
 	Numeric   bool
@@ -17,6 +18,7 @@ type Patch struct {
 	Alarm     *bool
 	CursorAt  *uint
 	Error     *bool
+	Insert    *bool
 	Locked    *bool
 	Message   *string
 	Numeric   *bool

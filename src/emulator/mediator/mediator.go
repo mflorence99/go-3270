@@ -212,6 +212,7 @@ func (m *Mediator) status(stat *types.Status) {
 		"alarm":     stat.Alarm,
 		"cursorAt":  stat.CursorAt,
 		"error":     stat.Error,
+		"insert":    stat.Insert,
 		"locked":    stat.Locked,
 		"message":   stat.Message,
 		"numeric":   stat.Numeric,

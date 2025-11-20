@@ -48,6 +48,8 @@ func (k *Keyboard) focus(focussed bool) {
 // 🟦 Dispatch action per key code
 
 func (k *Keyboard) keystroke(key types.Keystroke) {
+	// 👇 see if we are in insert mode
+	insertMode := k.emu.State.Status.Insert
 	// 👇 prepare to move the cursor -- many keystrokes do this
 	cursorAt := k.emu.State.Status.CursorAt
 	cursorTo := cursorAt
@@ -120,6 +122,11 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 
 	case key.Code == "Home":
 		cursorTo, ok = k.home(cursorAt)
+
+	case key.Code == "Insert":
+		k.emu.State.Patch(types.Patch{
+			Insert: utils.BoolPtr(!insertMode),
+		})
 
 	case key.Code == "Tab":
 		cursorTo, ok = k.tab(utils.Ternary(key.SHIFT, -1, +1), cursorAt)

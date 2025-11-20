@@ -36,6 +36,7 @@ func (s *State) reset() {
 		Alarm:     utils.BoolPtr(false),
 		CursorAt:  utils.UintPtr(0),
 		Error:     utils.BoolPtr(false),
+		Insert:    utils.BoolPtr(false),
 		Locked:    utils.BoolPtr(false),
 		Message:   utils.StringPtr(""),
 		Numeric:   utils.BoolPtr(false),
@@ -79,6 +80,9 @@ func (s *State) Patch(p types.Patch) {
 	}
 	if p.Error != nil {
 		s.Status.Error = *p.Error
+	}
+	if p.Insert != nil {
+		s.Status.Insert = *p.Insert
 	}
 	if p.Locked != nil {
 		s.Status.Locked = *p.Locked

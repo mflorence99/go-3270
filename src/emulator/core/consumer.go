@@ -284,11 +284,8 @@ func (c *Consumer) ge(out *Outbound, fldAddr uint, fldAttrs *types.Attrs, inFld 
 }
 
 func (c *Consumer) ic() {
-	cell, _ := c.emu.Buf.Get()
 	c.emu.State.Patch(types.Patch{
-		CursorAt:  utils.UintPtr(c.emu.Buf.Addr()),
-		Numeric:   utils.BoolPtr(cell.Attrs.Numeric),
-		Protected: utils.BoolPtr(cell.Attrs.Protected || cell.IsFldStart()),
+		CursorAt: utils.UintPtr(c.emu.Buf.Addr()),
 	})
 }
 

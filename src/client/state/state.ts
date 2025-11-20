@@ -127,6 +127,7 @@ export type Status = {
   alarm: boolean;
   cursorAt: number;
   error: boolean;
+  insert: boolean;
   locked: boolean;
   message: string;
   numeric: boolean;
@@ -138,6 +139,7 @@ export const defaultStatus: Status = {
   alarm: false,
   cursorAt: 0,
   error: false,
+  insert: false,
   locked: false,
   message: '',
   numeric: false,

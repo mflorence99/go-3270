@@ -3,6 +3,7 @@ package core
 import (
 	"emulator/conv"
 	"emulator/types"
+	"emulator/utils"
 
 	"cmp"
 	"slices"
@@ -44,6 +45,14 @@ func (f *Flds) reset() {
 func (f *Flds) build() {
 	flds := f.buildIndex()
 	f.Flds = f.buildCells(flds)
+	// 👇 set status depening on cell attrs
+	cursorAt := f.emu.State.Status.CursorAt
+	cell := f.emu.Buf.MustPeek(cursorAt)
+	f.emu.State.Patch(types.Patch{
+		Insert:    utils.BoolPtr(false),
+		Numeric:   utils.BoolPtr(cell.Attrs.Numeric),
+		Protected: utils.BoolPtr(cell.Attrs.Protected || cell.IsFldStart()),
+	})
 }
 
 // 👇 just build the start point of each field

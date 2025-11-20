@@ -185,6 +185,13 @@ export class Emulator extends SignalWatcher(LitElement) {
             <article class="right">
               <p
                 style=${styleMap({
+                  visibility: `${this.state.model.get().status.insert ? 'visible' : 'hidden'}`
+                })}>
+                INS
+              </p>
+
+              <p
+                style=${styleMap({
                   visibility: `${this.state.model.get().status.numeric ? 'visible' : 'hidden'}`
                 })}>
                 NUM
