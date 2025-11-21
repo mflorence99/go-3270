@@ -33,7 +33,7 @@ func NewImplicitPartition(cols, rows uint) ImplicitPartition {
 		SFID:   types.QUERY_REPLY,
 		QCode:  types.IMPLICIT_PARTITION,
 		Flags1: []byte{0x00, 0x00},
-		L:      0x0B,
+		L:      0x0b,
 		SDPID:  0x01,
 		Flags2: 0x00,
 		WD:     uint16(cols),

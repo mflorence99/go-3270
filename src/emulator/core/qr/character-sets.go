@@ -31,7 +31,7 @@ func NewCharacterSets() CharacterSets {
 		Flag2: 0b00000000,
 		// TODO 🔥 just copied these numbers from x3270
 		SDW: 0x09,
-		SDH: 0x0C,
+		SDH: 0x0c,
 	}
 }
 

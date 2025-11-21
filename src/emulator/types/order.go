@@ -10,12 +10,12 @@ const (
 	EUA Order = 0x12
 	GE  Order = 0x08
 	IC  Order = 0x13
-	MF  Order = 0x2C
+	MF  Order = 0x2c
 	PT  Order = 0x05
-	RA  Order = 0x3C
+	RA  Order = 0x3c
 	SA  Order = 0x28
 	SBA Order = 0x11
-	SF  Order = 0x1D
+	SF  Order = 0x1d
 	SFE Order = 0x29
 )
 
@@ -25,11 +25,11 @@ var orders = map[Order]string{
 	0x11: "SBA",
 	0x12: "EUA",
 	0x13: "IC",
-	0x1D: "SF",
+	0x1d: "SF",
 	0x28: "SA",
 	0x29: "SFE",
-	0x2C: "MF",
-	0x3C: "RA",
+	0x2c: "MF",
+	0x3c: "RA",
 }
 
 // 🟦 Stringer implementation

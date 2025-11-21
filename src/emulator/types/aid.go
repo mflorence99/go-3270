@@ -15,11 +15,11 @@ type AID byte
 
 const (
 	INBOUND AID = 0x88
-	CLEAR   AID = 0x6D
-	ENTER   AID = 0x7D
-	PA1     AID = 0x6C
-	PA2     AID = 0x6E
-	PA3     AID = 0x6B
+	CLEAR   AID = 0x6d
+	ENTER   AID = 0x7d
+	PA1     AID = 0x6c
+	PA2     AID = 0x6e
+	PA3     AID = 0x6b
 	PF1     AID = 0xf1
 	PF2     AID = 0xf2
 	PF3     AID = 0xf3
@@ -29,9 +29,9 @@ const (
 	PF7     AID = 0xf7
 	PF8     AID = 0xf8
 	PF9     AID = 0xf9
-	PF10    AID = 0x7A
-	PF11    AID = 0x7B
-	PF12    AID = 0x7C
+	PF10    AID = 0x7a
+	PF11    AID = 0x7b
+	PF12    AID = 0x7c
 	PF13    AID = 0xc1
 	PF14    AID = 0xc2
 	PF15    AID = 0xc3
@@ -41,18 +41,18 @@ const (
 	PF19    AID = 0xc7
 	PF20    AID = 0xc8
 	PF21    AID = 0xc9
-	PF22    AID = 0x4A
-	PF23    AID = 0x4B
-	PF24    AID = 0x4C
+	PF22    AID = 0x4a
+	PF23    AID = 0x4b
+	PF24    AID = 0x4c
 )
 
 var aids = map[AID]string{
 	0x88: "INBOUND",
-	0x6D: "CLEAR",
-	0x7D: "ENTER",
-	0x6C: "PA1",
-	0x6E: "PA2",
-	0x6B: "PA3",
+	0x6d: "CLEAR",
+	0x7d: "ENTER",
+	0x6c: "PA1",
+	0x6e: "PA2",
+	0x6b: "PA3",
 	0xf1: "PF1",
 	0xf2: "PF2",
 	0xf3: "PF3",
@@ -62,9 +62,9 @@ var aids = map[AID]string{
 	0xf7: "PF7",
 	0xf8: "PF8",
 	0xf9: "PF9",
-	0x7A: "PF10",
-	0x7B: "PF11",
-	0x7C: "PF12",
+	0x7a: "PF10",
+	0x7b: "PF11",
+	0x7c: "PF12",
 	0xc1: "PF13",
 	0xc2: "PF14",
 	0xc3: "PF15",
@@ -74,9 +74,9 @@ var aids = map[AID]string{
 	0xc7: "PF19",
 	0xc8: "PF20",
 	0xc9: "PF21",
-	0x4A: "PF22",
-	0x4B: "PF23",
-	0x4C: "PF24",
+	0x4a: "PF22",
+	0x4b: "PF23",
+	0x4c: "PF24",
 }
 
 var aidsLookup = make(map[string]AID)
