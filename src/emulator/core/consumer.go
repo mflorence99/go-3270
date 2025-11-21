@@ -160,7 +160,7 @@ func (c *Consumer) wsf(out *Outbound) {
 
 func (c *Consumer) rp(sfld SFld) {
 	pid := sfld.Info[0]
-	if pid == 0xFF {
+	if pid == 0xfF {
 		cmd := sfld.Info[1]
 
 		switch types.Command(cmd) {

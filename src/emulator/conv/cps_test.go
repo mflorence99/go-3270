@@ -9,13 +9,13 @@ import (
 func TestE2RuneCP037(t *testing.T) {
 	assert.Equal(t, E2Rune(0x00, 0x21), rune('\u0020'), "everything below 0x40 is blank")
 	assert.Equal(t, E2Rune(0x00, 0x40), rune('\u0020'), "0x40 is blank")
-	assert.Equal(t, E2Rune(0x00, 0xF0), rune('\u0030'), "0xF0 is 0")
+	assert.Equal(t, E2Rune(0x00, 0xf0), rune('\u0030'), "0xf0 is 0")
 }
 
 func TestE2RuneCP310(t *testing.T) {
-	assert.Equal(t, E2Rune(0xF1, 0x21), rune('\u0020'), "everything below 0x40 is blank")
-	assert.Equal(t, E2Rune(0xF1, 0x40), rune('\u0020'), "0x40 is blank")
-	assert.Equal(t, E2Rune(0xF1, 0x80), rune(0x00223c), "0x80 is ~")
+	assert.Equal(t, E2Rune(0xf1, 0x21), rune('\u0020'), "everything below 0x40 is blank")
+	assert.Equal(t, E2Rune(0xf1, 0x40), rune('\u0020'), "0x40 is blank")
+	assert.Equal(t, E2Rune(0xf1, 0x80), rune(0x00223c), "0x80 is ~")
 }
 
 func TestE2RunesCP037(t *testing.T) {

@@ -7,19 +7,19 @@ type Typecode byte
 // 🟦 Lookup tables
 
 const (
-	BASIC     Typecode = 0xC0
+	BASIC     Typecode = 0xc0
 	HIGHLIGHT Typecode = 0x41
 	COLOR     Typecode = 0x42
 	CHARSET   Typecode = 0x43
-	OUTLINE   Typecode = 0xC2
+	OUTLINE   Typecode = 0xc2
 )
 
 var typecodes = map[Typecode]string{
-	0xC0: "BASIC",
+	0xc0: "BASIC",
 	0x41: "HIGHLIGHT",
 	0x42: "COLOR",
 	0x43: "CHARSET",
-	0xC2: "OUTLINE",
+	0xc2: "OUTLINE",
 }
 
 // 🟦 Stringer implementation

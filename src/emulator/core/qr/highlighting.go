@@ -24,10 +24,10 @@ type Highlighting struct {
 func NewHighlighting() Highlighting {
 	havs := make([][]byte, 5)
 	havs[0] = []byte{0x00, byte(types.NO_HILITE)}
-	havs[1] = []byte{0xF1, byte(types.BLINK)}
-	havs[2] = []byte{0xF2, byte(types.REVERSE)}
-	havs[3] = []byte{0xF4, byte(types.UNDERSCORE)}
-	havs[4] = []byte{0xF8, byte(types.INTENSIFY)}
+	havs[1] = []byte{0xf1, byte(types.BLINK)}
+	havs[2] = []byte{0xf2, byte(types.REVERSE)}
+	havs[3] = []byte{0xf4, byte(types.UNDERSCORE)}
+	havs[4] = []byte{0xf8, byte(types.INTENSIFY)}
 	return Highlighting{
 		SFID:  types.QUERY_REPLY,
 		QCode: types.HIGHLIGHTING,

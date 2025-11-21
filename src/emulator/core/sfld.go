@@ -25,9 +25,9 @@ func SFldsFromStream(out *Outbound) []SFld {
 		id, ok := out.Next()
 		// 👇 there must be an ID
 		if ok {
-			// TODO 🔥 we can't account for this extra 0xFF!
+			// TODO 🔥 we can't account for this extra 0xfF!
 			xtra := out.MustPeek()
-			if xtra == 0xFF {
+			if xtra == 0xfF {
 				out.MustSkip(1)
 			}
 			var info []byte

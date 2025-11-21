@@ -11,7 +11,7 @@ import (
 
 var CPs = map[types.LCID][]rune{
 	0x00: cps.CP037,
-	0xF1: cps.CP310,
+	0xf1: cps.CP310,
 }
 
 // 🟦 Public functions

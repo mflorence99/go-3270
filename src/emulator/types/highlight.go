@@ -8,20 +8,20 @@ type Highlight byte
 
 const (
 	DFLT_HILITE Highlight = 0x00
-	NO_HILITE   Highlight = 0xF0
-	BLINK       Highlight = 0xF1
-	REVERSE     Highlight = 0xF2
-	UNDERSCORE  Highlight = 0xF4
-	INTENSIFY   Highlight = 0xF8
+	NO_HILITE   Highlight = 0xf0
+	BLINK       Highlight = 0xf1
+	REVERSE     Highlight = 0xf2
+	UNDERSCORE  Highlight = 0xf4
+	INTENSIFY   Highlight = 0xf8
 )
 
 var highlights = map[Highlight]string{
 	0x00: "DFLT_HILITE",
-	0xF0: "NO_HILITE",
-	0xF1: "BLINK",
-	0xF2: "REVERSE",
-	0xF4: "UNDERSCORE",
-	0xF8: "INTENSIFY",
+	0xf0: "NO_HILITE",
+	0xf1: "BLINK",
+	0xf2: "REVERSE",
+	0xf4: "UNDERSCORE",
+	0xf8: "INTENSIFY",
 }
 
 // 🟦 Stringer implementation

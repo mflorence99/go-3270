@@ -14,9 +14,9 @@ const (
 	FIELD_OUTLINING         QCode = 0x8C
 	FIELD_VALIDATION        QCode = 0x8A
 	HIGHLIGHTING            QCode = 0x87
-	IMPLICIT_PARTITION      QCode = 0xA6
+	IMPLICIT_PARTITION      QCode = 0xa6
 	REPLY_MODES             QCode = 0x88
-	RPQ_NAMES               QCode = 0xA1
+	RPQ_NAMES               QCode = 0xa1
 	SUMMARY                 QCode = 0x80
 	USABLE_AREA             QCode = 0x81
 )
@@ -32,8 +32,8 @@ var qcodes = map[QCode]string{
 	0x8A: "FIELD_VALIDATION",
 	0x8C: "FIELD_OUTLINING",
 	0x95: "DDM",
-	0xA1: "RPQ_NAMES",
-	0xA6: "IMPLICIT_PARTITION",
+	0xa1: "RPQ_NAMES",
+	0xa6: "IMPLICIT_PARTITION",
 }
 
 // 🟦 Stringer implementation

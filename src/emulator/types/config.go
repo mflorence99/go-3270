@@ -44,15 +44,15 @@ func (c Config) ColorOf(a *Attrs) string {
 	} else if a.Color == 0x00 {
 		switch {
 		case !a.Protected && (a.Highlight || a.Hidden):
-			ix = 0xF2
+			ix = 0xf2
 		case !a.Protected && !a.Highlight:
-			ix = 0xF4
+			ix = 0xf4
 		case a.Protected && (a.Highlight || a.Hidden):
-			ix = 0xF7
+			ix = 0xf7
 		case a.Protected && !a.Highlight:
-			ix = 0xF1
+			ix = 0xf1
 		default:
-			ix = 0xF4
+			ix = 0xf4
 		}
 	} else {
 		ix = a.Color

@@ -9,7 +9,7 @@ import (
 func TestE2A(t *testing.T) {
 	assert.Equal(t, E2A(0x21), byte(' '), "everything below 0x40 is ASCII blank")
 	assert.Equal(t, E2A(0x40), byte(' '), "EBCDIC 0x40 is ASCII blank")
-	assert.Equal(t, E2A(0xF0), byte('0'), "EBCDIC 0xF0 is ASCII 0")
+	assert.Equal(t, E2A(0xf0), byte('0'), "EBCDIC 0xf0 is ASCII 0")
 }
 
 func TestE2As(t *testing.T) {
