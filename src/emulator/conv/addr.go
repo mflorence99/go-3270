@@ -4,7 +4,7 @@ package conv
 
 // 🟦 Lookup tables
 
-var Six2E = []byte{
+var six2E = []byte{
 	0x40, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7,
 	0xC8, 0xC9, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F,
 	0x50, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7,
@@ -19,8 +19,8 @@ var Six2E = []byte{
 
 func Addr2Bytes(addr uint) []byte {
 	chars := make([]byte, 2)
-	chars[0] = Six2E[(addr>>6)&0b00111111]
-	chars[1] = Six2E[addr&0b00111111]
+	chars[0] = six2E[(addr>>6)&0b00111111]
+	chars[1] = six2E[addr&0b00111111]
 	return chars
 }
 
