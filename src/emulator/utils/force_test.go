@@ -7,9 +7,9 @@ import (
 )
 
 func TestForceAny2Bytes(t *testing.T) {
-	crud := []any{'a', 64, 6.6}
+	crud := []any{'a', 64, 6.6, "s"}
 	bytes := ForceAny2Bytes(crud)
-	assert.Equal(t, []byte{0x61, 0x40, 0x06}, bytes, "slice reduced to bytes correctly")
+	assert.Equal(t, []byte{0x61, 0x40, 0x06, 0x00}, bytes, "slice reduced to bytes correctly")
 }
 
 func TestForceBytes2Any(t *testing.T) {

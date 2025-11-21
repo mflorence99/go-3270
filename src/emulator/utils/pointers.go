@@ -10,6 +10,6 @@ func StringPtr(s string) *string {
 	return &s
 }
 
-func UintPtr(i uint) *uint {
-	return &i
+func UintPtr(u uint) *uint {
+	return &u
 }

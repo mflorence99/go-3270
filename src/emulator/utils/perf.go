@@ -10,5 +10,5 @@ import (
 func ElapsedTime(start time.Time) {
 	elapsed := time.Since(start)
 	pkg, nm := GetFuncName(nil)
-	println(fmt.Sprintf("⏱️ %s ⏱️ func %s() in %s", elapsed, nm, pkg))
+	fmt.Printf("⏱️ %s ⏱️ func %s() in %s\n", elapsed, nm, pkg)
 }
