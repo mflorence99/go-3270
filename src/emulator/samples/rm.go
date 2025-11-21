@@ -9,14 +9,14 @@ import (
 
 var RM = []any{
 	types.EW,
-	types.WCC{Reset: true}.Byte(),
+	types.WCC{Reset: true}.Bits(),
 
 	types.SBA,
 	conv.Addr2Bytes(0),
 	types.SFE,
 	0x02,
 	types.BASIC,
-	(&types.Attrs{Protected: true}).Byte(),
+	(&types.Attrs{Protected: true}).Bits(),
 	types.HIGHLIGHT,
 	types.INTENSIFY,
 	"Please enter something:",
@@ -44,7 +44,7 @@ var RM = []any{
 	types.SFE,
 	0x02,
 	types.BASIC,
-	(&types.Attrs{Protected: false}).Byte(),
+	(&types.Attrs{Protected: false}).Bits(),
 	types.HIGHLIGHT,
 	types.UNDERSCORE,
 	"                  ",
@@ -70,7 +70,7 @@ var RM = []any{
 	types.SBA,
 	conv.Addr2Bytes(40),
 	types.SF,
-	(&types.Attrs{Autoskip: true, Numeric: true, Protected: true}).Byte(),
+	(&types.Attrs{Autoskip: true, Numeric: true, Protected: true}).Bits(),
 	"",
 
 	types.SBA,

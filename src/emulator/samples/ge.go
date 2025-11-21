@@ -9,7 +9,7 @@ import (
 
 var GE = []any{
 	types.EW,
-	types.WCC{Alarm: true}.Byte(),
+	types.WCC{Alarm: true}.Bits(),
 	types.SBA,
 	conv.Addr2Bytes(0),
 	"123-->GE",

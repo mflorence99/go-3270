@@ -27,17 +27,17 @@ type Config struct {
 
 // 🟦 Public functions
 
-func (c Config) Addr2RC(addr uint) (uint, uint) {
+func (c *Config) Addr2RC(addr uint) (uint, uint) {
 	row := uint(addr/c.Cols) + 1
 	col := (addr % c.Cols) + 1
 	return row, col
 }
 
-func (c Config) RC2Addr(row, col uint) uint {
-	return (row-1)*c.Cols + c.Cols - 1
+func (c *Config) RC2Addr(row, col uint) uint {
+	return (row-1)*c.Cols + col - 1
 }
 
-func (c Config) ColorOf(a *Attrs) string {
+func (c *Config) ColorOf(a *Attrs) string {
 	var ix Color
 	if c.Monochrome {
 		ix = 0xf4

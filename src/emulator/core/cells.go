@@ -80,7 +80,7 @@ func (c *Cells) RB() []byte {
 		case cell.IsFldStart():
 			if mode == types.FIELD_MODE {
 				chars = append(chars, byte(types.SF))
-				chars = append(chars, cell.Attrs.Byte())
+				chars = append(chars, cell.Attrs.Bits())
 			} else {
 				chars = append(chars, byte(types.SFE))
 				fldAttrs = cell.Attrs

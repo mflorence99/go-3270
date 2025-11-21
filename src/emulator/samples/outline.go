@@ -9,14 +9,14 @@ import (
 
 var OUTLINE = []any{
 	types.EW,
-	types.WCC{Reset: true}.Byte(),
+	types.WCC{Reset: true}.Bits(),
 
 	types.SBA,
 	conv.Addr2Bytes(0),
 	types.SFE,
 	0x03,
 	types.BASIC,
-	(&types.Attrs{Protected: true}).Byte(),
+	(&types.Attrs{Protected: true}).Bits(),
 	types.HIGHLIGHT,
 	types.INTENSIFY,
 	types.OUTLINE,
@@ -28,14 +28,14 @@ var OUTLINE = []any{
 	types.SFE,
 	0x03,
 	types.BASIC,
-	(&types.Attrs{Protected: true}).Byte(),
+	(&types.Attrs{Protected: true}).Bits(),
 	types.HIGHLIGHT,
 	types.INTENSIFY,
 	types.OUTLINE,
 	types.OUTLINE_BOTTOM | types.OUTLINE_LEFT,
 	"Header 2",
 	types.SF,
-	(&types.Attrs{Protected: true}).Byte(),
+	(&types.Attrs{Protected: true}).Bits(),
 
 	types.SBA,
 	conv.Addr2Bytes(80),
@@ -53,7 +53,7 @@ var OUTLINE = []any{
 	types.OUTLINE_TOP | types.OUTLINE_LEFT,
 	"Cell 1/2",
 	types.SF,
-	(&types.Attrs{Protected: true}).Byte(),
+	(&types.Attrs{Protected: true}).Bits(),
 
 	types.SBA,
 	conv.Addr2Bytes(160),
@@ -71,7 +71,7 @@ var OUTLINE = []any{
 	types.OUTLINE_TOP | types.OUTLINE_LEFT,
 	"Cell 2/2",
 	types.SF,
-	(&types.Attrs{Protected: true}).Byte(),
+	(&types.Attrs{Protected: true}).Bits(),
 
 	types.SBA,
 	conv.Addr2Bytes(240),
@@ -89,12 +89,12 @@ var OUTLINE = []any{
 	types.OUTLINE_TOP | types.OUTLINE_LEFT,
 	"Cell 3/2",
 	types.SF,
-	(&types.Attrs{Protected: true}).Byte(),
+	(&types.Attrs{Protected: true}).Bits(),
 
 	types.SBA,
 	conv.Addr2Bytes(240),
 	types.SF,
-	(&types.Attrs{Protected: true}).Byte(),
+	(&types.Attrs{Protected: true}).Bits(),
 	"Ooops, I wanted data here",
 
 	types.SBA,

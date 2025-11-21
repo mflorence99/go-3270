@@ -41,7 +41,7 @@ var DEFAULT_ATTRS = &Attrs{
 
 func NewBasicAttrs(char byte) *Attrs {
 	a := new(Attrs)
-	a.fromByte(char)
+	a.fromBits(char)
 	return a
 }
 
@@ -59,7 +59,7 @@ func NewModifiedAttrs(attrs *Attrs, chars []byte) *Attrs {
 	return &a
 }
 
-func (a *Attrs) fromByte(char byte) {
+func (a *Attrs) fromBits(char byte) {
 	a.Hidden = ((char & 0b00001000) != 0) && ((char & 0b00000100) != 0)
 	a.Highlight = ((char & 0b00001000) != 0) && ((char & 0b00000100) == 0)
 	a.MDT = (char & 0b00000001) != 0
@@ -76,7 +76,7 @@ func (a *Attrs) fromBytes(chars []byte) {
 
 		case BASIC:
 			basic := chunk[1]
-			a.fromByte(basic)
+			a.fromBits(basic)
 
 		case HIGHLIGHT:
 			a.Blink = false
@@ -112,7 +112,7 @@ func (a *Attrs) fromBytes(chars []byte) {
 
 // 🟦 Public functions
 
-func (a *Attrs) Byte() byte {
+func (a *Attrs) Bits() byte {
 	var char byte = 0b00000000
 	if a.Hidden {
 		char |= 0b00001100
@@ -135,7 +135,7 @@ func (a *Attrs) Byte() byte {
 func (a *Attrs) Bytes() []byte {
 	chars := make([]byte, 0)
 	// 👇 BASIC
-	basic := a.Byte()
+	basic := a.Bits()
 	if basic != 0b00000000 {
 		chars = append(chars, byte(BASIC))
 		chars = append(chars, basic)
