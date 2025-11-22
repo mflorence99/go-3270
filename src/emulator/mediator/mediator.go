@@ -64,6 +64,7 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	m.bus.SubStatus(m.status)
 	// 👇 create and configure the emulator and its childreen
 	m.emu = core.NewEmulator(m.bus, m.configure(args))
+	m.emu.Init()
 	return m.jsInterface()
 }
 

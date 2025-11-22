@@ -43,15 +43,21 @@ func NewEmulator(bus *Bus, cfg *types.Config) *Emulator {
 	e.State = NewState(e)
 	// 👇 subscriptions
 	e.Bus.SubClose(e.close)
-	// 👇 now initialize all components
-	e.Bus.PubInit()
-	// 👇 if debugging, show screenshot
-	if e.Cfg.Testpage != "" {
-		e.Bus.PubOutbound(samples.Index[e.Cfg.Testpage])
-	}
 	return e
 }
 
 // TODO 🔥 placeholder, just in case we need it
 
 func (e *Emulator) close() {}
+
+// 🔥 caller initializes when ready
+
+func (e *Emulator) Init() *Emulator {
+	e.Bus.PubInit()
+	// 👇 if debugging, show screenshot
+	if e.Cfg.Testpage != "" {
+		e.Bus.PubOutbound(samples.Index[e.Cfg.Testpage])
+	}
+	// 👇 useful for chaining directly to ctor
+	return e
+}

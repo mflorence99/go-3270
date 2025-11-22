@@ -16,6 +16,7 @@ func init() {
 	Index["outline"] = utils.Flatten2Bytes(OUTLINE, conv.A2Es)
 	Index["rm"] = utils.Flatten2Bytes(RM, conv.A2Es)
 	Index["rpf-menu"] = RPF_MENU
+	Index["short"] = utils.Flatten2Bytes(SHORT, conv.A2Es)
 	Index["symset0"] = SYMSET0
 	Index["symset1"] = SYMSET1
 	Index["termtest"] = TERMTEST
