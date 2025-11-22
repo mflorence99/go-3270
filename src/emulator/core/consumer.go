@@ -38,6 +38,14 @@ func (c *Consumer) consume(chars []byte) {
 	char := out.MustNext()
 	cmd := types.Command(char)
 	c.commands(out, cmd)
+	// 👇 once stream is processed we are able to reflect current cell status
+	cursorAt := c.emu.State.Status.CursorAt
+	cell := c.emu.Buf.MustPeek(cursorAt)
+	c.emu.State.Patch(types.Patch{
+		Insert:    utils.BoolPtr(false),
+		Numeric:   utils.BoolPtr(cell.Attrs.Numeric),
+		Protected: utils.BoolPtr(cell.Attrs.Protected || cell.IsFldStart()),
+	})
 }
 
 // 🟦 Commands

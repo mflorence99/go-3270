@@ -499,7 +499,7 @@ func (l *Logger) logInboundRM(chars []byte) {
 
 func (l *Logger) logInboundShort(chars []byte) {
 	aid := types.AID(chars[0])
-	println(fmt.Sprintf("🐞 %s Short Read", aid))
+	fmt.Printf("🐞 %s Short Read\n", aid)
 }
 
 // ---------------------------------------------------------------------------
@@ -814,7 +814,7 @@ func (l *Logger) logProbe(addr uint) {
 func (l *Logger) logTrace(topic string, handler interface{}) {
 	if topic != "tick" /* 🔥 suppressed ?? */ && false {
 		pkg, nm := utils.GetFuncName(handler)
-		println(fmt.Sprintf("🐞 topic %s -> func %s() in %s", topic, nm, pkg))
+		fmt.Printf("🐞 topic %s -> func %s() in %s\n", topic, nm, pkg)
 	}
 }
 
