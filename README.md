@@ -22,6 +22,10 @@ Michael Fogelman's [gg](https://github.com/fogleman/gg) Go graphics package is a
 
 ## Structure
 
+This [Excalibur](https://excalidraw.com/) diagram should help navigating the source code.
+
+![Architecture](doc/arch.svg)
+
 ### Client
 
 Go-3270 presents via a UI written in [Lit](https://lit.dev/) using [Material Web](https://material-web.dev/) components. The UI hosts an HTML `<canvas>` element into which the core Go emulator code displays all the 3270 interactions.
