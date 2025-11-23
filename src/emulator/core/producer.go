@@ -42,7 +42,7 @@ func (p *Producer) attn(aid types.AID) {
 	in := NewInbound()
 	in.Put(byte(aid))
 	in.PutSlice(types.LT)
-	p.emu.Bus.PubInbound(in.Bytes(), InboundHints{Short: true})
+	p.emu.Bus.PubInbound(in.Bytes(), PubInboundHints{Short: true})
 }
 
 // 👁️ Query p 6-19
@@ -78,7 +78,7 @@ func (p *Producer) q() {
 	qr.NewImplicitPartition(p.emu.Cfg.Cols, p.emu.Cfg.Rows).Put(in)
 	// 👇 frame boundary LT is last
 	in.PutSlice(types.LT)
-	p.emu.Bus.PubInbound(in.Bytes(), InboundHints{WSF: true})
+	p.emu.Bus.PubInbound(in.Bytes(), PubInboundHints{WSF: true})
 }
 
 // 👁️ Query List p 6-19
@@ -113,7 +113,7 @@ func (p *Producer) ql(qcodes []types.QCode) {
 	}
 	// 👇 frame boundary LT is last
 	in.PutSlice(types.LT)
-	p.emu.Bus.PubInbound(in.Bytes(), InboundHints{WSF: true})
+	p.emu.Bus.PubInbound(in.Bytes(), PubInboundHints{WSF: true})
 }
 
 // 👁️ Read Buffer command pp 3-12 to 3-13
@@ -125,7 +125,7 @@ func (p *Producer) rb(aid types.AID) {
 	in.PutSlice(p.emu.Cells.RB())
 	// 👇 frame boundary LT is last
 	in.PutSlice(types.LT)
-	p.emu.Bus.PubInbound(in.Bytes(), InboundHints{RB: true})
+	p.emu.Bus.PubInbound(in.Bytes(), PubInboundHints{RB: true})
 }
 
 // 👁️ Read Modified command pp 3-13 to 3-15
@@ -138,6 +138,6 @@ func (p *Producer) rm(aid types.AID) {
 		in.PutSlice(p.emu.Flds.RM())
 		// 👇 frame boundary LT is last
 		in.PutSlice(types.LT)
-		p.emu.Bus.PubInbound(in.Bytes(), InboundHints{RM: true})
+		p.emu.Bus.PubInbound(in.Bytes(), PubInboundHints{RM: true})
 	}
 }

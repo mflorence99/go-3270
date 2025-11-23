@@ -39,38 +39,38 @@ func (c *Cache) ImageFor(g Glyph, box Box) image.Image {
 	if !ok {
 		// 👇 cache miss: draw the glyph in a temporary context
 		rgba := image.NewRGBA(image.Rect(0, 0, int(box.W), int(box.H)))
-		temp := gg.NewContextForRGBA(rgba)
-		temp.SetFontFace(utils.Ternary(g.Highlight, *c.emu.Cfg.BoldFace, *c.emu.Cfg.NormalFace))
+		gc := gg.NewContextForRGBA(rgba)
+		gc.SetFontFace(utils.Ternary(g.Highlight, *c.emu.Cfg.BoldFace, *c.emu.Cfg.NormalFace))
 		// 👇 clear background
-		temp.SetHexColor(utils.Ternary(g.Reverse, g.Color, c.emu.Cfg.BgColor))
-		temp.DrawRectangle(0, 0, box.W, box.H)
-		temp.Fill()
+		gc.SetHexColor(utils.Ternary(g.Reverse, g.Color, c.emu.Cfg.BgColor))
+		gc.DrawRectangle(0, 0, box.W, box.H)
+		gc.Fill()
 		// 👇 render the byte
-		temp.SetHexColor(utils.Ternary(g.Reverse, c.emu.Cfg.BgColor, g.Color))
-		temp.DrawString(string(conv.E2Rune(g.LCID, g.Char)), 0, box.Baseline-box.Y)
+		gc.SetHexColor(utils.Ternary(g.Reverse, c.emu.Cfg.BgColor, g.Color))
+		gc.DrawString(string(conv.E2Rune(g.LCID, g.Char)), 0, box.Baseline-box.Y)
 		// 👇 lines for outline/underscore
 		if g.Underscore || g.Outline.Bottom {
-			temp.SetLineWidth(1)
-			temp.DrawLine(0, box.H, box.W, box.H)
-			temp.Stroke()
+			gc.SetLineWidth(1)
+			gc.DrawLine(0, box.H, box.W, box.H)
+			gc.Stroke()
 		}
 		if g.Outline.Right {
-			temp.SetLineWidth(1)
-			temp.DrawLine(box.W, 0, box.W, box.H)
-			temp.Stroke()
+			gc.SetLineWidth(1)
+			gc.DrawLine(box.W, 0, box.W, box.H)
+			gc.Stroke()
 		}
 		if g.Outline.Top {
-			temp.SetLineWidth(1)
-			temp.DrawLine(0, 0, box.W, 0)
-			temp.Stroke()
+			gc.SetLineWidth(1)
+			gc.DrawLine(0, 0, box.W, 0)
+			gc.Stroke()
 		}
 		if g.Outline.Left {
-			temp.SetLineWidth(1)
-			temp.DrawLine(0, 0, 0, box.H)
-			temp.Stroke()
+			gc.SetLineWidth(1)
+			gc.DrawLine(0, 0, 0, box.H)
+			gc.Stroke()
 		}
 		// 👇 now cache the glyph
-		img = temp.Image()
+		img = gc.Image()
 		c.cache[g] = img
 	}
 	return img

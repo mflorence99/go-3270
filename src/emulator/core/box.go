@@ -21,8 +21,8 @@ type Box struct {
 func NewBox(row, col uint, cfg *types.Config) Box {
 	w := math.Round(cfg.FontWidth * cfg.PaddedWidth)
 	h := math.Round(cfg.FontHeight * cfg.PaddedHeight)
-	x := math.Round(float64(col) * w)
-	y := math.Round(float64(row) * h)
+	x := math.Round(float64(col-1) * w)
+	y := math.Round(float64(row-1) * h)
 	// TODO 🔥 we could do better calculating the baseline
 	// this is just a WAG, because an em is drawn with a
 	// significantly different height than that returned

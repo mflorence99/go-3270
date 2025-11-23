@@ -37,9 +37,9 @@ func (b *Bus) PubKeystroke(key types.Keystroke) {
 	b.Publish("keystroke", key)
 }
 
-type InboundHints struct{ RB, RM, Short, WSF bool }
+type PubInboundHints struct{ RB, RM, Short, WSF bool }
 
-func (b *Bus) PubInbound(chars []byte, hints InboundHints) {
+func (b *Bus) PubInbound(chars []byte, hints PubInboundHints) {
 	b.Publish("inbound", chars, hints)
 }
 
@@ -121,7 +121,7 @@ func (b *Bus) SubKeystroke(fn func(key types.Keystroke)) {
 	b.Subscribe("keystroke", fn)
 }
 
-func (b *Bus) SubInbound(fn func(chars []byte, hints InboundHints)) {
+func (b *Bus) SubInbound(fn func(chars []byte, hints PubInboundHints)) {
 	b.Subscribe("inbound", fn)
 }
 

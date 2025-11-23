@@ -54,7 +54,7 @@ func (l *Logger) init() {
 	}()
 }
 
-func (l *Logger) inbound(chars []byte, hints InboundHints) {
+func (l *Logger) inbound(chars []byte, hints PubInboundHints) {
 	go func() {
 		// 👇 supplement with an old-fashioned core dump
 		l.dump(text.FgHiGreen, "Inbound Core Dump", chars)
@@ -308,7 +308,7 @@ func (l *Logger) logFlds() {
 // 🟦 Log inbound data
 // ---------------------------------------------------------------------------
 
-func (l *Logger) logInbound(chars []byte, hints InboundHints) {
+func (l *Logger) logInbound(chars []byte, hints PubInboundHints) {
 	switch {
 
 	case hints.RB:

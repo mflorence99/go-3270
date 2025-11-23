@@ -39,8 +39,10 @@ func (s *Screen) init() {
 	// 👇 precompute the box for each cell
 	s.cps = make([]Box, s.emu.Cfg.Cols*s.emu.Cfg.Rows)
 	for ix := range s.cps {
-		row := uint(ix) / s.emu.Cfg.Cols
-		col := uint(ix) % s.emu.Cfg.Cols
+		// 🔥 it's awkwasrd to make row, col one-based, but that's the
+		//    way it works everywhere else so it would be confusing not to
+		row := (uint(ix) / s.emu.Cfg.Cols) + 1
+		col := (uint(ix) % s.emu.Cfg.Cols) + 1
 		s.cps[ix] = NewBox(row, col, s.emu.Cfg)
 	}
 	// 👇 optimization remembers which glyph is already drawn in each cell
