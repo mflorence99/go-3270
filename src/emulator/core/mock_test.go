@@ -105,9 +105,10 @@ func MockStream(cmd types.Command, wcc types.WCC, img []string, attrs map[MockRC
 	out.Put(wcc.Bits())
 	// 👇 for each row/col
 	for row := 1; row <= len(img); row++ {
-		for col := 1; col <= len(img[row-1]); col++ {
-			addr := uint((row-1)*len(img[row-1]) + col - 1)
-			char := rune(img[row-1][col-1])
+		runes := []rune(img[row-1])
+		for col := 1; col <= len(runes); col++ {
+			addr := uint((row-1)*len(runes) + col - 1)
+			char := runes[col-1]
 			switch char {
 
 			case '¶':
@@ -136,7 +137,7 @@ func MockStream(cmd types.Command, wcc types.WCC, img []string, attrs map[MockRC
 func TestStreammaker(t *testing.T) {
 	emu := MockEmulator()
 	emu.Bus.SubRender(func() {
-		assert.True(t, true, "smoke test for mock render")
+		assert.False(t, true, "smoke test for mock render")
 	})
 	emu.Init()
 	stream := MockStream(types.EW, types.WCC{}, MockExampleImg, MockExampleAttrs)

@@ -7,5 +7,6 @@ import (
 )
 
 func TestNewBuffer(t *testing.T) {
-	assert.True(t, true)
+	emu := MockEmulator().Init()
+	assert.Equal(t, uint(0), emu.Buf.Addr(), "initial state")
 }
