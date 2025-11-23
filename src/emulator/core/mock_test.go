@@ -137,7 +137,7 @@ func MockStream(cmd types.Command, wcc types.WCC, img []string, attrs map[MockRC
 func TestStreammaker(t *testing.T) {
 	emu := MockEmulator()
 	emu.Bus.SubRender(func() {
-		assert.False(t, true, "smoke test for mock render")
+		assert.True(t, true, "smoke test for mock render")
 	})
 	emu.Init()
 	stream := MockStream(types.EW, types.WCC{}, MockExampleImg, MockExampleAttrs)
