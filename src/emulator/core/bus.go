@@ -72,7 +72,7 @@ func (b *Bus) PubInbound(chars []byte, hints PubInboundHints) {
 	b.Publish(inbound, chars, hints)
 }
 
-func (b *Bus) PubInit() {
+func (b *Bus) PubInitialize() {
 	b.Publish(initialize)
 }
 
@@ -128,7 +128,7 @@ func (b *Bus) PubTick(counter int) {
 	b.Publish(tick, counter)
 }
 
-func (b *Bus) PubWCC(wcc types.WCC) {
+func (b *Bus) PubWCChar(wcc types.WCC) {
 	b.Publish(wcchar, wcc)
 }
 
@@ -154,7 +154,7 @@ func (b *Bus) SubInbound(fn func(chars []byte, hints PubInboundHints)) {
 	b.Subscribe(inbound, fn)
 }
 
-func (b *Bus) SubInit(fn func()) {
+func (b *Bus) SubInitialize(fn func()) {
 	b.Subscribe(initialize, fn)
 }
 
@@ -210,7 +210,7 @@ func (b *Bus) SubTick(fn func(counter int)) {
 	b.Subscribe(tick, fn)
 }
 
-func (b *Bus) SubWCC(fn func(wcc types.WCC)) {
+func (b *Bus) SubWCChar(fn func(wcc types.WCC)) {
 	b.Subscribe(wcchar, fn)
 }
 

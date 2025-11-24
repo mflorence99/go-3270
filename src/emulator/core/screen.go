@@ -24,7 +24,7 @@ func NewScreen(emu *Emulator) *Screen {
 	s := new(Screen)
 	s.emu = emu
 	// 👇 subscriptions
-	s.emu.Bus.SubInit(s.init)
+	s.emu.Bus.SubInitialize(s.init)
 	s.emu.Bus.SubRender(s.render)
 	s.emu.Bus.SubTick(s.blink)
 	// 🔥 curry the general function with the right parameters

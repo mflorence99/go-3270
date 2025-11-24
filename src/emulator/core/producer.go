@@ -22,7 +22,7 @@ func NewProducer(emu *Emulator) *Producer {
 	p.emu = emu
 	// 👇 subscriptions
 	p.emu.Bus.SubAttn(p.attn)
-	p.emu.Bus.SubInit(p.init)
+	p.emu.Bus.SubInitialize(p.init)
 	p.emu.Bus.SubQ(p.q)
 	p.emu.Bus.SubQL(p.ql)
 	p.emu.Bus.SubRB(p.rb)

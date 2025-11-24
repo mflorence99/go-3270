@@ -23,7 +23,7 @@ func NewBuffer(emu *Emulator) *Buffer {
 	b := new(Buffer)
 	b.emu = emu
 	// 👇 subscriptions
-	b.emu.Bus.SubInit(b.init)
+	b.emu.Bus.SubInitialize(b.init)
 	b.emu.Bus.SubReset(b.reset)
 	return b
 }

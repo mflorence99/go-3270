@@ -53,7 +53,7 @@ func (e *Emulator) close() {}
 // 🔥 caller initializes when ready
 
 func (e *Emulator) Init() *Emulator {
-	e.Bus.PubInit()
+	e.Bus.PubInitialize()
 	// 👇 if debugging, show screenshot
 	if e.Cfg.Testpage != "" {
 		e.Bus.PubOutbound(samples.Index[e.Cfg.Testpage])

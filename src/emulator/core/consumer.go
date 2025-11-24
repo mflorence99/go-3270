@@ -23,7 +23,7 @@ func NewConsumer(emu *Emulator) *Consumer {
 	c := new(Consumer)
 	c.emu = emu
 	// 👇 subscriptions
-	c.emu.Bus.SubInit(c.init)
+	c.emu.Bus.SubInitialize(c.init)
 	c.emu.Bus.SubOutbound(c.consume)
 	return c
 }
@@ -136,7 +136,7 @@ func (c *Consumer) wcc(out *Outbound) bool {
 				sf.Attrs.MDT = false
 			}
 		}
-		c.emu.Bus.PubWCC(wcc)
+		c.emu.Bus.PubWCChar(wcc)
 		return true
 	} else {
 		return false

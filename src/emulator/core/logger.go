@@ -32,13 +32,13 @@ func NewLogger(emu *Emulator) *Logger {
 	l.emu = emu
 	// 👇 subscriptions
 	l.emu.Bus.SubClose(l.close)
-	l.emu.Bus.SubInit(l.init)
+	l.emu.Bus.SubInitialize(l.init)
 	l.emu.Bus.SubInbound(l.inbound)
 	l.emu.Bus.SubOutbound(l.outbound)
 	l.emu.Bus.SubProbe(l.probe)
 	l.emu.Bus.SubRender(l.render)
 	l.emu.Bus.SubTrace(l.trace)
-	l.emu.Bus.SubWCC(l.wcc)
+	l.emu.Bus.SubWCChar(l.wcc)
 	return l
 }
 

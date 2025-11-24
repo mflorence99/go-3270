@@ -19,11 +19,11 @@ func NewState(emu *Emulator) *State {
 	s := new(State)
 	s.emu = emu
 	// 👇 subscriptions
-	s.emu.Bus.SubInit(s.init)
+	s.emu.Bus.SubInitialize(s.init)
 	s.emu.Bus.SubInbound(s.lock)
 	s.emu.Bus.SubOutbound(s.unlock)
 	s.emu.Bus.SubReset(s.reset)
-	s.emu.Bus.SubWCC(s.wcc)
+	s.emu.Bus.SubWCChar(s.wcc)
 	return s
 }
 

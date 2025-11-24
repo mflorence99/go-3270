@@ -26,7 +26,7 @@ func NewKeyboard(emu *Emulator) *Keyboard {
 	k := new(Keyboard)
 	k.emu = emu
 	// 👇 subscriptions
-	k.emu.Bus.SubInit(k.init)
+	k.emu.Bus.SubInitialize(k.init)
 	k.emu.Bus.SubKeystroke(k.keystroke)
 	k.emu.Bus.SubFocus(k.focus)
 	return k
