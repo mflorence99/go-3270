@@ -83,7 +83,7 @@ func (l *Logger) render() {
 	}()
 }
 
-func (l *Logger) trace(topic string, handler interface{}) {
+func (l *Logger) trace(topic Topic, handler interface{}) {
 	// 👇 we need this to be synchronous to make sense
 	l.logTrace(topic, handler)
 }
@@ -808,8 +808,8 @@ func (l *Logger) logProbe(addr uint) {
 // 🔥 currently disabled
 // ---------------------------------------------------------------------------
 
-func (l *Logger) logTrace(topic string, handler interface{}) {
-	if topic != "tick" /* 🔥 suppressed ?? */ && false {
+func (l *Logger) logTrace(topic Topic, handler interface{}) {
+	if !strings.Contains(topic.String(), "tick") /* 🔥 suppressed ?? */ && false {
 		pkg, nm := utils.GetFuncName(handler)
 		fmt.Printf("🐞 topic %s -> func %s() in %s\n", topic, nm, pkg)
 	}

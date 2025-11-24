@@ -8,199 +8,228 @@ import (
 // 🟧 Basic (but type-safe) pubsub implementation
 
 type Bus struct {
-	handlers map[string][]interface{}
+	handlers map[Topic][]interface{}
 }
+
+//go:generate stringer -type=Topic
+type Topic int
+
+// 🔥 run go generate emulator/core if any of theee change
+
+const (
+	attn Topic = iota
+	close
+	focus
+	keystroke
+	inbound
+	initialize
+	outbound
+	panic
+	probe
+	q
+	ql
+	rb
+	render
+	renderDeltas
+	reset
+	rm
+	rma
+	status
+	tick
+	trace
+	wcchar
+)
 
 // 🟦 Constructor
 
 func NewBus() *Bus {
 	b := new(Bus)
-	b.handlers = make(map[string][]interface{})
+	b.handlers = make(map[Topic][]interface{})
 	return b
 }
 
 // 🟦 Type-safe publishers
 
 func (b *Bus) PubAttn(aid types.AID) {
-	b.Publish("attn", aid)
+	b.Publish(attn, aid)
 }
 
 func (b *Bus) PubClose() {
-	b.Publish("close")
+	b.Publish(close)
 }
 
-func (b *Bus) PubFocus(focus bool) {
-	b.Publish("focus", focus)
+func (b *Bus) PubFocus(focussed bool) {
+	b.Publish(focus, focussed)
 }
 
 func (b *Bus) PubKeystroke(key types.Keystroke) {
-	b.Publish("keystroke", key)
+	b.Publish(keystroke, key)
 }
 
 type PubInboundHints struct{ RB, RM, Short, WSF bool }
 
 func (b *Bus) PubInbound(chars []byte, hints PubInboundHints) {
-	b.Publish("inbound", chars, hints)
+	b.Publish(inbound, chars, hints)
 }
 
 func (b *Bus) PubInit() {
-	b.Publish("init")
+	b.Publish(initialize)
 }
 
 func (b *Bus) PubOutbound(chars []byte) {
-	b.Publish("outbound", chars)
+	b.Publish(outbound, chars)
 }
 
 func (b *Bus) PubPanic(msg string) {
-	b.Publish("panic", msg)
+	b.Publish(panic, msg)
 }
 
 func (b *Bus) PubProbe(addr uint) {
-	b.Publish("probe", addr)
+	b.Publish(probe, addr)
 }
 
 func (b *Bus) PubQ() {
-	b.Publish("q")
+	b.Publish(q)
 }
 
 func (b *Bus) PubQL(qcodes []types.QCode) {
-	b.Publish("ql", qcodes)
+	b.Publish(ql, qcodes)
 }
 
 func (b *Bus) PubRB(aid types.AID) {
-	b.Publish("rb", aid)
+	b.Publish(rb, aid)
 }
 
 func (b *Bus) PubRender() {
-	b.Publish("render")
+	b.Publish(render)
 }
 
 func (b *Bus) PubRenderDeltas(deltas *utils.Stack[uint]) {
-	b.Publish("render-deltas", deltas)
+	b.Publish(renderDeltas, deltas)
 }
 
 func (b *Bus) PubReset() {
-	b.Publish("reset")
+	b.Publish(reset)
 }
 
 func (b *Bus) PubRM(aid types.AID) {
-	b.Publish("rm", aid)
+	b.Publish(rm, aid)
 }
 
 func (b *Bus) PubRMA(aid types.AID) {
-	b.Publish("rms", aid)
+	b.Publish(rma, aid)
 }
 
 func (b *Bus) PubStatus(stat *types.Status) {
-	b.Publish("status", stat)
+	b.Publish(status, stat)
 }
 
 func (b *Bus) PubTick(counter int) {
-	b.Publish("tick", counter)
+	b.Publish(tick, counter)
 }
 
 func (b *Bus) PubWCC(wcc types.WCC) {
-	b.Publish("wcc", wcc)
+	b.Publish(wcchar, wcc)
 }
 
 // 🟦 Type-safe subscribers
 
 func (b *Bus) SubAttn(fn func(aid types.AID)) {
-	b.Subscribe("attn", fn)
+	b.Subscribe(attn, fn)
 }
 
 func (b *Bus) SubClose(fn func()) {
-	b.Subscribe("close", fn)
+	b.Subscribe(close, fn)
 }
 
 func (b *Bus) SubFocus(fn func(focus bool)) {
-	b.Subscribe("focus", fn)
+	b.Subscribe(focus, fn)
 }
 
 func (b *Bus) SubKeystroke(fn func(key types.Keystroke)) {
-	b.Subscribe("keystroke", fn)
+	b.Subscribe(keystroke, fn)
 }
 
 func (b *Bus) SubInbound(fn func(chars []byte, hints PubInboundHints)) {
-	b.Subscribe("inbound", fn)
+	b.Subscribe(inbound, fn)
 }
 
 func (b *Bus) SubInit(fn func()) {
-	b.Subscribe("init", fn)
+	b.Subscribe(initialize, fn)
 }
 
 func (b *Bus) SubOutbound(fn func(chars []byte)) {
-	b.Subscribe("outbound", fn)
+	b.Subscribe(outbound, fn)
 }
 
 func (b *Bus) SubPanic(fn func(msg string)) {
-	b.Subscribe("panic", fn)
+	b.Subscribe(panic, fn)
 }
 
 func (b *Bus) SubProbe(fn func(addr uint)) {
-	b.Subscribe("probe", fn)
+	b.Subscribe(probe, fn)
 }
 
 func (b *Bus) SubQ(fn func()) {
-	b.Subscribe("q", fn)
+	b.Subscribe(q, fn)
 }
 
 func (b *Bus) SubQL(fn func(qcodes []types.QCode)) {
-	b.Subscribe("ql", fn)
+	b.Subscribe(ql, fn)
 }
 
 func (b *Bus) SubRB(fn func(aid types.AID)) {
-	b.Subscribe("rb", fn)
+	b.Subscribe(rb, fn)
 }
 
 func (b *Bus) SubRender(fn func()) {
-	b.Subscribe("render", fn)
+	b.Subscribe(render, fn)
 }
 
 func (b *Bus) SubRenderDeltas(fn func(deltas *utils.Stack[uint])) {
-	b.Subscribe("render-deltas", fn)
+	b.Subscribe(renderDeltas, fn)
 }
 
 func (b *Bus) SubReset(fn func()) {
-	b.Subscribe("reset", fn)
+	b.Subscribe(reset, fn)
 }
 
 func (b *Bus) SubRM(fn func(aid types.AID)) {
-	b.Subscribe("rm", fn)
+	b.Subscribe(rm, fn)
 }
 
 func (b *Bus) SubRMA(fn func(aid types.AID)) {
-	b.Subscribe("rma", fn)
+	b.Subscribe(rma, fn)
 }
 
 func (b *Bus) SubStatus(fn func(stat *types.Status)) {
-	b.Subscribe("status", fn)
+	b.Subscribe(status, fn)
 }
 
 func (b *Bus) SubTick(fn func(counter int)) {
-	b.Subscribe("tick", fn)
+	b.Subscribe(tick, fn)
 }
 
 func (b *Bus) SubWCC(fn func(wcc types.WCC)) {
-	b.Subscribe("wcc", fn)
+	b.Subscribe(wcchar, fn)
 }
 
 // 🔥 Debug only
 
-func (b *Bus) SubTrace(fn func(topic string, handler interface{})) {
-	b.Subscribe("$$$", fn)
+func (b *Bus) SubTrace(fn func(topic Topic, handler interface{})) {
+	b.Subscribe(trace, fn)
 }
 
 // 🟦 Brute force cleanup
 
 func (b *Bus) UnsubscribeAll() {
-	b.handlers = make(map[string][]interface{})
+	b.handlers = make(map[Topic][]interface{})
 }
 
 // 🟦 Public functions (public just for test cases)
 
-func (b *Bus) Publish(topic string, args ...any) {
-	debuggers := b.handlers["$$$"]
+func (b *Bus) Publish(topic Topic, args ...any) {
+	debuggers := b.handlers[trace]
 	handlers := b.handlers[topic]
 	for _, handler := range handlers {
 		utils.Call(handler, args...)
@@ -210,6 +239,6 @@ func (b *Bus) Publish(topic string, args ...any) {
 	}
 }
 
-func (b *Bus) Subscribe(topic string, fn interface{}) {
+func (b *Bus) Subscribe(topic Topic, fn interface{}) {
 	b.handlers[topic] = append(b.handlers[topic], fn)
 }
