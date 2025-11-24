@@ -553,20 +553,17 @@ func (l *Logger) logOutbound(chars []byte) {
 	switch cmd {
 
 	case types.EW:
-		_, ok := out.Next() // 👈 eat the WCC
-		if ok {
+		if _, ok := out.Next(); ok { // 👈 eat the WCC
 			l.logOutboundOrders(out, cmd, text.FgYellow)
 		}
 
 	case types.EWA:
-		_, ok := out.Next() // 👈 eat the WCC
-		if ok {
+		if _, ok := out.Next(); ok { // 👈 eat the WCC
 			l.logOutboundOrders(out, cmd, text.FgYellow)
 		}
 
 	case types.W:
-		_, ok := out.Next() // 👈 eat the WCC
-		if ok {
+		if _, ok := out.Next(); ok { // 👈 eat the WCC
 			l.logOutboundOrders(out, cmd, text.FgYellow)
 		}
 

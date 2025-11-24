@@ -24,8 +24,7 @@ var sfids = map[SFID]string{
 
 func SFIDFor(s SFID) string {
 	// 🔥 because we have not codified all of them, by a long shot!
-	str, ok := sfids[s]
-	if ok {
+	if str, ok := sfids[s]; ok {
 		return str
 	} else {
 		return fmt.Sprintf("%#02x", byte(s))

@@ -81,8 +81,7 @@ func (c *Consumer) commands(out *Outbound, cmd types.Command) {
 }
 
 func (c *Consumer) eau() {
-	addr, ok := c.emu.Flds.EAU()
-	if ok {
+	if addr, ok := c.emu.Flds.EAU(); ok {
 		c.emu.Buf.WrappingSeek(int(addr) + 1)
 		c.emu.State.Patch(types.Patch{
 			CursorAt: utils.UintPtr(c.emu.Buf.Addr()),
@@ -125,8 +124,7 @@ func (c *Consumer) w(out *Outbound) {
 }
 
 func (c *Consumer) wcc(out *Outbound) bool {
-	char, ok := out.Next()
-	if ok {
+	if char, ok := out.Next(); ok {
 		wcc := types.NewWCC(char)
 		// TODO 🔥 not yet handled
 		if wcc.Reset {

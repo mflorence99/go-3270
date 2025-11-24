@@ -46,8 +46,7 @@ func (c *Cells) EUA(start, stop uint) {
 	for addr != stop {
 		cell, _ := c.emu.Buf.Get()
 		if !cell.Attrs.Protected {
-			sf, ok := cell.GetFldStart()
-			if ok {
+			if sf, ok := cell.GetFldStart(); ok {
 				cell.Attrs = sf.Attrs
 			}
 			cell.Char = 0x00

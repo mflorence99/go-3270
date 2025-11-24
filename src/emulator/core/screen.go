@@ -90,8 +90,7 @@ func (s *Screen) renderDeltas(addrs *utils.Stack[uint], doBlink bool, blinkOn bo
 	dc := gg.NewContextForRGBA(s.emu.Cfg.RGBA)
 	// 👇 iterate over all requested cells
 	for !addrs.Empty() {
-		addr, ok := addrs.Pop()
-		if ok {
+		if addr, ok := addrs.Pop(); ok {
 			s.renderImpl(dc, addr, doBlink, blinkOn)
 		}
 	}
@@ -105,9 +104,8 @@ func (s *Screen) renderImpl(dc *gg.Context, addr uint, doBlink bool, blinkOn boo
 	a := cell.Attrs
 	color := s.emu.Cfg.ColorOf(a)
 	// 🔥 outlined field can't be reverse or underscore and must be on field
-	sf, ok := cell.GetFldStart()
 	var outline types.Outline
-	if ok {
+	if sf, ok := cell.GetFldStart(); ok {
 		outline = sf.Attrs.Outline
 	}
 	reverse := a.Reverse && outline == 0x00

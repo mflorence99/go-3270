@@ -96,14 +96,14 @@ func (f *Flds) buildCells(flds []*Fld) []*Fld {
 // 👁️ Erase All Unprotected command p 3-8
 func (f *Flds) EAU() (uint, bool) {
 	var addr uint
-	var ok bool
+	var firstFld bool
 	for _, fld := range f.Flds {
 		sf := fld.Cells[0]
 		if !sf.Attrs.Protected {
 			sf.Attrs.MDT = false
 			// 👇 capture address of first unprotected field
-			if !ok {
-				addr, ok = sf.GetFldAddr()
+			if !firstFld {
+				addr, firstFld = sf.GetFldAddr()
 			}
 			// 🔥 reset char and any character attributes
 			for ix := 1; ix < len(fld.Cells); ix++ {
@@ -113,7 +113,7 @@ func (f *Flds) EAU() (uint, bool) {
 			}
 		}
 	}
-	return addr, ok
+	return addr, firstFld
 }
 
 func (f *Flds) FindFld(fldAddr uint) (*Fld, bool) {

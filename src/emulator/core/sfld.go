@@ -22,9 +22,8 @@ func SFldsFromStream(out *Outbound) []SFld {
 	sflds := make([]SFld, 0)
 	for out.HasNext() {
 		len := out.MustNext16()
-		id, ok := out.Next()
 		// 👇 there must be an ID
-		if ok {
+		if id, ok := out.Next(); ok {
 			// TODO 🔥 we can't account for this extra 0xfF!
 			xtra := out.MustPeek()
 			if xtra == 0xfF {
