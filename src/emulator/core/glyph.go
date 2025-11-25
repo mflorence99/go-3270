@@ -8,10 +8,10 @@ type Glyph struct {
 	Char       byte
 	Color      string
 	Highlight  bool
+	LCID       types.LCID
+	Outline    Outline
 	Reverse    bool
 	Underscore bool
-	Outline    Outline
-	LCID       types.LCID
 }
 
 type Outline struct {

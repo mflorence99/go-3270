@@ -15,7 +15,7 @@ func TestNewBuffer(t *testing.T) {
 	assert.Equal(t, types.FIELD_MODE, emu.Buf.Mode(), "initial state")
 }
 
-func TestSetMode(t *testing.T) {
+func TestBufferSetMode(t *testing.T) {
 	emu := MockEmulator().Init()
 
 	assert.Equal(t, types.FIELD_MODE, emu.Buf.Mode(), "initial state")
@@ -25,7 +25,7 @@ func TestSetMode(t *testing.T) {
 	assert.Equal(t, types.CHARACTER_MODE, emu.Buf.Mode(), "still character mode as extended field mode is lower")
 }
 
-func TestPeek(t *testing.T) {
+func TestBufferPeek(t *testing.T) {
 	var addr uint
 	var cell *Cell
 	var ok bool
@@ -51,7 +51,7 @@ func TestPeek(t *testing.T) {
 	assert.Nil(t, cell, "MustPeek addr outside range")
 }
 
-func TestSeek(t *testing.T) {
+func TestBufferSeek(t *testing.T) {
 	var addr uint
 	var ok bool
 
@@ -71,7 +71,7 @@ func TestSeek(t *testing.T) {
 	assert.Equal(t, uint(0), addr, "MustSeek addr outside range")
 }
 
-func TestReplace(t *testing.T) {
+func TestBufferReplace(t *testing.T) {
 	var cell *Cell
 	var ok bool
 	var repl = &Cell{}
@@ -93,7 +93,7 @@ func TestReplace(t *testing.T) {
 	assert.Nil(t, cell, "MustReplace addr outside range")
 }
 
-func TestGet(t *testing.T) {
+func TestBefferGet(t *testing.T) {
 	var addr uint
 	var cell *Cell
 
@@ -113,7 +113,7 @@ func TestGet(t *testing.T) {
 	assert.Equal(t, uint(12*40-2), addr, "Get cell before")
 }
 
-func TestSet(t *testing.T) {
+func TestBufferSet(t *testing.T) {
 	var addr uint
 	var cell *Cell
 	var repl = &Cell{}

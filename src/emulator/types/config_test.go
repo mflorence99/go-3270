@@ -19,7 +19,7 @@ func TestRC2Addr(t *testing.T) {
 	assert.Equal(t, uint(100), addr, "addr calculated from row/col")
 }
 
-func TestColorOf(t *testing.T) {
+func TestConfigColorOf(t *testing.T) {
 	c := &Config{CLUT: map[Color]string{
 		0xf1: "WHITE",
 		0xf2: "RED",
@@ -41,7 +41,7 @@ func TestColorOf(t *testing.T) {
 
 }
 
-func TestColorOfMono(t *testing.T) {
+func TestConfigColorOfMono(t *testing.T) {
 	c := &Config{Monochrome: true, CLUT: map[Color]string{0xf4: "GREEN"}}
 	a := &Attrs{}
 	assert.Equal(t, "GREEN", c.ColorOf(a), "monochrome display is 'green'")

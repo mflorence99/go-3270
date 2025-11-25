@@ -47,7 +47,7 @@ func TestNewExtendedAttrs(t *testing.T) {
 	assert.Equal(t, *a, *NewExtendedAttrs(b), "create attrs from bytes")
 }
 
-func TestBits(t *testing.T) {
+func TestAttrsBits(t *testing.T) {
 	a := &Attrs{
 		Hidden:    true,
 		Highlight: true,
@@ -58,7 +58,7 @@ func TestBits(t *testing.T) {
 	assert.Equal(t, a.Bits(), byte(0b00111101), "decode attrs to bit settings")
 }
 
-func TestBytes(t *testing.T) {
+func TestAttrsBytes(t *testing.T) {
 	a := &Attrs{
 		Autoskip:   true,
 		Blink:      false,
@@ -88,7 +88,7 @@ func TestBytes(t *testing.T) {
 	assert.Equal(t, b, a.Bytes(), "decode attrs to bytes")
 }
 
-func TestDiff(t *testing.T) {
+func TestAttrsDiff(t *testing.T) {
 	a := &Attrs{
 		Autoskip: true,
 		Blink:    true,

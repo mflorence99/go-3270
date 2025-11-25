@@ -43,11 +43,7 @@ func (out *Outbound) Next() (byte, bool) {
 }
 
 func (out *Outbound) Next16() (uint16, bool) {
-	slice, ok := out.NextSlice(2)
-	if !ok {
-		return 0, false
-	}
-	return binary.BigEndian.Uint16(slice), true
+	return out.next16Impl(false)
 }
 
 func (out *Outbound) NextSlice(count int) ([]byte, bool) {
@@ -60,6 +56,10 @@ func (out *Outbound) NextSliceUntil(matches []byte) ([]byte, bool) {
 
 func (out *Outbound) Peek() (byte, bool) {
 	return out.nextImpl(true)
+}
+
+func (out *Outbound) Peek16() (uint16, bool) {
+	return out.next16Impl(true)
 }
 
 func (out *Outbound) PeekSlice(count int) ([]byte, bool) {
@@ -95,6 +95,14 @@ func (out *Outbound) nextImpl(peek bool) (byte, bool) {
 	} else {
 		return 0, false
 	}
+}
+
+func (out *Outbound) next16Impl(peek bool) (uint16, bool) {
+	slice, ok := out.nextSliceImpl(2, peek)
+	if !ok {
+		return 0, false
+	}
+	return binary.BigEndian.Uint16(slice), true
 }
 
 func (out *Outbound) nextSliceImpl(count int, peek bool) ([]byte, bool) {
