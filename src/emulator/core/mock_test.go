@@ -134,7 +134,7 @@ func MockStream(cmd types.Command, wcc types.WCC, img []string, attrs map[MockRC
 
 // 🟧 Smoke test
 
-func TestStreammaker(t *testing.T) {
+func TestMockEmulator(t *testing.T) {
 	emu := MockEmulator()
 	ok := false
 	emu.Bus.SubRender(func() {
