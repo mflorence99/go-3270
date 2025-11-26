@@ -28,21 +28,11 @@ func NewState(emu *Emulator) *State {
 }
 
 func (s *State) init() {
-	s.Status = &types.Status{}
+	s.reset()
 }
 
 func (s *State) reset() {
-	s.Patch(types.Patch{
-		Alarm:     utils.BoolPtr(false),
-		CursorAt:  utils.UintPtr(0),
-		Error:     utils.BoolPtr(false),
-		Insert:    utils.BoolPtr(false),
-		Locked:    utils.BoolPtr(false),
-		Message:   utils.StringPtr(""),
-		Numeric:   utils.BoolPtr(false),
-		Protected: utils.BoolPtr(false),
-		Waiting:   utils.BoolPtr(false),
-	})
+	s.Status = new(types.Status)
 }
 
 // 🟦 Functions to dispatch actions depending on state
