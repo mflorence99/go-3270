@@ -232,10 +232,11 @@ func (b *Bus) Publish(topic Topic, args ...any) {
 	debuggers := b.handlers[trace]
 	handlers := b.handlers[topic]
 	for _, handler := range handlers {
-		utils.Call(handler, args...)
+		// 🔥 trace BEFORE action
 		for _, debugger := range debuggers {
 			utils.Call(debugger, topic, handler)
 		}
+		utils.Call(handler, args...)
 	}
 }
 

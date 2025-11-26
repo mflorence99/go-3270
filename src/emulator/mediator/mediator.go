@@ -205,6 +205,8 @@ func (m *Mediator) panic(msg string) {
 		"args":      msg,
 	}
 	m.dispatchEvent(params)
+	// 🔥 shut 'er down!
+	m.bus.UnsubscribeAll()
 }
 
 func (m *Mediator) status(stat *types.Status) {

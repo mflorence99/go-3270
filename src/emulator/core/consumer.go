@@ -278,7 +278,13 @@ func (c *Consumer) char(char byte, fldAddr uint, fldAttrs *types.Attrs, inFld bo
 func (c *Consumer) eua(out *Outbound) {
 	raw := out.MustNextSlice(2)
 	stop := conv.Bytes2Addr(raw)
-	c.emu.Cells.EUA(c.emu.Buf.Addr(), stop)
+	// 👇 validate stop addr
+	_, ok := c.emu.Buf.Peek(stop)
+	if ok {
+		c.emu.Cells.EUA(c.emu.Buf.Addr(), stop)
+	} else {
+		c.emu.Buf.AddrPanic(stop)
+	}
 }
 
 func (c *Consumer) ge(out *Outbound, fldAddr uint, fldAttrs *types.Attrs, inFld bool) {
@@ -311,20 +317,26 @@ func (c *Consumer) pt() {
 func (c *Consumer) ra(out *Outbound, fldAddr uint, fldAttrs *types.Attrs, inFld bool) {
 	raw := out.MustNextSlice(2)
 	stop := conv.Bytes2Addr(raw)
-	char := out.MustNext()
-	if types.Order(char) == types.GE {
-		// TODO 🔥 GE not properly handled -- what alt character set??
-		// also needs to be present in inbound stream (RB, RM/A)
-		fldAttrs.LCID = 0xf1
-		char = out.MustNext()
+	// 👇 validate stop addr
+	_, ok := c.emu.Buf.Peek(stop)
+	if ok {
+		char := out.MustNext()
+		if types.Order(char) == types.GE {
+			// TODO 🔥 GE not properly handled -- what alt character set??
+			// also needs to be present in inbound stream (RB, RM/A)
+			fldAttrs.LCID = 0xf1
+			char = out.MustNext()
+		}
+		cell := NewCell(c.emu)
+		cell.Attrs = fldAttrs
+		cell.Char = char
+		if inFld {
+			cell.SetFldAddr(fldAddr)
+		}
+		c.emu.Cells.RA(cell, c.emu.Buf.Addr(), stop)
+	} else {
+		c.emu.Buf.AddrPanic(stop)
 	}
-	cell := NewCell(c.emu)
-	cell.Attrs = fldAttrs
-	cell.Char = char
-	if inFld {
-		cell.SetFldAddr(fldAddr)
-	}
-	c.emu.Cells.RA(cell, c.emu.Buf.Addr(), stop)
 }
 
 func (c *Consumer) sa(out *Outbound, fldAttrs *types.Attrs) *types.Attrs {

@@ -111,14 +111,19 @@ func (b *Buffer) WrappingSeek(addr int) uint {
 
 // 🟦 "Must" functions
 
-//    MustPeek() panics if invaliud addr supplied
-//    MustReplace() panics if invaliud addr supplied
-//    MustSeek() panics if invaliud addr supplied
+//    MustPeek() panics if invalid addr supplied
+//    MustReplace() panics if invalid addr supplied
+//    MustSeek() panics if invalid addr supplied
+
+func (b *Buffer) AddrPanic(addr uint) {
+	row, col := b.emu.Cfg.Addr2RC(addr)
+	b.emu.Bus.PubPanic(fmt.Sprintf("🔥 Internal error: buffer addr %d/%d out of range", row, col))
+}
 
 func (b *Buffer) MustPeek(addr uint) *Cell {
 	cell, ok := b.Peek(addr)
 	if !ok {
-		b.mustAddr(addr)
+		b.AddrPanic(addr)
 	}
 	return cell
 }
@@ -126,7 +131,7 @@ func (b *Buffer) MustPeek(addr uint) *Cell {
 func (b *Buffer) MustReplace(cell *Cell, addr uint) *Cell {
 	cell, ok := b.Replace(cell, addr)
 	if !ok {
-		b.mustAddr(addr)
+		b.AddrPanic(addr)
 	}
 	return cell
 }
@@ -134,14 +139,9 @@ func (b *Buffer) MustReplace(cell *Cell, addr uint) *Cell {
 func (b *Buffer) MustSeek(addr uint) uint {
 	addr, ok := b.Seek(addr)
 	if !ok {
-		b.mustAddr(addr)
+		b.AddrPanic(addr)
 	}
 	return addr
-}
-
-func (b *Buffer) mustAddr(addr uint) {
-	row, col := b.emu.Cfg.Addr2RC(addr)
-	b.emu.Bus.PubPanic(fmt.Sprintf("🔥 Internal error: buffer addr %d/%d out of range", row, col))
 }
 
 // 🟦 Get functions
