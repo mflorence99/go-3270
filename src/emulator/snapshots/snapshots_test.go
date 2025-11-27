@@ -21,7 +21,9 @@ import (
 // used in other tests
 
 func TestNewSnapshots(t *testing.T) {
-	if os.Getenv("VSCODE") == "true" {
+	// 🔥 to be ABSOLUTELY sure you only run this when you have to
+	//    recreate the snapshots, change below to "true"
+	if os.Getenv("VSCODE") == "truexxx" {
 
 		// 👇 create snapshots in THIS directory
 		_, file, _, _ := runtime.Caller(0)
@@ -50,6 +52,9 @@ func TestNewSnapshots(t *testing.T) {
 				os.WriteFile(filepath.Join(dir, nm, "screen.png"), buf.Bytes(), perm)
 			})
 		}
+	} else {
+		t.Log("🔥 snapshot creation disabled")
+		t.Fail()
 	}
 }
 
