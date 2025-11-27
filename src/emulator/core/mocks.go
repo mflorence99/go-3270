@@ -1,34 +1,40 @@
+//go:build dev
+
 package core
 
 import (
 	"emulator/conv"
+	"emulator/fonts"
 	"emulator/types"
 	"image"
-	"os"
-	"testing"
+	"math"
 
-	"github.com/stretchr/testify/assert"
-
-	"github.com/flopp/go-findfont"
 	"github.com/golang/freetype/truetype"
 )
 
-// 🟧 Generato a mock 12x40 emulator for testing
+// 🟧 Generato a mock emulator for testing
 
-func MockEmulator() *Emulator {
+func MockEmulator(rows, cols uint) *Emulator {
 	bus := NewBus()
-	// 🔥 ignore any errors while loading font -- this code is just
-	//    for testing -- plus, we use the same font for normal and bold
-	//    as the mock emulator will never actually be rendered
+	// 👇 constants normally computed by the mediator
+	dpi := 96.0
+	fontHeight := 16.0
 	fontSize := 12.0
-	fontPath, _ := findfont.Find("UbuntuMono-R.ttf")
-	fontData, _ := os.ReadFile(fontPath)
-	ttfFont, _ := truetype.Parse(fontData)
-	ttfFace := truetype.NewFace(ttfFont, &truetype.Options{Size: fontSize, DPI: 96})
+	fontWidth := 9.0
+	paddedHeight := 1.5
+	paddedWidth := 1.1
+	// 👇 now we can compute the size of the canvas
+	canvasWidth := float64(cols) * math.Round(fontWidth*paddedWidth)
+	canvasHeight := float64(rows) * math.Round(fontHeight*paddedHeight)
+	// 👇 load the fonts
+	normalFont, _ := truetype.Parse(fonts.NormalFontEmbed)
+	normalFace := truetype.NewFace(normalFont, &truetype.Options{Size: fontSize, DPI: dpi /* , Hinting: font.HintingFull */})
+	boldFont, _ := truetype.Parse(fonts.BoldFontEmbed)
+	boldFace := truetype.NewFace(boldFont, &truetype.Options{Size: fontSize, DPI: dpi /* , Hinting: font.HintingFull */})
 	// 👇 mock config
 	cfg := types.Config{
 		BgColor:  "#202020",
-		BoldFace: &ttfFace,
+		BoldFace: &boldFace,
 		CLUT: map[types.Color]string{
 			0xf0: "#202020",
 			0xf1: "#4169e1",
@@ -46,16 +52,16 @@ func MockEmulator() *Emulator {
 			0xfd: "#afeeee",
 			0xfe: "#c0c0c0",
 			0xff: "#e2e2e9"},
-		Cols:         uint(40),
-		FontHeight:   16,
+		Cols:         cols,
+		FontHeight:   fontHeight,
 		FontSize:     fontSize,
-		FontWidth:    9,
+		FontWidth:    fontWidth,
 		Monochrome:   false,
-		NormalFace:   &ttfFace,
-		PaddedHeight: 1.5,
-		PaddedWidth:  1.1,
-		RGBA:         image.NewRGBA(image.Rect(0, 0, 400, 300)),
-		Rows:         uint(12),
+		NormalFace:   &normalFace,
+		PaddedHeight: paddedHeight,
+		PaddedWidth:  paddedWidth,
+		RGBA:         image.NewRGBA(image.Rect(0, 0, int(canvasWidth), int(canvasHeight))),
+		Rows:         rows,
 	}
 	// 👇 mock emulator!
 	return NewEmulator(bus, &cfg)
@@ -130,18 +136,4 @@ func MockStream(cmd types.Command, wcc types.WCC, img []string, attrs map[MockRC
 		}
 	}
 	return out.Bytes()
-}
-
-// 🟧 Smoke test
-
-func TestMockEmulator(t *testing.T) {
-	emu := MockEmulator()
-	ok := false
-	emu.Bus.SubRender(func() {
-		ok = true
-	})
-	emu.Initialize()
-	stream := MockStream(types.EW, types.WCC{}, MockExampleImg, MockExampleAttrs)
-	emu.Bus.PubOutbound(stream)
-	assert.True(t, ok, "smoke test for mock render")
 }

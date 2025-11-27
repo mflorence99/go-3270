@@ -7,7 +7,7 @@ import (
 )
 
 func TestCacheImageFor(t *testing.T) {
-	emu := MockEmulator().Initialize()
+	emu := MockEmulator(12, 40).Initialize()
 
 	g := Glyph{
 		Char:      'A',

@@ -6,6 +6,7 @@
   "go.buildTags": "dev",
   "go.testTags": "dev",
   "go.testEnvVars": {
+    "VSCODE": "true",
     "GOARCH": "",
     "GOOS": "",
     "GOFLAGS": "-tags=dev"

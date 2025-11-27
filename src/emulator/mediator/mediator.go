@@ -12,19 +12,10 @@ import (
 	"github.com/golang/freetype/truetype"
 
 	"emulator/core"
+	"emulator/fonts"
 	"emulator/snapshots"
 	"emulator/types"
 	"syscall/js"
-)
-
-// 🔥 Hack alert! we must use extension {js, wasm}
-//    and we can't use symlinks, so this file is a copy of the font renamed
-
-var (
-	//go:embed JuliaMono-Regular.ttf.wasm
-	normalFontEmbed []byte
-	//go:embed JuliaMono-Bold.ttf.wasm
-	boldFontEmbed []byte
 )
 
 // 🟧 Bridge between Typescript UI and Go-powered emulator
@@ -104,9 +95,9 @@ func (m *Mediator) configure(args []js.Value) *types.Config {
 	paddedWidth := 1.1
 	tickMs := 333
 	// 👇 load the fonts
-	normalFont, _ := truetype.Parse(normalFontEmbed)
+	normalFont, _ := truetype.Parse(fonts.NormalFontEmbed)
 	normalFace := truetype.NewFace(normalFont, &truetype.Options{Size: fontSize, DPI: dpi /* , Hinting: font.HintingFull */})
-	boldFont, _ := truetype.Parse(boldFontEmbed)
+	boldFont, _ := truetype.Parse(fonts.BoldFontEmbed)
 	boldFace := truetype.NewFace(boldFont, &truetype.Options{Size: fontSize, DPI: dpi /* , Hinting: font.HintingFull */})
 	// 👇 measure the cell size
 	temp := gg.NewContext(100, 100)

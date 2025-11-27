@@ -3,7 +3,6 @@ module emulator
 go 1.25.0
 
 require (
-	github.com/flopp/go-findfont v0.1.0
 	github.com/fogleman/gg v1.3.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/jedib0t/go-pretty/v6 v6.7.2

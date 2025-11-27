@@ -27,7 +27,7 @@ var img = []string{
 var attrs = map[MockRCCoord]*types.Attrs{}
 
 func TestNewFlds(t *testing.T) {
-	emu := MockEmulator().Initialize()
+	emu := MockEmulator(12, 40).Initialize()
 	stream := MockStream(types.EW, types.WCC{}, img, attrs)
 	emu.Bus.PubOutbound(stream)
 	flds := emu.Flds.Flds
@@ -57,7 +57,7 @@ func TestNewFlds(t *testing.T) {
 }
 
 func TestFldsFindFld(t *testing.T) {
-	emu := MockEmulator().Initialize()
+	emu := MockEmulator(12, 40).Initialize()
 	stream := MockStream(types.EW, types.WCC{}, img, attrs)
 	emu.Bus.PubOutbound(stream)
 	var fld *Fld
