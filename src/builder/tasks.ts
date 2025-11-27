@@ -313,7 +313,7 @@ export const allTasks = [
     banner: { color: colors.client, icon: icons.wasm },
     // 🔥 can't test packages that depend on syscall/js
     cmds: [
-      `(cd ${config.paths['emulator-go']} && go test -cover -tags dev emulator/conv emulator/core emulator/core/qr emulator/types emulator/utils)`
+      `(cd ${config.paths['emulator-go']} && go test -cover -tags dev emulator/conv emulator/core emulator/core/qr emulator/snapshots emulator/types emulator/utils)`
     ]
   })
 ];
