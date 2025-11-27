@@ -12,6 +12,7 @@ import (
 	"github.com/golang/freetype/truetype"
 
 	"emulator/core"
+	"emulator/samples"
 	"emulator/types"
 	"syscall/js"
 )
@@ -62,9 +63,14 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	m.bus.SubInbound(m.inbound)
 	m.bus.SubPanic(m.panic)
 	m.bus.SubStatus(m.status)
-	// 👇 create and configure the emulator and its childreen
-	m.emu = core.NewEmulator(m.bus, m.configure(args))
-	m.emu.Init()
+	// 👇 create and configure the emulator and its children
+	cfg := m.configure(args)
+	m.emu = core.NewEmulator(m.bus, cfg)
+	m.emu.Initialize()
+	// 👇 if debugging, show screenshot
+	if cfg.Testpage != "" {
+		m.bus.PubOutbound(samples.Index[cfg.Testpage])
+	}
 	return m.jsInterface()
 }
 

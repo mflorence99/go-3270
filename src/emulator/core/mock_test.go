@@ -140,7 +140,7 @@ func TestMockEmulator(t *testing.T) {
 	emu.Bus.SubRender(func() {
 		ok = true
 	})
-	emu.Init()
+	emu.Initialize()
 	stream := MockStream(types.EW, types.WCC{}, MockExampleImg, MockExampleAttrs)
 	emu.Bus.PubOutbound(stream)
 	assert.True(t, ok, "smoke test for mock render")

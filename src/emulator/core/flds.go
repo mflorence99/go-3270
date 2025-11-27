@@ -25,13 +25,13 @@ func NewFlds(emu *Emulator) *Flds {
 	f := new(Flds)
 	f.emu = emu
 	// 👇 subscriptions
-	f.emu.Bus.SubInitialize(f.init)
+	f.emu.Bus.SubInitialize(f.initialize)
 	f.emu.Bus.SubRender(f.build)
 	f.emu.Bus.SubReset(f.reset)
 	return f
 }
 
-func (f *Flds) init() {
+func (f *Flds) initialize() {
 	f.reset()
 }
 

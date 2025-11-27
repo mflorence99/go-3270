@@ -23,13 +23,13 @@ func NewConsumer(emu *Emulator) *Consumer {
 	c := new(Consumer)
 	c.emu = emu
 	// 👇 subscriptions
-	c.emu.Bus.SubInitialize(c.init)
+	c.emu.Bus.SubInitialize(c.initialize)
 	c.emu.Bus.SubOutbound(c.consume)
 	return c
 }
 
 // TODO 🔥 just in case we need it
-func (c *Consumer) init() {}
+func (c *Consumer) initialize() {}
 
 func (c *Consumer) consume(chars []byte) {
 	defer utils.ElapsedTime(time.Now())

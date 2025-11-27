@@ -3,7 +3,6 @@ package core
 import (
 	_ "embed"
 
-	"emulator/samples"
 	"emulator/types"
 )
 
@@ -52,12 +51,8 @@ func (e *Emulator) close() {}
 
 // 🔥 caller initializes when ready
 
-func (e *Emulator) Init() *Emulator {
+func (e *Emulator) Initialize() *Emulator {
 	e.Bus.PubInitialize()
-	// 👇 if debugging, show screenshot
-	if e.Cfg.Testpage != "" {
-		e.Bus.PubOutbound(samples.Index[e.Cfg.Testpage])
-	}
 	// 👇 useful for chaining directly to ctor
 	return e
 }

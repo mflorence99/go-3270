@@ -32,7 +32,7 @@ func NewLogger(emu *Emulator) *Logger {
 	l.emu = emu
 	// 👇 subscriptions
 	l.emu.Bus.SubClose(l.close)
-	l.emu.Bus.SubInitialize(l.init)
+	l.emu.Bus.SubInitialize(l.initialize)
 	l.emu.Bus.SubInbound(l.inbound)
 	l.emu.Bus.SubOutbound(l.outbound)
 	l.emu.Bus.SubProbe(l.probe)
@@ -46,7 +46,7 @@ func (l *Logger) close() {
 	println("🐞 Emulator closed")
 }
 
-func (l *Logger) init() {
+func (l *Logger) initialize() {
 	println("🐞 Emulator initialized")
 	go func() {
 		l.logConfig()

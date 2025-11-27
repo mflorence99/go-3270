@@ -22,7 +22,7 @@ func NewProducer(emu *Emulator) *Producer {
 	p.emu = emu
 	// 👇 subscriptions
 	p.emu.Bus.SubAttn(p.attn)
-	p.emu.Bus.SubInitialize(p.init)
+	p.emu.Bus.SubInitialize(p.initialize)
 	p.emu.Bus.SubQ(p.q)
 	p.emu.Bus.SubQL(p.ql)
 	p.emu.Bus.SubRB(p.rb)
@@ -33,7 +33,7 @@ func NewProducer(emu *Emulator) *Producer {
 }
 
 // TODO 🔥 just in case we need it
-func (p *Producer) init() {}
+func (p *Producer) initialize() {}
 
 // 🟦 Functions to produce requested stream type
 

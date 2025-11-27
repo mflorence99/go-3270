@@ -22,13 +22,13 @@ func NewCache(emu *Emulator) *Cache {
 	c := new(Cache)
 	c.emu = emu
 	// 👇 subscriptions
-	c.emu.Bus.SubInitialize(c.init)
+	c.emu.Bus.SubInitialize(c.initialize)
 	// 🔥 we never reset the glyph cache!
 	// c.emu.Bus.SubReset(c.reset)
 	return c
 }
 
-func (c *Cache) init() {
+func (c *Cache) initialize() {
 	c.cache = make(map[Glyph]image.Image)
 }
 

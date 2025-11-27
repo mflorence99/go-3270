@@ -24,7 +24,7 @@ func NewScreen(emu *Emulator) *Screen {
 	s := new(Screen)
 	s.emu = emu
 	// 👇 subscriptions
-	s.emu.Bus.SubInitialize(s.init)
+	s.emu.Bus.SubInitialize(s.initialize)
 	s.emu.Bus.SubRender(s.render)
 	s.emu.Bus.SubTick(s.blink)
 	// 🔥 curry the general function with the right parameters
@@ -35,7 +35,7 @@ func NewScreen(emu *Emulator) *Screen {
 	return s
 }
 
-func (s *Screen) init() {
+func (s *Screen) initialize() {
 	// 👇 precompute the box for each cell
 	s.cps = make([]Box, s.emu.Cfg.Cols*s.emu.Cfg.Rows)
 	for ix := range s.cps {

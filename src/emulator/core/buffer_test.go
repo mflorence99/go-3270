@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewBuffer(t *testing.T) {
-	emu := MockEmulator().Init()
+	emu := MockEmulator().Initialize()
 
 	assert.Equal(t, uint(0), emu.Buf.Addr(), "initial state")
 	assert.Equal(t, uint(12*40), emu.Buf.Len(), "initial state")
@@ -16,7 +16,7 @@ func TestNewBuffer(t *testing.T) {
 }
 
 func TestBufferSetMode(t *testing.T) {
-	emu := MockEmulator().Init()
+	emu := MockEmulator().Initialize()
 
 	assert.Equal(t, types.FIELD_MODE, emu.Buf.Mode(), "initial state")
 	emu.Buf.SetMode(types.CHARACTER_MODE)
@@ -30,7 +30,7 @@ func TestBufferPeek(t *testing.T) {
 	var cell *Cell
 	var ok bool
 
-	emu := MockEmulator().Init()
+	emu := MockEmulator().Initialize()
 
 	cell, ok = emu.Buf.Peek(100)
 	assert.NotNil(t, cell, "Peek addr in range")
@@ -55,7 +55,7 @@ func TestBufferSeek(t *testing.T) {
 	var addr uint
 	var ok bool
 
-	emu := MockEmulator().Init()
+	emu := MockEmulator().Initialize()
 
 	addr, ok = emu.Buf.Seek(100)
 	assert.Equal(t, uint(100), addr, "Seek addr in range")
@@ -76,7 +76,7 @@ func TestBufferReplace(t *testing.T) {
 	var ok bool
 	var repl = &Cell{}
 
-	emu := MockEmulator().Init()
+	emu := MockEmulator().Initialize()
 
 	cell, ok = emu.Buf.Replace(repl, 100)
 	assert.Equal(t, *repl, *cell, "Replace addr in range")
@@ -97,7 +97,7 @@ func TestBefferGet(t *testing.T) {
 	var addr uint
 	var cell *Cell
 
-	emu := MockEmulator().Init()
+	emu := MockEmulator().Initialize()
 	emu.Buf.Seek(uint(12*40 - 1))
 
 	cell, addr = emu.Buf.Get()
@@ -118,7 +118,7 @@ func TestBufferSet(t *testing.T) {
 	var cell *Cell
 	var repl = &Cell{}
 
-	emu := MockEmulator().Init()
+	emu := MockEmulator().Initialize()
 	emu.Buf.Seek(uint(12*40 - 1))
 
 	addr = emu.Buf.Set(repl)

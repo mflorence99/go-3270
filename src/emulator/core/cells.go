@@ -19,12 +19,12 @@ func NewCells(emu *Emulator) *Cells {
 	c := new(Cells)
 	c.emu = emu
 	// 👇 subscriptions
-	c.emu.Bus.SubInitialize(c.init)
+	c.emu.Bus.SubInitialize(c.initialize)
 	c.emu.Bus.SubReset(c.reset)
 	return c
 }
 
-func (c *Cells) init() {
+func (c *Cells) initialize() {
 	c.reset()
 }
 

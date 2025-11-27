@@ -19,7 +19,7 @@ func NewState(emu *Emulator) *State {
 	s := new(State)
 	s.emu = emu
 	// 👇 subscriptions
-	s.emu.Bus.SubInitialize(s.init)
+	s.emu.Bus.SubInitialize(s.initialize)
 	s.emu.Bus.SubInbound(s.lock)
 	s.emu.Bus.SubOutbound(s.unlock)
 	s.emu.Bus.SubReset(s.reset)
@@ -27,7 +27,7 @@ func NewState(emu *Emulator) *State {
 	return s
 }
 
-func (s *State) init() {
+func (s *State) initialize() {
 	s.reset()
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 func TestNewState(t *testing.T) {
-	emu := MockEmulator().Init()
+	emu := MockEmulator().Initialize()
 	t.Run("smoke test on empty Status", func(t *testing.T) {
 		assert.False(t, emu.State.Status.Alarm)
 		assert.Equal(t, uint(0), emu.State.Status.CursorAt)
@@ -24,7 +24,7 @@ func TestNewState(t *testing.T) {
 }
 
 func TestStatePatch(t *testing.T) {
-	emu := MockEmulator().Init()
+	emu := MockEmulator().Initialize()
 	emu.State.Patch(types.Patch{
 		Alarm:     utils.BoolPtr(true),
 		CursorAt:  utils.UintPtr(100),
@@ -51,7 +51,7 @@ func TestStatePatch(t *testing.T) {
 }
 
 func TestStateWCC(t *testing.T) {
-	emu := MockEmulator().Init()
+	emu := MockEmulator().Initialize()
 	var actual types.WCC
 	emu.Bus.SubWCChar(func(wcc types.WCC) {
 		actual = wcc
@@ -67,7 +67,7 @@ func TestStateWCC(t *testing.T) {
 }
 
 func TestStateLock(t *testing.T) {
-	emu := MockEmulator().Init()
+	emu := MockEmulator().Initialize()
 	var locked, unlocked bool
 
 	emu.Bus.SubInbound(func(_ []byte, _ PubInboundHints) {
