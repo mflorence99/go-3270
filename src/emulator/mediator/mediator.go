@@ -12,7 +12,7 @@ import (
 	"github.com/golang/freetype/truetype"
 
 	"emulator/core"
-	"emulator/samples"
+	"emulator/snapshots"
 	"emulator/types"
 	"syscall/js"
 )
@@ -69,7 +69,7 @@ func NewGo3270(this js.Value, args []js.Value) any {
 	m.emu.Initialize()
 	// 👇 if debugging, show screenshot
 	if cfg.Testpage != "" {
-		m.bus.PubOutbound(samples.Index[cfg.Testpage])
+		m.bus.PubOutbound(snapshots.Index[cfg.Testpage])
 	}
 	return m.jsInterface()
 }

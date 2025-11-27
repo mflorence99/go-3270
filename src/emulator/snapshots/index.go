@@ -1,6 +1,6 @@
 //go:build dev
 
-package samples
+package snapshots
 
 import (
 	"emulator/conv"

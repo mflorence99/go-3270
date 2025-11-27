@@ -1,5 +1,5 @@
 //go:build prod
 
-package samples
+package snapshots
 
 var Index map[string][]byte
