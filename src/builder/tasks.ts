@@ -8,12 +8,12 @@ class TaskClass {
     color: 'b7b8b4',
     icon: '\udb81\udcd8'
   };
-  cmd?: string;
   cmds?: string[];
   description: string = '';
   func?: (args?: any) => Promise<boolean>;
   kill?: () => Promise<void>;
   name: string = '';
+  prod?: string[];
   subTasks?: string[];
   watchDirs?: string[];
 
@@ -142,7 +142,10 @@ export const allTasks = [
     description: 'Bundle client WASM',
     banner: { color: colors.client, icon: icons.wasm },
     cmds: [
-      `(cd ${config.paths['emulator-go']} && GOOS=js GOARCH=wasm go build -o ${config.paths['client-js']}/index.wasm main.go)`
+      `(cd ${config.paths['emulator-go']} && GOOS=js GOARCH=wasm go build -tags dev -o ${config.paths['client-js']}/index.wasm main.go)`
+    ],
+    prod: [
+      `(cd ${config.paths['emulator-go']} && GOOS=js GOARCH=wasm go build -tags prod -o ${config.paths['client-js']}/index.wasm main.go)`
     ]
   }),
 
@@ -188,21 +191,21 @@ export const allTasks = [
     name: 'check:builder',
     description: 'Test compile builder without emitting JS',
     banner: { color: colors.builder, icon: icons.check },
-    cmd: `bunx tsc --noEmit -p ${config.paths['builder-ts']}`
+    cmds: [`bunx tsc --noEmit -p ${config.paths['builder-ts']}`]
   }),
 
   new TaskClass({
     name: 'check:client',
     description: 'Test compile client without emitting JS',
     banner: { color: colors.client, icon: icons.check },
-    cmd: `bunx tsc --noEmit -p ${config.paths['client-ts']}`
+    cmds: [`bunx tsc --noEmit -p ${config.paths['client-ts']}`]
   }),
 
   new TaskClass({
     name: 'check:server',
     description: 'Test compile server without emitting JS',
     banner: { color: colors.server, icon: icons.check },
-    cmd: `bunx tsc --noEmit -p ${config.paths['server-ts']}`
+    cmds: [`bunx tsc --noEmit -p ${config.paths['server-ts']}`]
   }),
 
   // ////////////////////////////////////////////////////////
@@ -255,7 +258,7 @@ export const allTasks = [
   new TaskClass({
     name: 'format',
     description: 'Format all code using prettier',
-    cmd: `bunx prettier --write ${config.paths.root}`
+    cmds: [`bunx prettier --write ${config.paths.root}`]
   }),
 
   // ////////////////////////////////////////////////////////
@@ -272,14 +275,16 @@ export const allTasks = [
     name: 'lint:eslint',
     description: 'Lint build, client, and server code with eslint',
     banner: { color: colors.builder, icon: icons.lint },
-    cmd: `bunx eslint ${config.paths['builder-ts']} ${config.paths['client-ts']} ${config.paths['server-ts']}`
+    cmds: [
+      `bunx eslint ${config.paths['builder-ts']} ${config.paths['client-ts']} ${config.paths['server-ts']}`
+    ]
   }),
 
   new TaskClass({
     name: 'lint:lit-analyzer',
     description: 'Lint client code using lit-analyzer',
     banner: { color: colors.client, icon: icons.lint },
-    cmd: `bunx lit-analyzer ${config.paths['client-ts']}`
+    cmds: [`bunx lit-analyzer ${config.paths['client-ts']}`]
   }),
 
   new TaskClass({
@@ -287,7 +292,9 @@ export const allTasks = [
     description:
       'Validate styles for CSS files and those embedded in TSX',
     banner: { color: colors.server, icon: icons.lint },
-    cmd: `bunx stylelint --fix "${config.paths['client-ts']}/**/*.{css,tsx}"`
+    cmds: [
+      `bunx stylelint --fix "${config.paths['client-ts']}/**/*.{css,tsx}"`
+    ]
   }),
 
   // ////////////////////////////////////////////////////////
@@ -305,7 +312,9 @@ export const allTasks = [
     description: 'Run unit tests for client WASM',
     banner: { color: colors.client, icon: icons.wasm },
     // 🔥 can't test packages that depend on syscall/js
-    cmd: `(cd ${config.paths['emulator-go']} && go test emulator/conv emulator/core emulator/core/qr emulator/types emulator/utils -cover)`
+    cmds: [
+      `(cd ${config.paths['emulator-go']} && go test emulator/conv emulator/core emulator/core/qr emulator/types emulator/utils -cover)`
+    ]
   })
 ];
 

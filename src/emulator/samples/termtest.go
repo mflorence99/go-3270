@@ -1,3 +1,5 @@
+//go:build dev
+
 package samples
 
 // 🟧 MVS TSO term test stream -- clipped from WireShark

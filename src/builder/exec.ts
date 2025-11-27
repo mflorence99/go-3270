@@ -50,15 +50,17 @@ const run = async (todos: Task[]): Promise<number> => {
       // 👇 this looks pretty, but has no other function
       banner(todo.name, todo.banner);
       // 👇 could be a command
-      const cmds = todo.cmds ?? [todo.cmd];
-      for (const cmd of cmds) {
-        if (cmd) {
-          log({ important: todo.name, text: cmd });
-          const plist = await psList();
-          const existing = plist.find((p) => p.cmd === cmd);
-          if (existing) kill(existing.pid, 'SIGINT');
-          const { exitCode } = await $`${{ raw: cmd }}`.nothrow();
-          if (exitCode !== 0) return error(1);
+      const cmds = prod ? todo.prod : todo.cmds;
+      if (cmds) {
+        for (const cmd of cmds) {
+          if (cmd) {
+            log({ important: todo.name, text: cmd });
+            const plist = await psList();
+            const existing = plist.find((p) => p.cmd === cmd);
+            if (existing) kill(existing.pid, 'SIGINT');
+            const { exitCode } = await $`${{ raw: cmd }}`.nothrow();
+            if (exitCode !== 0) return error(1);
+          }
         }
       }
       // 👇 could be a function
