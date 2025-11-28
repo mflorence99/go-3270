@@ -101,36 +101,74 @@ type MockRCCoord struct {
 	Col uint
 }
 
-var MockExampleAttrs = map[MockRCCoord]*types.Attrs{}
+type MockAttrsMap map[MockRCCoord]*types.Attrs
+
+var MockExampleAttrs = MockAttrsMap{}
 
 // 🟦 Constructor
 
-func MockStream(cmd types.Command, wcc types.WCC, img []string, attrs map[MockRCCoord]*types.Attrs) []byte {
+func MockStream(cmd types.Command, wcc types.WCC, img []string, attrsMap MockAttrsMap) []byte {
+
 	// 👇 use the convenience of the inbound stream
 	out := NewInbound()
 	out.Put(byte(cmd))
 	out.Put(wcc.Bits())
+
+	attrsFor := func(row, col int, dflt *types.Attrs) *types.Attrs {
+		attrs := attrsMap[MockRCCoord{uint(row), uint(col)}]
+		if attrs == nil {
+			attrs = dflt
+		} else if dflt != nil {
+			attrs = types.NewModifiedAttrs(attrs, dflt.Bytes())
+		}
+		return attrs
+	}
+
+	putSA := func(row, col int, dflt *types.Attrs) {
+		attrs := attrsFor(row, col, dflt)
+		if attrs != nil {
+			raw := attrs.Bytes()
+			for ix := 0; ix < len(raw); ix += 2 {
+				out.Put(byte(types.SA))
+				out.Put(raw[ix])
+				out.Put(raw[ix+1])
+			}
+		}
+	}
+
+	putSFE := func(row, col int, dflt *types.Attrs) {
+		attrs := attrsFor(row, col, dflt)
+		if attrs != nil {
+			out.Put(byte(types.SFE))
+			raw := attrs.Bytes()
+			out.Put(byte(len(raw) / 2))
+			for ix := 0; ix < len(raw); ix++ {
+				out.Put(raw[ix])
+			}
+		}
+	}
+
 	// 👇 for each row/col
 	for row := 1; row <= len(img); row++ {
 		runes := []rune(img[row-1])
 		for col := 1; col <= len(runes); col++ {
 			addr := uint((row-1)*len(runes) + col - 1)
 			char := runes[col-1]
+
 			switch char {
 
 			case '¶':
 				out.Put(byte(types.SBA))
 				out.PutSlice(conv.Addr2Bytes(addr))
-				out.Put(byte(types.SF))
-				out.Put((&types.Attrs{Protected: true}).Bits())
+				putSFE(row, col, &types.Attrs{Protected: true})
 
 			case '■':
 				out.Put(byte(types.SBA))
 				out.PutSlice(conv.Addr2Bytes(addr))
-				out.Put(byte(types.SF))
-				out.Put((&types.Attrs{}).Bits())
+				putSFE(row, col, &types.Attrs{})
 
 			default:
+				putSA(row, col, nil)
 				out.Put(conv.A2E(byte(char)))
 
 			}
