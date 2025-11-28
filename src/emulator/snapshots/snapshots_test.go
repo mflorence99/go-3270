@@ -30,11 +30,10 @@ func TestNewSnapshots(t *testing.T) {
 		dir := filepath.Dir(file)
 		var perm os.FileMode = 0777 // 👈 seem to need this to work
 
+		// 👇 for every snapshot ...
+
 		for nm, stream := range Index {
 			t.Run(fmt.Sprintf("create %s snapshot", nm), func(t *testing.T) {
-
-				// 👇 a RW directory for each snapshot
-				os.MkdirAll(filepath.Join(dir, nm), perm)
 
 				// 👇 run each snapshot through the emulator
 				emu := core.MockEmulator(32, 80)
@@ -48,10 +47,23 @@ func TestNewSnapshots(t *testing.T) {
 				png.Encode(&buf, img)
 
 				// 👇 emit the snapshot
+				os.MkdirAll(filepath.Join(dir, nm), perm)
 				os.WriteFile(filepath.Join(dir, nm, "flds.json"), []byte(flds), perm)
 				os.WriteFile(filepath.Join(dir, nm, "screen.png"), buf.Bytes(), perm)
 			})
 		}
+
+		// 👇 same basically for QUERY_RESPONSE
+
+		t.Run("create QR snapshot", func(t *testing.T) {
+			emu := core.MockEmulator(32, 80)
+			emu.Initialize()
+			emu.Bus.SubInbound(func(chars []byte, _ core.PubInboundHints) {
+				qr, _ := json.Marshal(chars)
+				os.WriteFile(filepath.Join(dir, "qr.json"), []byte(qr), perm)
+			})
+			emu.Bus.PubQ()
+		})
 	} else {
 		t.Skip("🔥 snapshot creation disabled")
 	}
@@ -64,6 +76,8 @@ func TestOldSnapshots(t *testing.T) {
 	// 👇 snapshots reside in THIS directory
 	_, file, _, _ := runtime.Caller(0)
 	dir := filepath.Dir(file)
+
+	// 👇 for every snapshot ...
 
 	for nm, stream := range Index {
 		t.Run(fmt.Sprintf("validate %s snapshot", nm), func(t *testing.T) {
@@ -101,4 +115,20 @@ func TestOldSnapshots(t *testing.T) {
 
 		})
 	}
+
+	// 👇 same basically for QUERY_RESPONSE
+
+	t.Run("create QR snapshot", func(t *testing.T) {
+		emu := core.MockEmulator(32, 80)
+		emu.Initialize()
+		emu.Bus.SubInbound(func(chars []byte, _ core.PubInboundHints) {
+			expected, _ := os.ReadFile(filepath.Join(dir, "qr.json"))
+			actual, _ := json.Marshal(chars)
+			if !bytes.Equal(expected, actual) {
+				t.Log("🔥 qr.json differs from snapshot")
+				t.Fail()
+			}
+		})
+		emu.Bus.PubQ()
+	})
 }
