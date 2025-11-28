@@ -23,7 +23,7 @@ import (
 func TestNewSnapshots(t *testing.T) {
 	// 🔥 to be ABSOLUTELY sure you only run this when you have to
 	//    recreate the snapshots, change below to "true"
-	if os.Getenv("VSCODE") == "truexxx" {
+	if os.Getenv("VSCODE") == "true" {
 
 		// 👇 create snapshots in THIS directory
 		_, file, _, _ := runtime.Caller(0)
@@ -53,7 +53,7 @@ func TestNewSnapshots(t *testing.T) {
 			})
 		}
 	} else {
-		t.Log("🔥 snapshot creation disabled")
+		t.Skip("🔥 snapshot creation disabled")
 	}
 }
 
@@ -73,19 +73,29 @@ func TestOldSnapshots(t *testing.T) {
 			emu.Initialize()
 			emu.Bus.PubOutbound(stream)
 
-			// 👇 what is expected was recorded on disk
-			var expected []core.Flds
+			// 👇 what is expectedFlds was recorded on disk
+			var expectedFlds []core.Flds
 			raw, _ := os.ReadFile(filepath.Join(dir, nm, "flds.json"))
-			json.Unmarshal(raw, &expected)
+			json.Unmarshal(raw, &expectedFlds)
 
-			// 👇 un/marshal the actual Flds to wipe unexported fields
-			var actual []core.Flds
+			// 👇 un/marshal the actualFlds Flds to wipe unexported fields
+			var actualFlds []core.Flds
 			flds, _ := json.Marshal(emu.Flds)
-			json.Unmarshal(flds, &actual)
+			json.Unmarshal(flds, &actualFlds)
 
 			// 👇 compare expected vs actual Flds
-			if diff := cmp.Diff(expected, actual); diff != "" {
+			if diff := cmp.Diff(expectedFlds, actualFlds); diff != "" {
 				t.Log(diff)
+				t.Fail()
+			}
+
+			// 👇 now do the same for the screen image
+			expectedImg, _ := os.ReadFile(filepath.Join(dir, nm, "screen.png"))
+			img := emu.Cfg.RGBA
+			var actualImg bytes.Buffer
+			png.Encode(&actualImg, img)
+			if !bytes.Equal(expectedImg, actualImg.Bytes()) {
+				t.Logf("🔥 %s/screen.png differs from snapshot", nm)
 				t.Fail()
 			}
 

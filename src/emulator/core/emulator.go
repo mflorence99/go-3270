@@ -36,7 +36,9 @@ func NewEmulator(bus *Bus, cfg *types.Config) *Emulator {
 	e.GC = NewCache(e)
 	e.In = NewProducer(e)
 	e.Kbd = NewKeyboard(e)
-	e.Log = NewLogger(e)
+	if !cfg.SuppressLogs {
+		e.Log = NewLogger(e)
+	}
 	e.Out = NewConsumer(e)
 	e.Scr = NewScreen(e)
 	e.State = NewState(e)

@@ -22,6 +22,7 @@ type Config struct {
 	PaddedWidth  float64
 	RGBA         *image.RGBA
 	Rows         uint
+	SuppressLogs bool
 	Testpage     string
 }
 

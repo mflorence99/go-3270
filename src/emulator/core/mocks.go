@@ -62,6 +62,7 @@ func MockEmulator(rows, cols uint) *Emulator {
 		PaddedWidth:  paddedWidth,
 		RGBA:         image.NewRGBA(image.Rect(0, 0, int(canvasWidth), int(canvasHeight))),
 		Rows:         rows,
+		SuppressLogs: true,
 	}
 	// 👇 mock emulator!
 	return NewEmulator(bus, &cfg)
