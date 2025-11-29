@@ -64,6 +64,16 @@ func TestNewCells(t *testing.T) {
 			assert.Equal(t, expected.home, cell.IsFldHome())
 			assert.Equal(t, expected.char, cell.Char)
 			assert.Equal(t, expected.color, cell.Attrs.Color)
+
+			if cell.IsFldStart() {
+				sf, _ := cell.GetFldStart()
+				assert.Equal(t, cell, sf)
+			}
+
+			if cell.IsFldHome() {
+				home, _ := cell.GetFldHome()
+				assert.Equal(t, cell, home)
+			}
 		}
 	})
 }
