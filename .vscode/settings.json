@@ -3,8 +3,6 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "go.buildTags": "dev",
-  "go.testTags": "dev",
   "go.testEnvVars": {
     "VSCODE": "true",
     "GOARCH": "",

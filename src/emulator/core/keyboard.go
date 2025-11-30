@@ -26,14 +26,10 @@ func NewKeyboard(emu *Emulator) *Keyboard {
 	k := new(Keyboard)
 	k.emu = emu
 	// 👇 subscriptions
-	k.emu.Bus.SubInitialize(k.initialize)
 	k.emu.Bus.SubKeystroke(k.keystroke)
 	k.emu.Bus.SubFocus(k.focus)
 	return k
 }
-
-// TODO 🔥 just in case we need it
-func (k *Keyboard) initialize() {}
 
 // 🟦 Gain/lose focus
 
@@ -66,7 +62,7 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 	switch {
 
 	case aid == types.CLEAR:
-		// TODO 🔥 this is a backdoor for testing
+		// 🔥 this is a backdoor for testing
 		if key.SHIFT {
 			k.emu.Bus.PubRB(aid)
 		} else {

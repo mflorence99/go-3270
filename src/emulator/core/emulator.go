@@ -42,14 +42,8 @@ func NewEmulator(bus *Bus, cfg *types.Config) *Emulator {
 	e.Out = NewConsumer(e)
 	e.Scr = NewScreen(e)
 	e.State = NewState(e)
-	// 👇 subscriptions
-	e.Bus.SubClose(e.close)
 	return e
 }
-
-// TODO 🔥 placeholder, just in case we need it
-
-func (e *Emulator) close() {}
 
 // 🔥 caller initializes when ready
 
