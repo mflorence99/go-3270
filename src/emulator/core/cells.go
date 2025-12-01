@@ -89,9 +89,8 @@ func (c *Cells) RB() []byte {
 			}
 
 		// 👇 emit SA everytime attribute changes
-		case cell.Attrs.CharAttr:
-			charAttrs := cell.Attrs
-			delta := charAttrs.Diff(fldAttrs)
+		case mode == types.CHARACTER_MODE && cell.Attrs.CharAttr:
+			delta := types.NewDiffAttrs(cell.Attrs, fldAttrs)
 			raw := delta.Bytes()
 			for ix := 0; ix < len(raw); ix += 2 {
 				chars = append(chars, byte(types.SA))
@@ -100,7 +99,7 @@ func (c *Cells) RB() []byte {
 			}
 			chars = append(chars, cell.Char)
 			// 👇 now the char attrs take over
-			fldAttrs = charAttrs
+			fldAttrs = cell.Attrs
 
 		// 👇 just the data
 		default:

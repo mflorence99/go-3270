@@ -86,9 +86,7 @@ func (b *Buffer) Seek(addr uint) (uint, bool) {
 }
 
 func (b *Buffer) SetMode(mode types.Mode) types.Mode {
-	if mode > b.mode {
-		b.mode = mode
-	}
+	b.mode = mode
 	return b.mode
 }
 

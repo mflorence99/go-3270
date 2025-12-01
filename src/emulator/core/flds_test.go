@@ -12,9 +12,9 @@ var fldsImg = []string{
 	/*        1234567890123456789012345678901234567890 */
 	/* 01 */ "         ¶Test screen                   ",
 	/* 02 */ "                                        ",
-	/* 03 */ "¶What is your name ?■                  ¶",
+	/* 03 */ "¶What is your name ?■Mark Florence     ¶",
 	/* 04 */ "                                        ",
-	/* 05 */ "¶Where are you from?■                  ¶",
+	/* 05 */ "¶Where are you from?■Coos Bay, Or      ¶",
 	/* 06 */ "                                        ",
 	/* 07 */ "                                        ",
 	/* 08 */ "                                        ",
@@ -24,7 +24,16 @@ var fldsImg = []string{
 	/* 12 */ "                             ¶Test # 46b",
 }
 
-var fldsAttrs = map[MockRCCoord]*types.Attrs{}
+var fldsAttrs = map[MockRCCoord]*types.Attrs{
+	{3, 21}: {MDT: true},
+	{3, 22}: {Color: types.RED, Highlight: true},
+	{3, 23}: {Color: types.GREEN, Reverse: true},
+	{3, 24}: {Color: types.BLUE, Blink: true},
+	{5, 21}: {MDT: true},
+	{5, 22}: {Color: types.RED, Highlight: true},
+	{5, 23}: {Color: types.GREEN, Reverse: true},
+	{5, 24}: {Color: types.BLUE, Blink: true},
+}
 
 func TestNewFlds(t *testing.T) {
 	emu := MockEmulator(12, 40).Initialize()
@@ -74,5 +83,15 @@ func TestFldsFindFld(t *testing.T) {
 
 		fld, ok = emu.Flds.FindFld(120)
 		assert.False(t, ok)
+	})
+}
+
+func TestFldsRM(t *testing.T) {
+	emu := MockEmulator(12, 40).Initialize()
+	stream := MockStream(types.EW, types.WCC{}, fldsImg, fldsAttrs)
+	emu.Bus.PubOutbound(stream)
+	t.Run("can RM return modified fields * char attrs", func(t *testing.T) {
+		chars := emu.Flds.RM()
+		_ = chars
 	})
 }

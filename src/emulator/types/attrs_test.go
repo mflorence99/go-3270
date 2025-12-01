@@ -101,11 +101,10 @@ func TestAttrsDiff(t *testing.T) {
 		Highlight: true,
 	}
 	d := &Attrs{
-		Autoskip: false,
-		Blink:    true,
-		Color:    Color(0xf4),
+		Blink: true,
+		Color: Color(0xf4),
 	}
-	assert.Equal(t, d, a.Diff(b), "diff of two attrs")
+	assert.Equal(t, d, NewDiffAttrs(a, b), "diff of two attrs")
 }
 
 func TestAttrsStringer(t *testing.T) {

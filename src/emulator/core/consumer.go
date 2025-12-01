@@ -143,7 +143,6 @@ func (c *Consumer) wcc(out *Outbound) bool {
 
 func (c *Consumer) wsf(out *Outbound) {
 	// TODO 🔥 there are a million SF types
-	// but we are interested in READ_PARTITION
 	sflds := SFldsFromStream(out)
 	for _, sfld := range sflds {
 
@@ -152,7 +151,9 @@ func (c *Consumer) wsf(out *Outbound) {
 		case types.READ_PARTITION:
 			c.rp(sfld)
 
-		// TODO 🔥 only READ_PARTITION is implemented
+		case types.SET_REPLY_MODE:
+			c.srm(sfld)
+
 		default:
 			c.emu.Bus.PubPanic(fmt.Sprintf("🔥 SFld %s not implemented", sfld))
 
@@ -205,6 +206,14 @@ func (c *Consumer) rp(sfld SFld) {
 			c.emu.Bus.PubRMA(types.INBOUND)
 
 		}
+	}
+}
+
+func (c *Consumer) srm(sfld SFld) {
+	pid := sfld.Info[0]
+	if pid == 0xfF {
+		mode := types.Mode(sfld.Info[1])
+		c.emu.Buf.SetMode(mode)
 	}
 }
 
@@ -336,7 +345,6 @@ func (c *Consumer) ra(out *Outbound, fldAddr uint, fldAttrs *types.Attrs, inFld 
 }
 
 func (c *Consumer) sa(out *Outbound, fldAttrs *types.Attrs) *types.Attrs {
-	c.emu.Buf.SetMode(types.CHARACTER_MODE)
 	chars := out.MustNextSlice(2)
 	return types.NewModifiedAttrs(fldAttrs, chars)
 }
@@ -348,7 +356,6 @@ func (c *Consumer) sba(out *Outbound) {
 }
 
 func (c *Consumer) sf(out *Outbound) (uint, *types.Attrs) {
-	c.emu.Buf.SetMode(types.FIELD_MODE)
 	raw := out.MustNext()
 	fldAttrs := types.NewBasicAttrs(raw)
 	fldAddr := c.emu.Buf.Addr()
@@ -357,7 +364,6 @@ func (c *Consumer) sf(out *Outbound) (uint, *types.Attrs) {
 }
 
 func (c *Consumer) sfe(out *Outbound) (uint, *types.Attrs) {
-	c.emu.Buf.SetMode(types.EXTENDED_FIELD_MODE)
 	count := out.MustNext()
 	raw := out.MustNextSlice(int(count) * 2)
 	fldAttrs := types.NewExtendedAttrs(raw)

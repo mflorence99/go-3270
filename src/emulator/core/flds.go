@@ -131,10 +131,12 @@ func (f *Flds) FindFld(fldAddr uint) (*Fld, bool) {
 // 👁️ Read Modified command pp 3-13 to 3-15
 func (f *Flds) RM() []byte {
 	chars := make([]byte, 0)
+	mode := f.emu.Buf.Mode()
 	for _, fld := range f.Flds {
 		sf := fld.Cells[0]
 		// 👇 for each changed field
 		if sf.Attrs.MDT {
+			fldAttrs := sf.Attrs
 			chars = append(chars, byte(types.SBA))
 			addr, _ := sf.GetFldAddr()
 			next := f.emu.Buf.WrapAddr(int(addr) + 1)
@@ -142,17 +144,18 @@ func (f *Flds) RM() []byte {
 			// 👇 now for each cell in that field
 			for ix := 1; ix < len(fld.Cells); ix++ {
 				cell := fld.Cells[ix]
-				// TODO 🔥 this seems to blow the 1 RFE page input in TSOAPPLS
 				// 👇 emit SA order for char attrs different to fld attrs
-				// if cell.Attrs.CharAttr {
-				// 	delta := cell.Attrs.Diff(sf.Attrs)
-				// 	raw := delta.Bytes()
-				// 	for ix := 0; ix < len(raw); ix += 2 {
-				// 		chars = append(chars, byte(types.SA))
-				// 		chars = append(chars, raw[ix])
-				// 		chars = append(chars, raw[ix+1])
-				// 	}
-				// }
+				if mode == types.CHARACTER_MODE && cell.Attrs.CharAttr {
+					delta := types.NewDiffAttrs(cell.Attrs, fldAttrs)
+					raw := delta.Bytes()
+					for ix := 0; ix < len(raw); ix += 2 {
+						chars = append(chars, byte(types.SA))
+						chars = append(chars, raw[ix])
+						chars = append(chars, raw[ix+1])
+					}
+					// 👇 now the char attrs take over
+					fldAttrs = cell.Attrs
+				}
 				// 👇 suppress null characters
 				if cell.Char != 0x00 {
 					chars = append(chars, cell.Char)

@@ -21,8 +21,6 @@ func TestBufferSetMode(t *testing.T) {
 	assert.Equal(t, types.FIELD_MODE, emu.Buf.Mode(), "initial state")
 	emu.Buf.SetMode(types.CHARACTER_MODE)
 	assert.Equal(t, types.CHARACTER_MODE, emu.Buf.Mode(), "set mode to character mode")
-	emu.Buf.SetMode(types.EXTENDED_FIELD_MODE)
-	assert.Equal(t, types.CHARACTER_MODE, emu.Buf.Mode(), "still character mode as extended field mode is lower")
 }
 
 func TestBufferPeek(t *testing.T) {

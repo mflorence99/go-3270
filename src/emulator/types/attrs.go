@@ -1,7 +1,6 @@
 package types
 
 import (
-	"emulator/utils"
 	"strings"
 )
 
@@ -43,6 +42,22 @@ func NewBasicAttrs(char byte) *Attrs {
 	a := new(Attrs)
 	a.fromBits(char)
 	return a
+}
+
+func NewDiffAttrs(a *Attrs, b *Attrs) *Attrs {
+	am := a.Map()
+	bm := b.Map()
+	chars := make([]byte, 0)
+	for ak, av := range am {
+		bv := bm[ak]
+		if bv != av {
+			chars = append(chars, byte(ak))
+			chars = append(chars, av)
+		}
+	}
+	d := new(Attrs)
+	d.fromBytes(chars)
+	return d
 }
 
 func NewExtendedAttrs(chars []byte) *Attrs {
@@ -173,22 +188,13 @@ func (a *Attrs) Bytes() []byte {
 	return chars
 }
 
-func (a *Attrs) Diff(b *Attrs) *Attrs {
-	delta := Attrs{
-		Autoskip:   a.Autoskip && !b.Autoskip,
-		Blink:      a.Blink && !b.Blink,
-		Color:      utils.Ternary(a.Color != b.Color, a.Color, 0x00),
-		Hidden:     a.Hidden && !b.Hidden,
-		Highlight:  a.Highlight && !b.Highlight,
-		LCID:       utils.Ternary(a.LCID != b.LCID, a.LCID, 0x00),
-		MDT:        a.MDT && !b.MDT,
-		Numeric:    a.Numeric && !b.Numeric,
-		Outline:    utils.Ternary(a.Outline != b.Outline, a.Outline, 0b00000000),
-		Protected:  a.Protected && !b.Protected,
-		Reverse:    a.Reverse && !b.Reverse,
-		Underscore: a.Underscore && !b.Underscore,
+func (a *Attrs) Map() map[Typecode]byte {
+	m := make(map[Typecode]byte)
+	b := a.Bytes()
+	for ix := 0; ix < len(b); ix += 2 {
+		m[Typecode(b[ix])] = b[ix+1]
 	}
-	return &delta
+	return m
 }
 
 // 🟦 Stringer implementation

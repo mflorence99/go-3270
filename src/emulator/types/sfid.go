@@ -11,13 +11,15 @@ type SFID byte
 // 🟦 Lookup tables
 
 const (
-	QUERY_REPLY    SFID = 0x81
 	READ_PARTITION SFID = 0x01
+	SET_REPLY_MODE SFID = 0x09
+	QUERY_REPLY    SFID = 0x81
 )
 
 var sfids = map[SFID]string{
-	0x81: "QUERY_REPLY",
 	0x01: "READ_PARTITION",
+	0x09: "SET_REPLY_MODE",
+	0x81: "QUERY_REPLY",
 }
 
 // 🟦 Stringer implementation
