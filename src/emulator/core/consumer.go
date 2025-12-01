@@ -294,8 +294,7 @@ func (c *Consumer) eua(out *Outbound) {
 
 func (c *Consumer) ge(out *Outbound, fldAddr uint, fldAttrs *types.Attrs, inFld bool) {
 	char := out.MustNext()
-	// TODO 🔥 GE not properly handled -- what alt character set??
-	// also needs to be present in inbound stream (RB, RM/A)
+	// 👁️ qr/character-sets.go for where we announce support for this LCID
 	fldAttrs.LCID = 0xf1
 	c.char(char, fldAddr, fldAttrs, inFld)
 }
@@ -327,8 +326,7 @@ func (c *Consumer) ra(out *Outbound, fldAddr uint, fldAttrs *types.Attrs, inFld 
 	if ok {
 		char := out.MustNext()
 		if types.Order(char) == types.GE {
-			// TODO 🔥 GE not properly handled -- what alt character set??
-			// also needs to be present in inbound stream (RB, RM/A)
+			// 👁️ qr/character-sets.go for where we announce support for this LCID
 			fldAttrs.LCID = 0xf1
 			char = out.MustNext()
 		}
