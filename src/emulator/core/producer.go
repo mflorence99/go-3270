@@ -61,9 +61,9 @@ func (p *Producer) q() {
 		types.IMPLICIT_PARTITION,
 	}).Put(in)
 	// 👇 then the rest
-	qr.NewUsableArea(p.emu.Cfg.Cols, p.emu.Cfg.Rows).Put(in)
+	qr.NewUsableArea(p.emu.Cfg.Cols, p.emu.Cfg.Rows, p.emu.Cfg.FontWidth, p.emu.Cfg.FontHeight).Put(in)
 	qr.NewAlphanumericPartitions(p.emu.Cfg.Cols, p.emu.Cfg.Rows).Put(in)
-	qr.NewCharacterSets().Put(in)
+	qr.NewCharacterSets(p.emu.Cfg.FontWidth, p.emu.Cfg.FontHeight).Put(in)
 	qr.NewColorSupport(p.emu.Cfg.Monochrome).Put(in)
 	qr.NewHighlighting().Put(in)
 	qr.NewReplyModes().Put(in)
@@ -84,11 +84,11 @@ func (p *Producer) ql(qcodes []types.QCode) {
 	for _, qcode := range qcodes {
 		switch qcode {
 		case types.USABLE_AREA:
-			qr.NewUsableArea(p.emu.Cfg.Cols, p.emu.Cfg.Rows).Put(in)
+			qr.NewUsableArea(p.emu.Cfg.Cols, p.emu.Cfg.Rows, p.emu.Cfg.FontWidth, p.emu.Cfg.FontHeight).Put(in)
 		case types.ALPHANUMERIC_PARTITIONS:
 			qr.NewAlphanumericPartitions(p.emu.Cfg.Cols, p.emu.Cfg.Rows).Put(in)
 		case types.CHARACTER_SETS:
-			qr.NewCharacterSets().Put(in)
+			qr.NewCharacterSets(p.emu.Cfg.FontWidth, p.emu.Cfg.FontHeight).Put(in)
 		case types.COLOR_SUPPORT:
 			qr.NewColorSupport(p.emu.Cfg.Monochrome).Put(in)
 		case types.HIGHLIGHTING:
