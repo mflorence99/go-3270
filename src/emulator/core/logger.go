@@ -580,7 +580,7 @@ func (l *Logger) logOutboundOrders(out *Outbound, cmd types.Command, color text.
 	t := l.newTable(color, fmt.Sprintf("%s Outbound Orders\nNOTE: EUA and RA orders are listed in start/stop pairs", cmd))
 	defer t.Render()
 	var addr uint
-	fldAttrs := types.DEFAULT_ATTRS
+	fldAttrs := types.NewDefaultAttrs()
 
 	// 👇 header
 	t.AppendHeader(table.Row{

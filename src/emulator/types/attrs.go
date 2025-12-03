@@ -29,19 +29,21 @@ type Attrs struct {
 	Default bool
 }
 
-var DEFAULT_ATTRS = &Attrs{
-	Autoskip:  true,
-	Default:   true,
-	Protected: true,
-	Numeric:   true,
-}
-
 // 🟦 Constructors
 
 func NewBasicAttrs(char byte) *Attrs {
 	a := new(Attrs)
 	a.fromBits(char)
 	return a
+}
+
+func NewDefaultAttrs() *Attrs {
+	return &Attrs{
+		Autoskip:  true,
+		Default:   true,
+		Protected: true,
+		Numeric:   true,
+	}
 }
 
 func NewDiffAttrs(a *Attrs, b *Attrs) *Attrs {
@@ -66,7 +68,6 @@ func NewExtendedAttrs(chars []byte) *Attrs {
 	return a
 }
 
-// 🔥 note that we are taking a copy and overwriting deltas
 func NewModifiedAttrs(attrs *Attrs, chars []byte) *Attrs {
 	a := *attrs
 	a.fromBytes(chars)

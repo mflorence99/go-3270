@@ -222,7 +222,7 @@ func (c *Consumer) srm(sfld SFld) {
 func (c *Consumer) orders(out *Outbound) {
 	var inFld bool
 	var fldAddr uint
-	fldAttrs := types.DEFAULT_ATTRS
+	fldAttrs := types.NewDefaultAttrs()
 
 	// 👇 look at each byte to see if it is an order
 	for out.HasNext() {

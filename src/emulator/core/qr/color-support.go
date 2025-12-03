@@ -26,7 +26,12 @@ type ColorSupport struct {
 func NewColorSupport(monochrome bool) ColorSupport {
 	cavs := make([]byte, 0)
 	cavs = append(cavs, []byte{0x00, 0xf4}...)
-	for ix := 1; ix < 16; ix++ {
+	// TODO 🔥 somehow TSO gets confused when we add white 0xff!
+	// maybe the [0xfe, 0xff] sequence is confused with the frame LT?
+	// so I'm just pretending we only support 15 colors not 16
+	// it doesn't seem to be a factor but QUERY_REPLY is rejected
+	// by MVS if we don't
+	for ix := 1; ix < 15; ix++ {
 		cavs = append(cavs, []byte{byte(ix + 240), utils.Ternary(monochrome, 0x00, byte(ix+240))}...)
 	}
 	return ColorSupport{

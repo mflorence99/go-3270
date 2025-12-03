@@ -41,17 +41,17 @@ func (c *Config) RC2Addr(row, col uint) uint {
 func (c *Config) ColorOf(a *Attrs) string {
 	var ix Color
 	if c.Monochrome {
-		ix = 0xf4
+		ix = GREEN
 	} else if a.Color == 0x00 {
 		switch {
 		case !a.Protected && (a.Highlight || a.Hidden):
-			ix = 0xf2
+			ix = RED
 		case !a.Protected && !a.Highlight:
-			ix = 0xf4
+			ix = GREEN
 		case a.Protected && (a.Highlight || a.Hidden):
-			ix = 0xf7
+			ix = FOREGROUND
 		case a.Protected && !a.Highlight:
-			ix = 0xf1
+			ix = BLUE
 		default:
 			ix = 0xf4
 		}

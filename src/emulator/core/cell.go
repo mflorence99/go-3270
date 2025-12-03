@@ -17,7 +17,7 @@ type Cell struct {
 
 func NewCell(emu *Emulator) *Cell {
 	c := new(Cell)
-	c.Attrs = types.DEFAULT_ATTRS
+	c.Attrs = types.NewDefaultAttrs()
 	c.emu = emu
 	return c
 }
