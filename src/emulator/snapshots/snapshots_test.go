@@ -56,8 +56,8 @@ func TestNewSnapshots(t *testing.T) {
 				// 👇 let's analyze the results of RM and RB on each snapshot too
 				emu.Bus.SubInbound(func(chars []byte, hints core.PubInboundHints) {
 					raw, _ := json.Marshal(chars)
-					fn := utils.Ternary(hints.RB, "rb", "rm")
-					os.WriteFile(filepath.Join(dir, nm, fn+".json"), []byte(raw), perm)
+					fn := utils.Ternary(hints.RB, "rb.json", "rm.json")
+					os.WriteFile(filepath.Join(dir, nm, fn), []byte(raw), perm)
 				})
 				emu.Bus.PubRB(types.ENTER)
 				emu.Bus.PubRM(types.PF1)
@@ -123,6 +123,19 @@ func TestOldSnapshots(t *testing.T) {
 				t.Logf("🔥 %s/screen.png differs from snapshot", nm)
 				t.Fail()
 			}
+
+			// 👇 let's analyze the results of RM and RB on each snapshot too
+			emu.Bus.SubInbound(func(chars []byte, hints core.PubInboundHints) {
+				fn := utils.Ternary(hints.RB, "rb.json", "rm.json")
+				expected, _ := os.ReadFile(filepath.Join(dir, nm, fn))
+				actual, _ := json.Marshal(chars)
+				if !bytes.Equal(expected, actual) {
+					t.Logf("🔥 %s/%s differs from snapshot", nm, fn)
+					t.Fail()
+				}
+			})
+			emu.Bus.PubRB(types.ENTER)
+			emu.Bus.PubRM(types.PF1)
 
 		})
 	}
