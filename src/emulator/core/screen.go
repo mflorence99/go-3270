@@ -120,7 +120,7 @@ func (s *Screen) renderImpl(dc *gg.Context, addr uint, doBlink bool, blinkOn boo
 		g := Glyph{
 			Char:       char,
 			Color:      color,
-			Highlight:  a.Highlight,
+			Highlight:  a.Highlight || a.Intensify,
 			Reverse:    reverse,
 			Underscore: underscore,
 			LCID:       a.LCID,

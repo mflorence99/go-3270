@@ -12,6 +12,7 @@ type Attrs struct {
 	Color      Color
 	Hidden     bool
 	Highlight  bool
+	Intensify  bool
 	LCID       LCID
 	MDT        bool
 	Numeric    bool
@@ -98,7 +99,7 @@ func (a *Attrs) fromBytes(chars []byte) {
 			a.Blink = false
 			a.Reverse = false
 			a.Underscore = false
-			a.Highlight = false
+			a.Intensify = false
 			highlight := Highlight(chunk[1])
 			switch highlight {
 			case BLINK:
@@ -108,7 +109,7 @@ func (a *Attrs) fromBytes(chars []byte) {
 			case UNDERSCORE:
 				a.Underscore = true
 			case INTENSIFY:
-				a.Highlight = true
+				a.Intensify = true
 			}
 
 		case COLOR:
@@ -217,6 +218,9 @@ func AttrsFor(a *Attrs) string {
 	}
 	if a.Highlight {
 		b.WriteString("HILITE ")
+	}
+	if a.Intensify {
+		b.WriteString("INTENSE ")
 	}
 	if a.MDT {
 		b.WriteString("MDT ")
