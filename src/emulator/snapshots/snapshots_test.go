@@ -5,6 +5,8 @@ package snapshots
 import (
 	"bytes"
 	"emulator/core"
+	"emulator/types"
+	"emulator/utils"
 	"encoding/json"
 	"fmt"
 	"image/png"
@@ -50,6 +52,15 @@ func TestNewSnapshots(t *testing.T) {
 				os.MkdirAll(filepath.Join(dir, nm), perm)
 				os.WriteFile(filepath.Join(dir, nm, "flds.json"), []byte(flds), perm)
 				os.WriteFile(filepath.Join(dir, nm, "screen.png"), buf.Bytes(), perm)
+
+				// 👇 let's analyze the results of RM and RB on each snapshot too
+				emu.Bus.SubInbound(func(chars []byte, hints core.PubInboundHints) {
+					raw, _ := json.Marshal(chars)
+					fn := utils.Ternary(hints.RB, "rb", "rm")
+					os.WriteFile(filepath.Join(dir, nm, fn+".json"), []byte(raw), perm)
+				})
+				emu.Bus.PubRB(types.ENTER)
+				emu.Bus.PubRM(types.PF1)
 			})
 		}
 

@@ -42,6 +42,7 @@ func NewCharacterSets(fontWidth, fontHeight float64) CharacterSets {
 		SDH:   byte(fontHeight),
 		FORM:  []byte{0x00, 0x00, 0x00, 0x00},
 		// 🔥 we really want len(CharacterSetDesc{})
+		// 👇 length of each char set, of which we support 2
 		DL: 3,
 		Descs: []CharacterSetDesc{
 			{SET: 0x00, Flag: 0b00010000, LCID: 0x00},
@@ -63,7 +64,6 @@ func (s CharacterSets) Put(in iface.Inbound) {
 	chars = append(chars, s.SDW)
 	chars = append(chars, s.SDH)
 	chars = append(chars, s.FORM...)
-	// 👇 length of each char set, of which we support 2
 	chars = append(chars, s.DL)
 	for _, desc := range s.Descs {
 		chars = append(chars, desc.SET)
