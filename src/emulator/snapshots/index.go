@@ -21,9 +21,11 @@ func init() {
 	Index["rfe-menu"] = RFE_MENU
 	Index["rpf-menu"] = RPF_MENU
 	Index["splash"] = SPLASH
+	Index["spool"] = SPOOL
 	Index["symset0"] = SYMSET0
 	Index["symset1"] = SYMSET1
 	Index["termtest"] = TERMTEST
 	Index["termtest-help"] = TERMTEST_HELP
 	Index["tso-menu"] = TSO_MENU
+	Index["utils"] = UTILS
 }

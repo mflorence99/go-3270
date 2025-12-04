@@ -164,8 +164,8 @@ func (k *Keyboard) keystroke(key types.Keystroke) {
 // 🟦 BACKSPACE
 
 func (k *Keyboard) backspace(dfltAddr uint) (uint, bool) {
-	cell, _ := k.emu.Buf.Get()
-	// 👇 validate data entry into current cell
+	cell, addr := k.emu.Buf.PrevGet()
+	// 👇 validate data entry into previous cell
 	prot := cell.IsFldStart() || cell.Attrs.Protected
 	if prot {
 		return dfltAddr, false
@@ -178,11 +178,6 @@ func (k *Keyboard) backspace(dfltAddr uint) (uint, bool) {
 	sf.Attrs.MDT = true
 	// 👇 update cell
 	cell.Char = 0x40
-	// 👇 if the previous cell is a field start, don't advance
-	next, addr := k.emu.Buf.PrevGet()
-	if next.IsFldStart() {
-		return dfltAddr, false
-	}
 	// 👇 advance to previous cell
 	return k.emu.Buf.MustSeek(addr), true
 }
