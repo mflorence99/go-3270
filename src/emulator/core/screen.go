@@ -39,7 +39,7 @@ func (s *Screen) initialize() {
 	// 👇 precompute the box for each cell
 	s.cps = make([]Box, s.emu.Cfg.Cols*s.emu.Cfg.Rows)
 	for ix := range s.cps {
-		// 🔥 it's awkwasrd to make row, col one-based, but that's the
+		// 🔥 it's awkward to make row, col one-based, but that's the
 		//    way it works everywhere else so it would be confusing not to
 		row := (uint(ix) / s.emu.Cfg.Cols) + 1
 		col := (uint(ix) % s.emu.Cfg.Cols) + 1
@@ -116,7 +116,7 @@ func (s *Screen) renderImpl(dc *gg.Context, addr uint, doBlink bool, blinkOn boo
 	char := utils.Ternary(invisible, ' ', cell.Char)
 	// 🔥 optimization: if the screen is clean and the char blank, skip
 	if !s.clean || char > ' ' || outline != 0x00 || reverse || underscore {
-		// 👇 the cache will find us the glyph iself
+		// 👇 the cache will find us the glyph itself
 		g := Glyph{
 			Char:       char,
 			Color:      color,

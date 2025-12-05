@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// 🟦 Measure a function's elapsed time (use defer to invode)
+// 🟦 Measure a function's elapsed time (use defer to invoke)
 
 func ElapsedTime(start time.Time) {
 	elapsed := time.Since(start)

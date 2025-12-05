@@ -39,13 +39,13 @@ type Mediator struct {
 // args[0] canvas
 // args[1] bgColor
 // args[2] monochrome
-// args[3] clut [map attr -> [color, name]]
+// args[3] CLUT [map attr -> [color, name]]
 // args[4] fontSize
 // args[5] rows
 // args[6] cols
 // args[7] dpi
 // 👇 for testing
-// args[8] testpage
+// args[8] testPage
 
 func NewGo3270(this js.Value, args []js.Value) any {
 	m := new(Mediator)

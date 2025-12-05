@@ -59,7 +59,7 @@ func (f *Flds) buildIndex() []*Fld {
 	return flds
 }
 
-// 👇 look at pairs of Flds, this and the next,
+// 👇 look at pairs of fields, this and the next,
 // and group all the Cells in between to this Fld
 func (f *Flds) buildCells(flds []*Fld) []*Fld {
 	temp := make([]*Fld, 0)

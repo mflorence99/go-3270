@@ -88,7 +88,7 @@ func (c *Cells) RB() []byte {
 				chars = append(chars, raw...)
 			}
 
-		// 👇 emit SA everytime attribute changes
+		// 👇 emit SA every time attribute changes
 		case mode == types.CHARACTER_MODE && cell.Attrs.CharAttr:
 			delta := types.NewDiffAttrs(cell.Attrs, fldAttrs)
 			raw := delta.Bytes()

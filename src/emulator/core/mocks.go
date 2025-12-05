@@ -12,7 +12,7 @@ import (
 	"github.com/golang/freetype/truetype"
 )
 
-// 🟧 Generato a mock emulator for testing
+// 🟧 Generate a mock emulator for testing
 
 func MockEmulator(rows, cols uint) *Emulator {
 	bus := NewBus()

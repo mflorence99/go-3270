@@ -14,7 +14,7 @@ type Bus struct {
 //go:generate stringer -type=Topic
 type Topic int
 
-// 🔥 run go generate emulator/core if any of theee change
+// 🔥 run go generate emulator/core if any of these change
 
 const (
 	attn Topic = iota

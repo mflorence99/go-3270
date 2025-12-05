@@ -19,7 +19,7 @@ import psList from 'ps-list';
 
 const { taskNames, prod, verbose, watch } = cli();
 
-// 👇 flatten all the tasks and their subtasks into a sequense of todos
+// 👇 flatten all the tasks and their subtasks into a sequence of todos
 
 const reducer = (taskNames: (string | number)[]): Task[] => {
   return taskNames.reduce(

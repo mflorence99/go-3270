@@ -230,7 +230,7 @@ func (k *Keyboard) end(dfltAddr uint) (uint, bool) {
 			return k.emu.Buf.WrappingSeek(int(addr) + eof), true
 		}
 	}
-	// 🔥 not an error if whole fiels is blank
+	// 🔥 not an error if whole field is blank
 	return dfltAddr, true
 }
 

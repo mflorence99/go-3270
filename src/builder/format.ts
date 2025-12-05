@@ -15,7 +15,7 @@ export function formatBytes(
     let size = String(
       parseFloat((bytes / Math.pow(k, i)).toFixed(numDP))
     );
-    // 👇 supply trailing zeroes as necesssary
+    // 👇 supply trailing zeroes as necessary
     const ix = size.indexOf('.');
     if (ix > 0) {
       const numAfterDP = size.length - (ix + 1);

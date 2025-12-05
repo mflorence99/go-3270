@@ -1,6 +1,6 @@
 package utils
 
-// 🟧 Simple stacvk impementation
+// 🟧 Simple stack implementation
 
 type Stack[T any] struct {
 	data []T

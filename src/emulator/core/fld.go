@@ -13,7 +13,7 @@ type Fld struct {
 	emu *Emulator // 👈 back pointer to all common components
 }
 
-// 🟦 Internal constructor 👁️ flds.go
+// 🟦 Internal constructor 👁️ "flds.go"
 
 func NewFld(sf *Cell, emu *Emulator) *Fld {
 	f := new(Fld)
