@@ -6,6 +6,7 @@
     "plugins": [
       {
         "name": "ts-lit-plugin",
+        "globalAttributes": ["form"],
         "strict": true,
         "rules": {
           "no-missing-element-type-definition": "off",
